@@ -23,7 +23,7 @@ struct GLFWwindow;
 class TlTestLab
 	{
 	public:
-		int Run( const char* Title, int Width, int Height, bool VSync = true );
+		int Run();
 
 	private:
 		void Startup();

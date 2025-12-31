@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /**
-	@file		scenesimulation.h
+	@file		scenerenderer.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,23 +11,22 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "scene.h"
+#include "testlab/scene.h"
 
 
 //--------------------------------------------------------------------------------------------------
-// TlSceneSimulation
+// TlSceneRenderer
 //--------------------------------------------------------------------------------------------------
-class TlSceneSimulation
+class TlSceneRenderer
 	{
 	public:
-	public:
 		// Construction / Destruction
-		explicit TlSceneSimulation( const TlScene& Scene );
-		virtual ~TlSceneSimulation() = default;
+		explicit TlSceneRenderer( const TlScene& Scene );
+		~TlSceneRenderer();
 
-		// Simulation
-		virtual void Advance( std::vector< glm::mat4 >& SceneTransforms, float Timestep ) = 0;
+		// Rendering
+		void DrawFrame( std::vector< glm::mat4 >& SceneTransforms );
 
-	protected:
+	private:
 		const TlScene& mScene;
 	};

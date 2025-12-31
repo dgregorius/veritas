@@ -5,8 +5,6 @@
 //--------------------------------------------------------------------------------------------------
 #include "test.h"
 #include "scene.h"
-#include "scenesimulation.h"
-#include "scenerenderer.h"
 
 // Simulation
 #include "simulations/box3dsimulation.h"
@@ -14,8 +12,8 @@
 #include "simulations/physxsimulation.h"
 #include "simulations/ragnaroksimulation.h"
 
-// GLM
-#include <glm/mat4x4.hpp>
+// Renderer
+#include "renderer/scenerenderer.h"
 
 
 //--------------------------------------------------------------------------------------------------

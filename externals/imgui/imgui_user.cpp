@@ -9,8 +9,15 @@
 #include "implot.h"
 #include "implot_internal.h"
 
+#include <windows.h>
+#include <dwmapi.h>
+
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include <glad.h>
 #include <glfw3.h>
+#include <glfw3native.h>
+
+#pragma comment(lib, "dwmapi.lib")
 
 
 //--------------------------------------------------------------------------------------------------
@@ -30,6 +37,10 @@ namespace ImGui
 {
 void Startup( GLFWwindow* Window )
 	{
+	BOOL DarkMode = TRUE;
+	HWND hWnd = glfwGetWin32Window( Window );
+	DwmSetWindowAttribute( hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &DarkMode, sizeof( DarkMode ) );
+
 	float ScaleX, ScaleY;
 	glfwGetWindowContentScale( Window, &ScaleX, &ScaleY );
 	IMGUI_UI_SCALE = ImMax( ScaleX, ScaleY );
@@ -82,16 +93,27 @@ void EndFrame( GLFWwindow* Window )
 	{
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+	
+	// Update and Render additional Platform Windows
+	// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+	//  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
+	ImGuiIO& IO = ImGui::GetIO();
+	if ( IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+		{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent( Window );
+		}
 
-	ImGui::UpdatePlatformWindows();
-	ImGui::RenderPlatformWindowsDefault();
-	glfwMakeContextCurrent( Window );
+	glfwSwapBuffers( Window );
 	}
 
 void Shutdown( GLFWwindow* )
 	{
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
+	
 	ImGui::DestroyContext();
+	ImPlot::DestroyContext();
 	}
 }

@@ -13,11 +13,16 @@
 #include <glad.h>
 #include <glfw3.h>
 
+// CRT's memory leak detection
+#if defined( DEBUG ) || defined( _DEBUG )
+#  include <crtdbg.h>
+#endif
+
 
 //--------------------------------------------------------------------------------------------------
 // TlTestLab
 //--------------------------------------------------------------------------------------------------
-int TlTestLab::Run( const char* Title, int Width, int Height, bool VSync = true )
+int TlTestLab::Run()
 	{
 	// Initialize GLFW
 	if ( !glfwInit() )
@@ -34,7 +39,7 @@ int TlTestLab::Run( const char* Title, int Width, int Height, bool VSync = true 
 	glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE );
 #endif
 
-	mWindow = glfwCreateWindow( Width, Height, Title, nullptr, nullptr );
+	mWindow = glfwCreateWindow( 1920, 1080, "TestLab", NULL, NULL );
 	if ( !mWindow )
 		{
 		glfwTerminate();
@@ -42,7 +47,7 @@ int TlTestLab::Run( const char* Title, int Width, int Height, bool VSync = true 
 		}
 
 	glfwMakeContextCurrent( mWindow );
-	glfwSwapInterval( VSync ? 1 : 0 );
+	glfwSwapInterval( 1 );
 
 	// Setup GLAD bindings
 	if ( !gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress ) )
@@ -51,10 +56,17 @@ int TlTestLab::Run( const char* Title, int Width, int Height, bool VSync = true 
 		return EXIT_FAILURE;
 		}
 
+	// Initialize OpenGL
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.0f, 2.0f );
+	glEnable( GL_CULL_FACE );
+	glCullFace( GL_BACK );
+	glFrontFace( GL_CCW );
+
 #if defined( DEBUG ) || defined( _DEBUG )
 	glEnable( GL_DEBUG_OUTPUT );
 	glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
-	glDebugMessageCallback( gladDebugOutput, nullptr );
+	glDebugMessageCallback( gladDebugOutput, NULL );
 	glDebugMessageControl( GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_TRUE );
 #endif
 
@@ -72,7 +84,6 @@ int TlTestLab::Run( const char* Title, int Width, int Height, bool VSync = true 
 				}
 			ImGui::EndFrame( mWindow );
 
-			glfwSwapBuffers( mWindow );
 			glfwPollEvents();
 			}
 		Shutdown();
@@ -120,4 +131,20 @@ void TlTestLab::EndFrame()
 void TlTestLab::Shutdown()
 	{
 
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// Every saga begins with a first step...
+//--------------------------------------------------------------------------------------------------
+int main()
+	{
+	// Enable run-time memory check for debug builds
+#if defined( DEBUG ) || defined( _DEBUG )
+	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	//_CrtSetBreakAlloc( 666 );
+#endif
+
+	TlTestLab PhysicsLab;
+	return PhysicsLab.Run();
 	}
