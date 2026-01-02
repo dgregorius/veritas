@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /**
-	@file		scene.h
+	@file		veritas.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,159 +11,135 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-
-#include <algorithm>
-#include <unordered_map>
+#include <span>
 #include <variant>
 #include <vector>
 
 
 //--------------------------------------------------------------------------------------------------
-// TlFrame
+// VsVector3
 //--------------------------------------------------------------------------------------------------
-struct TlFrame
+struct VsVector3
 	{
-
+	float X, Y, Z;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlGeometry
+// VsMatrix3
 //--------------------------------------------------------------------------------------------------
-struct TlGeometry
+struct VsMatrix3
 	{
-	int TriangleCount = 0;
-	std::vector< int > TriangleIndices;
-
-	int VertexCount = 0;
-	std::vector< float > VertexPositions;
-	std::vector< float > VertexNormals;
-
-	int EdgeCount = 0;
-	std::vector< int > EdgeIndices;   
-	std::vector< uint32_t > EdgeColors;  
+	float A11, A21, A31;
+	float A12, A22, A32;
+	float A13, A23, A33;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlShapeType
+// VsQuaternion
 //--------------------------------------------------------------------------------------------------
-enum TlShapeType
+struct VsQuaternion
 	{
-	kSphereShape,
-	kCapsuleShape,
-	kHullShape,
-	kMeshShape
+	float X, Y, Z, W;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlSphereShape
+// VsFrame
 //--------------------------------------------------------------------------------------------------
-struct TlSphereShape
+struct VsFrame
 	{
-	
+	VsVector3 Origin;
+	VsQuaternion Basis;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// VsShapeType
+//--------------------------------------------------------------------------------------------------
+enum VsShapeType
+	{
+	VS_SPHERE_SHAPE,
+	VS_CAPSULE_SHAPE,
+	VS_HULL_SHAPE,
+	VS_MESH_SHAPE
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// VsSphereDef
+//--------------------------------------------------------------------------------------------------
+struct VsSphereDef
+	{
+	VsVector3 Center;
 	float Radius;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlCapsuleShape
+// VsCapsuleDef
 //--------------------------------------------------------------------------------------------------
-struct TlCapsuleShape
+struct VsCapsuleDef
 	{
-	
+	VsVector3 Center1;
+	VsVector3 Center2;
 	float Radius;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlHullShape
+// VsHullDef
 //--------------------------------------------------------------------------------------------------
-struct TlHullShape 
+struct VsHullDef
 	{
-	const TlGeometry* Geometry;
-	float Scale = 1.0f;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// TlMeshShape
-//--------------------------------------------------------------------------------------------------
-struct TlMeshShape 
-	{
-	const TlGeometry* Geometry;
 	
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlShape
+// VsMeshDef
 //--------------------------------------------------------------------------------------------------
-struct TlShape
+struct VsMeshDef
 	{
-	using TlShapeVariant = std::variant< TlSphereShape, TlCapsuleShape, TlHullShape, TlMeshShape >;
-	TlShapeVariant Variant;
+	
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlBodyType
+// VsShapeDef
 //--------------------------------------------------------------------------------------------------
-enum TlBodyType 
+struct VsShapeDef
+	{
+	using VsShapeVariant = std::variant< VsSphereDef, VsCapsuleDef, VsHullDef, VsMeshDef >;
+	VsShapeVariant Variant;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBodyType
+//--------------------------------------------------------------------------------------------------
+enum VsBodyType
 	{ 
-	kStaticBody,
-	kKeyframedBody,
-	kDynamicBody
+	VS_STATIC_BODY,
+	VS_KEYFRAME_BODY,
+	VS_DYNAMIC_BODY
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlBodyType
+// VsBodyDef
 //--------------------------------------------------------------------------------------------------
-struct TlBody
+struct VsBodyDef
 	{
-	TlBodyType Type = kStaticBody;
-	
-
-	std::vector< TlShape > Shapes;
-
-// 	// Shape helpers
-// 	int GetShapeCount() const
-// 		{
-// 		return static_cast< int >( Shapes.size() );
-// 		}
-// 
-// 	TlSphereShape& AddSphereShape( const glm::vec3& Center, float Radius )
-// 		{
-// 		TlShape& Shape = Shapes.emplace_back( TlSphereShape{ Center, Radius } );
-// 		return std::get< TlSphereShape >( Shape.Variant );
-// 		}
-// 
-// 	TlCapsuleShape& AddCapsuleShape( const glm::vec3& Center1, const glm::vec3& Center2, float Radius )
-// 		{
-// 		TlShape& Shape = Shapes.emplace_back( TlCapsuleShape{ Center1, Center2, Radius } );
-// 		return std::get< TlCapsuleShape >( Shape.Variant );
-// 		}
-// 
-// 	TlHullShape& AddHullShape( const TlGeometry* Geometry, float Scale = 1.0f )
-// 		{
-// 		TlShape& Shape = Shapes.emplace_back( TlHullShape{ Geometry, Scale } );
-// 		return std::get< TlHullShape >( Shape.Variant );
-// 		}
-// 
-// 	TlMeshShape& AddMeshShape( const TlGeometry* Geometry, const glm::vec3 Scale = { 1.0f, 1.0f, 1.0f } )
-// 		{
-// 		TlShape& Shape = Shapes.emplace_back( TlMeshShape{ Geometry, Scale } );
-// 		return std::get< TlMeshShape >( Shape.Variant );
-// 		}
+	VsBodyType Type = VS_STATIC_BODY;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlSphericalJoint
+// VsSphericalJointDef
 //--------------------------------------------------------------------------------------------------
-struct TlSphericalJoint
+struct VsSphericalJointDef
 	{
 	bool EnableSwingLimit = false;
 	float MaxSwingAngle = 90.0f;
@@ -175,9 +151,9 @@ struct TlSphericalJoint
 
 
 //--------------------------------------------------------------------------------------------------
-// TlRevoluteJoint
+// VsRevoluteJointDef
 //--------------------------------------------------------------------------------------------------
-struct TlRevoluteJoint
+struct VsRevoluteJointDef
 	{
 	bool EnableLimt = false;
 	float MinAngle = -175.0f;
@@ -186,9 +162,9 @@ struct TlRevoluteJoint
 
 
 //--------------------------------------------------------------------------------------------------
-// TlPrismaticJoint
+// VsPrismaticJointDef
 //--------------------------------------------------------------------------------------------------
-struct TlPrismaticJoint
+struct VsPrismaticJointDef
 	{
 	bool EnableLimt = false;
 	float MinOffset = 0.0f;
@@ -197,9 +173,9 @@ struct TlPrismaticJoint
 
 
 //--------------------------------------------------------------------------------------------------
-// TlRigidJoint
+// VsRigidJoint
 //--------------------------------------------------------------------------------------------------
-struct TlRigidJoint
+struct VsRigidJointDef
 	{
 	float LinearFrequency;
 	float LinearDampingRatio;
@@ -209,66 +185,181 @@ struct TlRigidJoint
 
 
 //--------------------------------------------------------------------------------------------------
-// TlJoint
+// VsJointDef
 //--------------------------------------------------------------------------------------------------
-struct TlJoint
+struct VsJointDef
 	{
 	int BodyIndex1;
-	TlFrame LocalFrame1;
+	VsFrame LocalFrame1;
 	int BodyIndex2;
-	TlFrame LocalFrame2;
+	VsFrame LocalFrame2;
 
-	using TlJointVariant = std::variant< TlSphericalJoint, TlRevoluteJoint, TlPrismaticJoint, TlRigidJoint >;
-	TlJointVariant Variant;
+	using VsJointVariant = std::variant< VsSphericalJointDef, VsRevoluteJointDef, VsPrismaticJointDef, VsRigidJointDef >;
+	VsJointVariant Variant;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlScene
+// VsWorldDef
 //--------------------------------------------------------------------------------------------------
-struct TlScene
+struct VsWorldDef
 	{
-	std::vector< TlBody > Bodies;
-	std::vector< TlJoint > Joints;
-
-	// Body helpers
-	int GetBodyCount() const
-		{
-		return static_cast<int>( Bodies.size() );
-		}
-
-	TlBody& AddBody()
-		{
-		return Bodies.emplace_back();
-		}
-
-	// Joint helpers
-	int GetJointCount() const
-		{
-		return static_cast<int>( Joints.size() );
-		}
-
-	TlSphericalJoint& AddSphericalJoint( int BodyIndex1, const TlFrame& LocalFrame1, int BodyIndex2, const TlFrame& LocalFrame2 )
-		{
-		TlJoint& Joint = Joints.emplace_back( BodyIndex1, LocalFrame1, BodyIndex2, LocalFrame2, TlSphericalJoint{} );
-		return std::get< TlSphericalJoint >( Joint.Variant );
-		}
-
-	TlRevoluteJoint& AddRevoluteJoint( int BodyIndex1, const TlFrame& LocalFrame1, int BodyIndex2, const TlFrame& LocalFrame2 )
-		{
-		TlJoint& Joint = Joints.emplace_back( BodyIndex1, LocalFrame1, BodyIndex2, LocalFrame2, TlRevoluteJoint{} );
-		return std::get< TlRevoluteJoint >( Joint.Variant );
-		}
-
-	TlPrismaticJoint& AddPrismaticJoint( int BodyIndex1, const TlFrame& LocalFrame1, int BodyIndex2, const TlFrame& LocalFrame2 )
-		{
-		TlJoint& Joint = Joints.emplace_back( BodyIndex1, LocalFrame1, BodyIndex2, LocalFrame2, TlPrismaticJoint{} );
-		return std::get< TlPrismaticJoint >( Joint.Variant );
-		}
-
-	TlRigidJoint& AddRigidJoint( int BodyIndex1, const TlFrame& LocalFrame1, int BodyIndex2, const TlFrame& LocalFrame2 )
-		{
-		TlJoint& Joint = Joints.emplace_back( BodyIndex1, LocalFrame1, BodyIndex2, LocalFrame2, TlRigidJoint{} );
-		return std::get< TlRigidJoint >( Joint.Variant );
-		}
+	std::vector< VsBodyDef > Bodies;
+	std::vector< VsJointDef > Joints;
 	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsShape
+//--------------------------------------------------------------------------------------------------
+struct IVsShape
+	{
+	protected:
+		virtual ~IVsShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsSphereShape
+//--------------------------------------------------------------------------------------------------
+struct IVsSphereShape : IVsShape
+	{
+	virtual VsVector3 GetCenter() const = 0;
+	virtual float GetRadius() const = 0;
+
+	protected:
+		virtual ~IVsSphereShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsCapsuleShape
+//--------------------------------------------------------------------------------------------------
+struct IVsCapsuleShape : IVsShape
+	{
+	virtual VsVector3 GetCenter1() const = 0;
+	virtual VsVector3 GetCenter2() const = 0;
+	virtual float GetRadius() const = 0;
+
+	protected:
+		virtual ~IVsCapsuleShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsHull
+//--------------------------------------------------------------------------------------------------
+struct IVsHull
+	{
+	protected:
+		virtual ~IVsHull() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsHullShape
+//--------------------------------------------------------------------------------------------------
+struct IVsHullShape : IVsShape
+	{
+	protected:
+		virtual ~IVsHullShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsMesh
+//--------------------------------------------------------------------------------------------------
+struct IVsMesh
+	{
+	protected:
+		virtual ~IVsMesh() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsMeshShape
+//--------------------------------------------------------------------------------------------------
+struct IVsMeshShape : IVsShape
+	{
+	protected:
+		virtual ~IVsMeshShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsBody
+//--------------------------------------------------------------------------------------------------
+struct IVsBody
+	{
+	virtual VsBodyType GetType() const = 0;
+
+	virtual VsVector3 GetPosition() const = 0;
+	virtual void SetPosition( const VsVector3& Position ) = 0;
+	virtual VsQuaternion GetOrientation() const = 0;
+	virtual void SetOrientation( const VsQuaternion& Orientation ) = 0;
+
+	virtual float GetMass() const = 0;
+	virtual float GetMassInv() const = 0;
+	virtual VsMatrix3 GetLocalInertia() const = 0;
+	virtual VsMatrix3 GetLocalInertiaInv() const = 0;
+	virtual VsMatrix3 GetInertia() const = 0;
+	virtual VsMatrix3 GetInertiaInv() const = 0;
+	virtual VsVector3 GetLocalMassCenter() const = 0;
+	virtual VsVector3 GetMassCenter() const = 0;
+
+	virtual IVsSphereShape* CreateSphere( const VsSphereDef& SphereDef ) = 0;
+	virtual IVsCapsuleShape* CreateCapulse( const VsCapsuleDef& CapsuleDef ) = 0;
+	virtual IVsHullShape* CreateHull( const VsHullDef& HullDef ) = 0;
+	virtual IVsMeshShape* CreateMesh( const VsMeshDef& MeshDef ) = 0;
+	virtual void DestroyShape( IVsShape* Shape ) = 0;
+
+	virtual int GetShapeCount() const = 0;
+	virtual IVsShape* GetShape( int ShapeIndex ) = 0;
+	virtual const IVsShape* GetShape( int ShapeIndex ) const = 0;
+
+	protected:
+		virtual ~IVsBody() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsWorld
+//--------------------------------------------------------------------------------------------------
+struct IVsWorld
+	{
+	virtual VsVector3 GetGravity() const = 0;
+	virtual void SetGravity( const VsVector3& Gravity ) = 0;
+
+	virtual IVsBody* CreateBody( const VsBodyDef& BodyDef ) = 0;
+	virtual void DestroyBody( IVsBody* Body ) = 0;
+
+	protected:
+		virtual ~IVsWorld() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// IVsPlugin
+//--------------------------------------------------------------------------------------------------
+struct IVsPlugin
+	{
+	virtual const char* GetName() const = 0;
+	
+	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
+	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;
+
+	virtual IVsWorld* CreateWorld( const VsWorldDef& WorldDef ) = 0;
+	virtual void DestroyWorld( IVsWorld* World ) = 0;
+
+	protected:
+		virtual ~IVsPlugin() = default;
+	};
+
+
+// Plugin entry point signatures
+extern "C" 
+	{
+	typedef IVsPlugin* ( *VsCreatePlugin )();
+	typedef void ( *VsDestroyPlugin )( IVsPlugin* );
+	}
+	

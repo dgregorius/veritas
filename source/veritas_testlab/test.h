@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <veritas/scene.h>
+#include <veritas/veritas.h>
 
 class TlSceneSimulation;
 class TlSceneRenderer;
@@ -36,8 +36,6 @@ class TlTest
 		virtual void EndFrame( double Time, float Timestep );
 
 	protected:
-		TlScene mScene;
-
 		std::vector< TlSceneSimulation* > mSceneSimulations;
 		TlSceneRenderer* mSceneRenderer = nullptr;
 	};

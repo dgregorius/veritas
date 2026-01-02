@@ -40,8 +40,7 @@ class TlBasicScene1 : public TlTest
 			}
 
 	private:
-		TlGeometry* mGround = nullptr;
-		TlGeometry* mBox = nullptr;
+		
 
 	};
 
