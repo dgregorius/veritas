@@ -74,6 +74,27 @@ workspace "veritas"
 			files { "source/veritas/**" }
 			includedirs { "source" }
 
+		-- Add Veritas Box3d
+			project "veritas_box3d"
+				kind "StaticLib"
+				location "build/source/veritas_box3d"
+				files { "source/veritas_box3d/**" }
+				includedirs { "source" }
+
+			-- Add Veritas Jolt
+			project "veritas_jolt"
+				kind "StaticLib"
+				location "build/source/veritas_jolt"
+				files { "source/veritas_jolt/**" }
+				includedirs { "source" }
+
+			-- Add Veritas PhysX
+			project "veritas_physx"
+				kind "StaticLib"
+				location "build/source/veritas_physx"
+				files { "source/veritas_physx/**" }
+				includedirs { "source" }
+
 		-- Add Veritas TestLab
 		project "veritas_testlab"
 			kind "ConsoleApp"
@@ -86,3 +107,5 @@ workspace "veritas"
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
 			debugcommand ( "bin/veritas_testlab.exe" )
 			debugdir "bin"
+
+		
