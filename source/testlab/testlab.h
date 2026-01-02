@@ -11,6 +11,8 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "test.h"
+
 #include <algorithm>
 #include <vector>
 
@@ -33,4 +35,9 @@ class TlTestLab
 		void Shutdown();
 
 		GLFWwindow* mWindow = nullptr;
+
+		int mTestIndex = -1;
+		TlTest* mTest = nullptr;
+		bool mSingleStep = false;
+		bool mShowProfiler = false;
 	};

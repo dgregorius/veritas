@@ -15,6 +15,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <algorithm>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 

@@ -27,20 +27,29 @@ TlTest::~TlTest()
 
 
 //--------------------------------------------------------------------------------------------------
+void TlTest::Finalize()
+	{
+	assert( mSceneSimulations.empty() );
+	mSceneSimulations.push_back( new TlBox3DSimulation( mScene ) );
+	mSceneSimulations.push_back( new TlJoltSimulation( mScene ) );
+	mSceneSimulations.push_back( new TlPhysXSimulation( mScene ) );
+	mSceneSimulations.push_back( new TlRagnarokSimulation( mScene ) );
+
+	assert( !mSceneRenderer );
+	mSceneRenderer = new TlSceneRenderer( mScene );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void TlTest::BeginFrame( double Time, float Timestep )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void TlTest::UpdateFrame( double Time, float Timestep )
 	{
-	// Delayed construction 
-	if ( mSceneSimulations.empty() )
-		{
-		mSceneSimulations.push_back( new TlBox3DSimulation( mScene ) );
-		mSceneSimulations.push_back( new TlJoltSimulation( mScene ) );
-		mSceneSimulations.push_back( new TlPhysXSimulation( mScene ) );
-		mSceneSimulations.push_back( new TlRagnarokSimulation( mScene ) );
-
-		assert( !mSceneRenderer );
-		mSceneRenderer = new TlSceneRenderer( mScene );
-		}
-
 	// Advance simulations
 	for ( TlSceneSimulation* Simulation : mSceneSimulations )
 		{
@@ -49,6 +58,20 @@ void TlTest::UpdateFrame( double Time, float Timestep )
 
 		mSceneRenderer->DrawFrame( SceneTransforms );
 		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void TlTest::RenderFrame( double Time, float Timestep )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void TlTest::EndFrame( double Time, float Timestep )
+	{
+
 	}
 
 

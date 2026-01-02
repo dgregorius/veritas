@@ -26,8 +26,14 @@ class TlTest
 		// Construction / Destruction
 		TlTest() = default;
 		virtual ~TlTest();
-		
-		void UpdateFrame( double Time, float Timestep );
+
+		void Finalize();
+
+		// Frame management
+		virtual void BeginFrame( double Time, float Timestep );
+		virtual void UpdateFrame( double Time, float Timestep );
+		virtual void RenderFrame( double Time, float Timestep );
+		virtual void EndFrame( double Time, float Timestep );
 
 	protected:
 		TlScene mScene;
@@ -56,10 +62,13 @@ std::vector< TlTestEntry >& tlGetTestEntries();
 //--------------------------------------------------------------------------------------------------
 // Test registry
 //--------------------------------------------------------------------------------------------------
-template < typename T >
+template < std::derived_from< TlTest > T > 
 TlTest* tlCreateTest()
 	{
-	return new T();
+	T* Test = new T();
+	Test->Finalize();
+
+	return Test;
 	}
 
 #define TL_DEFINE_TEST( Category, Name, Type )\

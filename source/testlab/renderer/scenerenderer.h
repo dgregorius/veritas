@@ -25,8 +25,13 @@ class TlSceneRenderer
 		~TlSceneRenderer();
 
 		// Rendering
-		void DrawFrame( std::vector< glm::mat4 >& SceneTransforms );
+		void DrawFrame( std::vector< glm::mat4 >& BodyTransforms );
 
 	private:
 		const TlScene& mScene;
+
+		TlGeometry* mSphere = nullptr;
+		std::unordered_map< const TlShape*, int > mShapeMap;
+		std::unordered_map< const TlGeometry*, std::vector< const TlShape* > > mGeometryMap;
+		
 	};

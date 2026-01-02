@@ -102,7 +102,23 @@ int TlTestLab::Run()
 //--------------------------------------------------------------------------------------------------
 void TlTestLab::Startup()
 	{
+	// Initialize test framework
+	std::vector< TlTestEntry >& TestEntries = tlGetTestEntries();
+	std::sort( TestEntries.begin(), TestEntries.end(), []( TlTestEntry Lhs, TlTestEntry Rhs )
+		{
+		int CategoryCompare = strcmp( Lhs.Category, Rhs.Category );
+		if ( CategoryCompare == 0 )
+			{
+			return strcmp( Lhs.Name, Rhs.Name ) < 0;
+			}
 
+		return CategoryCompare < 0;
+		} );
+
+	mTestIndex = 0;
+	mTest = TestEntries[ mTestIndex ].Creator();
+	mSingleStep = false;
+	mShowProfiler = false;
 	}
 
 
@@ -130,7 +146,10 @@ void TlTestLab::EndFrame()
 //--------------------------------------------------------------------------------------------------
 void TlTestLab::Shutdown()
 	{
-
+	// Terminate test framework
+	delete mTest;
+	mTest = nullptr;
+	mTestIndex = -1;
 	}
 
 
