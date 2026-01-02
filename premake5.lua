@@ -1,9 +1,9 @@
 
--- Create Ragnarok solution
-workspace "physicslab"
+-- Create Veritas solution
+workspace "veritas"
 
 	-- Global settings
-	startproject "testlab"
+	startproject "veritas_testlab"
 	
 	location "build"
 	configurations { "debug", "release" }
@@ -67,15 +67,22 @@ workspace "physicslab"
 	-- Source
 	group "source"
 
-		-- Add TestLab
-		project "testlab"
+		-- Add Veritas
+		project "veritas"
+			kind "StaticLib"
+			location "build/source/veritas"
+			files { "source/veritas/**" }
+			includedirs { "source" }
+
+		-- Add Veritas TestLab
+		project "veritas_testlab"
 			kind "ConsoleApp"
-			location "build/source/"
-			files { "source/**" }
-			includedirs { "source", "externals/box3d/include", "externals/glad", "externals/glm/include", "externals/glfw3/include", "externals/imgui", "externals/jolt/include", "externals/physx/include" }
-			links { "box3d", "glad", "glfw3", "jolt", "imgui", "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64" }	
-			libdirs { "externals/box3d/lib", "externals/glfw3/lib", "externals/jolt/lib" ,"externals/physx/lib" }
+			location "build/source/veritas_testlab"
+			files { "source/veritas_testlab/**" }
+			includedirs { "source""externals/glad", "externals/glfw3/include", "externals/imgui" }
+			links { "glad", "glfw3", "imgui", }	
+			libdirs { "externals/glfw3/lib" }
 			
-			postbuildcommands { "{COPY} %{cfg.targetdir}/testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
-			debugcommand ( "bin/testlab.exe" )
+			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
+			debugcommand ( "bin/veritas_testlab.exe" )
 			debugdir "bin"
