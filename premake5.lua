@@ -70,7 +70,7 @@ workspace "veritas"
 		-- Add Veritas
 		project "veritas"
 			kind "StaticLib"
-			location "build/source/veritas"
+			location "build/source/veritas/"
 			files { "source/veritas/**" }
 			includedirs { "source" }
 
@@ -79,8 +79,8 @@ workspace "veritas"
 			kind "ConsoleApp"
 			location "build/source/veritas_testlab"
 			files { "source/veritas_testlab/**" }
-			includedirs { "source""externals/glad", "externals/glfw3/include", "externals/imgui" }
-			links { "glad", "glfw3", "imgui", }	
+			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/imgui" }
+			links { "glad", "glfw3", "imgui" }	
 			libdirs { "externals/glfw3/lib" }
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
