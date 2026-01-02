@@ -13,9 +13,6 @@
 
 #include "test.h"
 
-#include <algorithm>
-#include <vector>
-
 struct GLFWwindow;
 
 

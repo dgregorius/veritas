@@ -69,25 +69,37 @@ workspace "veritas"
 
 		-- Add Veritas Box3d
 		project "veritas_box3d"
-			kind "StaticLib"
+			kind "SharedLib"
 			location "build/plugins/veritas_box3d"
 			files { "plugins/veritas_box3d/**" }
-			includedirs { "source" }
+			includedirs { "source", "externals/box3d/include" }
+			links { "box3d" }	
+			libdirs { "externals/box3d/lib" }
 
+			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_box3d.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/box3d" }
+			
 		-- Add Veritas Jolt
 		project "veritas_jolt"
-			kind "StaticLib"
+			kind "SharedLib"
 			location "build/plugins/veritas_jolt"
 			files { "plugins/veritas_jolt/**" }
-			includedirs { "source" }
+			includedirs { "source", "externals/jolt/include" }
+			links { "jolt" }	
+			libdirs { "externals/jolt/lib" }
+
+			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_jolt.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/jolt" }
 
 		-- Add Veritas PhysX
 		project "veritas_physx"
-			kind "StaticLib"
+			kind "SharedLib"
 			location "build/plugins/veritas_physx"
 			files { "plugins/veritas_physx/**" }
-			includedirs { "source" }
-			
+			includedirs { "source", "externals/physx/include" }
+			links { "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64" }	
+			libdirs { "externals/physx/lib" }
+
+			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_physx.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/physx" }
+
 	-- Source
 	group "source"
 
