@@ -4,16 +4,6 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "test.h"
-#include "scene.h"
-
-// Simulation
-#include "simulations/box3dsimulation.h"
-#include "simulations/joltsimulation.h"
-#include "simulations/physxsimulation.h"
-#include "simulations/ragnaroksimulation.h"
-
-// Renderer
-#include "renderer/scenerenderer.h"
 
 
 //--------------------------------------------------------------------------------------------------
@@ -21,22 +11,14 @@
 //--------------------------------------------------------------------------------------------------
 TlTest::~TlTest()
 	{
-	delete mSceneRenderer;
-	std::for_each( mSceneSimulations.begin(), mSceneSimulations.end(), []( TlSceneSimulation* Simulation ) { delete Simulation; } );
+	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void TlTest::Finalize()
 	{
-	assert( mSceneSimulations.empty() );
-	mSceneSimulations.push_back( new TlBox3DSimulation( mScene ) );
-	mSceneSimulations.push_back( new TlJoltSimulation( mScene ) );
-	mSceneSimulations.push_back( new TlPhysXSimulation( mScene ) );
-	mSceneSimulations.push_back( new TlRagnarokSimulation( mScene ) );
-
-	assert( !mSceneRenderer );
-	mSceneRenderer = new TlSceneRenderer( mScene );
+	
 	}
 
 
@@ -50,14 +32,7 @@ void TlTest::BeginFrame( double Time, float Timestep )
 //--------------------------------------------------------------------------------------------------
 void TlTest::UpdateFrame( double Time, float Timestep )
 	{
-	// Advance simulations
-	for ( TlSceneSimulation* Simulation : mSceneSimulations )
-		{
-		std::vector< glm::mat4 > SceneTransforms;
-		Simulation->Advance( SceneTransforms, Timestep );
-
-		mSceneRenderer->DrawFrame( SceneTransforms );
-		}
+	
 	}
 
 

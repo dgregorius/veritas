@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "scene.h"
+#include <veritas/scene.h>
 
 class TlSceneSimulation;
 class TlSceneRenderer;

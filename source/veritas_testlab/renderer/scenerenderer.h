@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "testlab/scene.h"
+#include <veritas/scene.h>
 
 
 //--------------------------------------------------------------------------------------------------
@@ -23,9 +23,6 @@ class TlSceneRenderer
 		// Construction / Destruction
 		explicit TlSceneRenderer( const TlScene& Scene );
 		~TlSceneRenderer();
-
-		// Rendering
-		void DrawFrame( std::vector< glm::mat4 >& BodyTransforms );
 
 	private:
 		const TlScene& mScene;

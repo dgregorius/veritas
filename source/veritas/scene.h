@@ -11,8 +11,6 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include <algorithm>
 #include <unordered_map>
@@ -25,8 +23,7 @@
 //--------------------------------------------------------------------------------------------------
 struct TlFrame
 	{
-	glm::vec3 Origin;
-	glm::quat Basis;
+
 	};
 
 
@@ -65,7 +62,7 @@ enum TlShapeType
 //--------------------------------------------------------------------------------------------------
 struct TlSphereShape
 	{
-	glm::vec3 Center;
+	
 	float Radius;
 	};
 
@@ -75,8 +72,7 @@ struct TlSphereShape
 //--------------------------------------------------------------------------------------------------
 struct TlCapsuleShape
 	{
-	glm::vec3 Center1;
-	glm::vec3 Center2;
+	
 	float Radius;
 	};
 
@@ -97,7 +93,7 @@ struct TlHullShape
 struct TlMeshShape 
 	{
 	const TlGeometry* Geometry;
-	glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
+	
 	};
 
 
@@ -128,40 +124,39 @@ enum TlBodyType
 struct TlBody
 	{
 	TlBodyType Type = kStaticBody;
-	glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
-	glm::quat Orientation = { 1.0f, 0.0f, 0.0f, 0.0f };
+	
 
 	std::vector< TlShape > Shapes;
 
-	// Shape helpers
-	int GetShapeCount() const
-		{
-		return static_cast< int >( Shapes.size() );
-		}
-
-	TlSphereShape& AddSphereShape( const glm::vec3& Center, float Radius )
-		{
-		TlShape& Shape = Shapes.emplace_back( TlSphereShape{ Center, Radius } );
-		return std::get< TlSphereShape >( Shape.Variant );
-		}
-
-	TlCapsuleShape& AddCapsuleShape( const glm::vec3& Center1, const glm::vec3& Center2, float Radius )
-		{
-		TlShape& Shape = Shapes.emplace_back( TlCapsuleShape{ Center1, Center2, Radius } );
-		return std::get< TlCapsuleShape >( Shape.Variant );
-		}
-
-	TlHullShape& AddHullShape( const TlGeometry* Geometry, float Scale = 1.0f )
-		{
-		TlShape& Shape = Shapes.emplace_back( TlHullShape{ Geometry, Scale } );
-		return std::get< TlHullShape >( Shape.Variant );
-		}
-
-	TlMeshShape& AddMeshShape( const TlGeometry* Geometry, const glm::vec3 Scale = { 1.0f, 1.0f, 1.0f } )
-		{
-		TlShape& Shape = Shapes.emplace_back( TlMeshShape{ Geometry, Scale } );
-		return std::get< TlMeshShape >( Shape.Variant );
-		}
+// 	// Shape helpers
+// 	int GetShapeCount() const
+// 		{
+// 		return static_cast< int >( Shapes.size() );
+// 		}
+// 
+// 	TlSphereShape& AddSphereShape( const glm::vec3& Center, float Radius )
+// 		{
+// 		TlShape& Shape = Shapes.emplace_back( TlSphereShape{ Center, Radius } );
+// 		return std::get< TlSphereShape >( Shape.Variant );
+// 		}
+// 
+// 	TlCapsuleShape& AddCapsuleShape( const glm::vec3& Center1, const glm::vec3& Center2, float Radius )
+// 		{
+// 		TlShape& Shape = Shapes.emplace_back( TlCapsuleShape{ Center1, Center2, Radius } );
+// 		return std::get< TlCapsuleShape >( Shape.Variant );
+// 		}
+// 
+// 	TlHullShape& AddHullShape( const TlGeometry* Geometry, float Scale = 1.0f )
+// 		{
+// 		TlShape& Shape = Shapes.emplace_back( TlHullShape{ Geometry, Scale } );
+// 		return std::get< TlHullShape >( Shape.Variant );
+// 		}
+// 
+// 	TlMeshShape& AddMeshShape( const TlGeometry* Geometry, const glm::vec3 Scale = { 1.0f, 1.0f, 1.0f } )
+// 		{
+// 		TlShape& Shape = Shapes.emplace_back( TlMeshShape{ Geometry, Scale } );
+// 		return std::get< TlMeshShape >( Shape.Variant );
+// 		}
 	};
 
 
