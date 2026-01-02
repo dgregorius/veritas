@@ -70,22 +70,22 @@ workspace "veritas"
 		-- Add Veritas Box3d
 		project "veritas_box3d"
 			kind "StaticLib"
-			location "build/source/veritas_box3d"
-			files { "source/veritas_box3d/**" }
+			location "build/plugins/veritas_box3d"
+			files { "plugins/veritas_box3d/**" }
 			includedirs { "source" }
 
 		-- Add Veritas Jolt
 		project "veritas_jolt"
 			kind "StaticLib"
-			location "build/source/veritas_jolt"
-			files { "source/veritas_jolt/**" }
+			location "build/plugins/veritas_jolt"
+			files { "plugins/veritas_jolt/**" }
 			includedirs { "source" }
 
 		-- Add Veritas PhysX
 		project "veritas_physx"
 			kind "StaticLib"
-			location "build/source/veritas_physx"
-			files { "source/veritas_physx/**" }
+			location "build/plugins/veritas_physx"
+			files { "plugins/veritas_physx/**" }
 			includedirs { "source" }
 			
 	-- Source
