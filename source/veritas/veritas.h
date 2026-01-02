@@ -343,6 +343,7 @@ struct IVsWorld
 struct IVsPlugin
 	{
 	virtual const char* GetName() const = 0;
+	virtual const char* GetVersion() const = 0;
 	
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;
@@ -354,11 +355,23 @@ struct IVsPlugin
 		virtual ~IVsPlugin() = default;
 	};
 
-
 // Plugin entry point signatures
 extern "C" 
 	{
 	typedef IVsPlugin* ( *VsCreatePlugin )();
 	typedef void ( *VsDestroyPlugin )( IVsPlugin* );
 	}
+
+// Macro for plugin implementation
+#define VS_EXPORT_PLUGIN(PluginClass)                       \
+    extern "C" __declspec(dllexport)                        \
+    IVsPlugin* vsCreatePlugin()								\
+	{														\
+        return new PluginClass();                           \
+    }                                                       \
+    extern "C" __declspec(dllexport)                        \
+    void vsDestroyPlugin(IPlugin* Plugin)					\
+	{														\
+        delete p;                                           \
+    }
 	
