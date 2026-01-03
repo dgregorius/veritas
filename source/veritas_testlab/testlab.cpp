@@ -20,9 +20,9 @@
 
 
 //--------------------------------------------------------------------------------------------------
-// TlTestLab
+// VsTestlab
 //--------------------------------------------------------------------------------------------------
-int TlTestLab::Run()
+int VsTestlab::Run()
 	{
 	// Initialize GLFW
 	if ( !glfwInit() )
@@ -100,9 +100,9 @@ int TlTestLab::Run()
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTestLab::Startup()
+void VsTestlab::Startup()
 	{
-	// Use recursive_directory_iterator to look inside /box3d, /jolt, etc.
+	// Initialize plugin framework
 	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
 		{
 		if ( Entry.is_regular_file() )
@@ -112,15 +112,15 @@ void TlTestLab::Startup()
 			if ( Filename.rfind( "veritas_", 0 ) == 0 )
 				{
 				// Get the absolute path for the loader
-				std::string PluginPath = Entry.path().string();
-				mPlugins.emplace_back( vsLoadPlugin( PluginPath.c_str() ) );
+				fs::path PluginPath = Entry.path();
+				mPlugins.emplace_back( PluginPath );
 				}
 			}
 		}
 
 	// Initialize test framework
-	std::vector< TlTestEntry >& TestEntries = tlGetTestEntries();
-	std::sort( TestEntries.begin(), TestEntries.end(), []( TlTestEntry Lhs, TlTestEntry Rhs )
+	std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+	std::sort( TestEntries.begin(), TestEntries.end(), []( VsTestEntry Lhs, VsTestEntry Rhs )
 		{
 		int CategoryCompare = strcmp( Lhs.Category, Rhs.Category );
 		if ( CategoryCompare == 0 )
@@ -131,41 +131,45 @@ void TlTestLab::Startup()
 		return CategoryCompare < 0;
 		} );
 
-	mTestIndex = 0;
-	mTest = TestEntries[ mTestIndex ].Creator();
-	mSingleStep = false;
-	mShowProfiler = false;
+	mTests.reserve( mPlugins.size() );
+	for ( VsPluginInstance& PluginInstance : mPlugins )
+		{
+		mTests.push_back( TestEntries[ mTestIndex ].Creator( PluginInstance.Get() ) );
+		}
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTestLab::BeginFrame()
+void VsTestlab::BeginFrame()
 	{
 
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTestLab::UpdateFrame()
+void VsTestlab::UpdateFrame()
 	{
 
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTestLab::EndFrame()
+void VsTestlab::EndFrame()
 	{
 
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTestLab::Shutdown()
+void VsTestlab::Shutdown()
 	{
 	// Terminate test framework
-	delete mTest;
-	mTest = nullptr;
 	mTestIndex = -1;
+	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { delete Test; } );
+	mTests.clear();
+	
+	// Terminate plugin framework
+	mPlugins.clear();
 	}
 
 
@@ -180,6 +184,6 @@ int main()
 	//_CrtSetBreakAlloc( 666 );
 #endif
 
-	TlTestLab PhysicsLab;
+	VsTestlab PhysicsLab;
 	return PhysicsLab.Run();
 	}

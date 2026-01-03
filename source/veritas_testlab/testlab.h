@@ -17,9 +17,9 @@ struct GLFWwindow;
 
 
 //--------------------------------------------------------------------------------------------------
-// TlTestLab
+// VsTestlab
 //--------------------------------------------------------------------------------------------------
-class TlTestLab
+class VsTestlab
 	{
 	public:
 		int Run();
@@ -33,10 +33,7 @@ class TlTestLab
 
 		GLFWwindow* mWindow = nullptr;
 
-		int mTestIndex = -1;
-		TlTest* mTest = nullptr;
-		bool mSingleStep = false;
-		bool mShowProfiler = false;
-
 		std::vector< VsPluginInstance > mPlugins;
+		std::vector< VsTest* > mTests;
+		int mTestIndex = 0;
 	};

@@ -13,21 +13,16 @@
 
 #include <veritas/veritas.h>
 
-class TlSceneSimulation;
-class TlSceneRenderer;
-
 
 //--------------------------------------------------------------------------------------------------
-// TlTest
+// VsTest
 //--------------------------------------------------------------------------------------------------
-class TlTest
+class VsTest
 	{
 	public:
 		// Construction / Destruction
-		TlTest() = default;
-		virtual ~TlTest();
-
-		void Finalize();
+		VsTest( IVsPlugin* Plugin );
+		virtual ~VsTest();
 
 		// Frame management
 		virtual void BeginFrame( double Time, float Timestep );
@@ -36,38 +31,34 @@ class TlTest
 		virtual void EndFrame( double Time, float Timestep );
 
 	protected:
-		std::vector< TlSceneSimulation* > mSceneSimulations;
-		TlSceneRenderer* mSceneRenderer = nullptr;
+		IVsPlugin* mPlugin = nullptr;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
-// TlTestEntry
+// VsTestEntry
 //--------------------------------------------------------------------------------------------------
-typedef TlTest* ( *TlCreator )( );
+typedef VsTest* ( *VsCreator )( IVsPlugin* );
 
-struct TlTestEntry
+struct VsTestEntry
 	{
 	const char* Category = nullptr;
 	const char* Name = nullptr;
-	TlCreator Creator = nullptr;
+	VsCreator Creator = nullptr;
 	};
 
-int tlRegisterTest( const char* Category, const char* Name, TlCreator Creator );
-std::vector< TlTestEntry >& tlGetTestEntries();
+int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator );
+std::vector< VsTestEntry >& vsGetTestEntries();
 
 
 //--------------------------------------------------------------------------------------------------
 // Test registry
 //--------------------------------------------------------------------------------------------------
-template < std::derived_from< TlTest > T > 
-TlTest* tlCreateTest()
+template < std::derived_from< VsTest > T > 
+VsTest* vsCreateTest( IVsPlugin* Plugin )
 	{
-	T* Test = new T();
-	Test->Finalize();
-
-	return Test;
+	return new T( Plugin );
 	}
 
-#define TL_DEFINE_TEST( Category, Name, Type )\
-static const int s##Type = tlRegisterTest( Category, Name, tlCreateTest< Type > )
+#define VS_DEFINE_TEST( Category, Name, Type ) \
+static const int s##Type = vsRegisterTest( Category, Name, vsCreateTest< Type > )

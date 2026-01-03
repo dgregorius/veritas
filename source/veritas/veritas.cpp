@@ -17,16 +17,20 @@ static void vsFreeLibrary( void* hModule )
 	{
 	if ( hModule )
 		{
-		//FreeLibrary( (HMODULE)hModule );
+		FreeLibrary( (HMODULE)hModule );
 		}
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPluginModule
+// VsPluginInstance
 //--------------------------------------------------------------------------------------------------
-VsPluginInstance::VsPluginInstance( void* hModule )
+VsPluginInstance::VsPluginInstance( const fs::path& PluginPath )
 	{
+	SetDllDirectoryW( PluginPath.parent_path().c_str() );
+	HMODULE hModule = LoadLibraryW( PluginPath.c_str() );
+	SetDllDirectory( NULL );
+
 	if ( hModule )
 		{
 		VsCreatePluginFunc vsCreatePlugin = (VsCreatePluginFunc)GetProcAddress( (HMODULE)hModule, "vsCreatePlugin" );
@@ -41,12 +45,42 @@ VsPluginInstance::VsPluginInstance( void* hModule )
 
 
 //--------------------------------------------------------------------------------------------------
-VsPluginInstance vsLoadPlugin( const fs::path& PluginPath )
+const IVsPlugin* VsPluginInstance::Get() const
 	{
-	// Add plugin directory to DLL search path
-	SetDllDirectoryW( PluginPath.parent_path().c_str() );
-	HMODULE hModule = LoadLibraryW( PluginPath.c_str() );
-	SetDllDirectory( NULL );
+	return mPlugin.get();
+	}
 
-	return VsPluginInstance( hModule );
+
+//--------------------------------------------------------------------------------------------------
+IVsPlugin* VsPluginInstance::Get()
+	{
+	return mPlugin.get();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsPlugin* VsPluginInstance::operator->() const
+	{
+	return mPlugin.get();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsPlugin* VsPluginInstance::operator->()
+	{
+	return mPlugin.get();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsPlugin& VsPluginInstance::operator*()
+	{
+	return *mPlugin;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsPluginInstance::operator bool() const
+	{
+	return mPlugin != nullptr;
 	}

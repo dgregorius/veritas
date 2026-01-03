@@ -9,42 +9,42 @@
 //--------------------------------------------------------------------------------------------------
 // TlTest
 //--------------------------------------------------------------------------------------------------
-TlTest::~TlTest()
+VsTest::VsTest( IVsPlugin* Plugin )
+	{
+	mPlugin = Plugin;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsTest::~VsTest()
 	{
 	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTest::Finalize()
+void VsTest::BeginFrame( double Time, float Timestep )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTest::UpdateFrame( double Time, float Timestep )
 	{
 	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTest::BeginFrame( double Time, float Timestep )
+void VsTest::RenderFrame( double Time, float Timestep )
 	{
 
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void TlTest::UpdateFrame( double Time, float Timestep )
-	{
-	
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void TlTest::RenderFrame( double Time, float Timestep )
-	{
-
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void TlTest::EndFrame( double Time, float Timestep )
+void VsTest::EndFrame( double Time, float Timestep )
 	{
 
 	}
@@ -53,9 +53,9 @@ void TlTest::EndFrame( double Time, float Timestep )
 //--------------------------------------------------------------------------------------------------
 // TlTestEntry
 //--------------------------------------------------------------------------------------------------
-std::vector< TlTestEntry >& tlGetTestEntries()
+std::vector< VsTestEntry >& vsGetTestEntries()
 	{
-	static std::vector< TlTestEntry > TestEntries;
+	static std::vector< VsTestEntry > TestEntries;
 	return TestEntries;
 	}
 
@@ -63,9 +63,10 @@ std::vector< TlTestEntry >& tlGetTestEntries()
 //--------------------------------------------------------------------------------------------------
 // Test registry
 //--------------------------------------------------------------------------------------------------
-int tlRegisterTest( const char* Category, const char* Name, TlCreator Creator )
+int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator )
 	{
-	std::vector< TlTestEntry >& TestEntries = tlGetTestEntries();
+	std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 	TestEntries.push_back( { Category, Name, Creator } );
+	
 	return static_cast< int >( TestEntries.size() - 1 );
 	}

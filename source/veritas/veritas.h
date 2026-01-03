@@ -368,13 +368,16 @@ struct IVsPlugin
 class VsPluginInstance
 	{
 	public:
-		explicit VsPluginInstance( void* hModule );
+		explicit VsPluginInstance( const fs::path& PluginPath );
+		
+		IVsPlugin* Get();
+		const IVsPlugin* Get() const;
+		
+		IVsPlugin* operator->();
+		const IVsPlugin* operator->() const;
+		IVsPlugin& operator*();
 
-		IVsPlugin* operator->() { return mPlugin.get(); }
-		const IVsPlugin* operator->() const { return mPlugin.get(); }
-		IVsPlugin& operator*() { return *mPlugin; }
-
-		explicit operator bool() const { return mPlugin != nullptr; }
+		explicit operator bool() const;
 
 	private:
 		using ModuleHandle = std::unique_ptr< void, std::function< void ( void* ) > >;
@@ -382,8 +385,6 @@ class VsPluginInstance
 		using PluginHandle = std::unique_ptr< IVsPlugin, std::function< void( IVsPlugin* ) > >;
 		PluginHandle mPlugin;
 	};
-
-VsPluginInstance vsLoadPlugin( const fs::path& PluginPath );
 
 
 //--------------------------------------------------------------------------------------------------
