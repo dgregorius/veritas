@@ -37,4 +37,6 @@ class TlTestLab
 		TlTest* mTest = nullptr;
 		bool mSingleStep = false;
 		bool mShowProfiler = false;
+
+		std::vector< VsPluginInstance > mPlugins;
 	};

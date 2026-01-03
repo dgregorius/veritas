@@ -102,6 +102,22 @@ int TlTestLab::Run()
 //--------------------------------------------------------------------------------------------------
 void TlTestLab::Startup()
 	{
+	// Use recursive_directory_iterator to look inside /box3d, /jolt, etc.
+	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
+		{
+		if ( Entry.is_regular_file() )
+			{
+			// Check for your "veritas_" prefix
+			std::string Filename = Entry.path().filename().string();
+			if ( Filename.rfind( "veritas_", 0 ) == 0 )
+				{
+				// Get the absolute path for the loader
+				std::string PluginPath = Entry.path().string();
+				mPlugins.emplace_back( vsLoadPlugin( PluginPath.c_str() ) );
+				}
+			}
+		}
+
 	// Initialize test framework
 	std::vector< TlTestEntry >& TestEntries = tlGetTestEntries();
 	std::sort( TestEntries.begin(), TestEntries.end(), []( TlTestEntry Lhs, TlTestEntry Rhs )

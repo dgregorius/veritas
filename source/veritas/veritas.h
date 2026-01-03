@@ -12,8 +12,13 @@
 #pragma once
 
 #include <algorithm>
+#include <filesystem>
+#include <functional>
+#include <memory>
 #include <variant>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -356,23 +361,49 @@ struct IVsPlugin
 		virtual ~IVsPlugin() = default;
 	};
 
-// Plugin entry point signatures
-extern "C" 
+
+//--------------------------------------------------------------------------------------------------
+// IVsPluginInstance
+//--------------------------------------------------------------------------------------------------
+class VsPluginInstance
 	{
-	typedef IVsPlugin* ( *VsCreatePlugin )();
-	typedef void ( *VsDestroyPlugin )( IVsPlugin* );
+	public:
+		explicit VsPluginInstance( void* hModule );
+
+		IVsPlugin* operator->() { return mPlugin.get(); }
+		const IVsPlugin* operator->() const { return mPlugin.get(); }
+		IVsPlugin& operator*() { return *mPlugin; }
+
+		explicit operator bool() const { return mPlugin != nullptr; }
+
+	private:
+		using ModuleHandle = std::unique_ptr< void, std::function< void ( void* ) > >;
+		ModuleHandle mModule;
+		using PluginHandle = std::unique_ptr< IVsPlugin, std::function< void( IVsPlugin* ) > >;
+		PluginHandle mPlugin;
+	};
+
+VsPluginInstance vsLoadPlugin( const fs::path& PluginPath );
+
+
+//--------------------------------------------------------------------------------------------------
+// Export
+//--------------------------------------------------------------------------------------------------
+extern "C"
+	{
+	typedef IVsPlugin* ( *VsCreatePluginFunc )( );
+	typedef void ( *VsDestroyPluginFunc )( IVsPlugin* );
 	}
 
 // Macro for plugin implementation
-#define VS_EXPORT_PLUGIN(PluginClass)                       \
-    extern "C" __declspec(dllexport)                        \
-    IVsPlugin* vsCreatePlugin()								\
-	{														\
-        return new PluginClass();                           \
-    }                                                       \
-    extern "C" __declspec(dllexport)                        \
-    void vsDestroyPlugin(IPlugin* Plugin)					\
-	{														\
-        delete p;                                           \
-    }
-	
+#define VS_EXPORT_PLUGIN(PluginClass)								\
+    extern "C" __declspec(dllexport)								\
+    IVsPlugin* vsCreatePlugin()										\
+		{															\
+        return new PluginClass;										\
+		}															\
+    extern "C" __declspec(dllexport)								\
+    void vsDestroyPlugin(IVsPlugin* Plugin)							\
+		{															\
+        delete static_cast< PluginClass* >( Plugin );				\
+		}
