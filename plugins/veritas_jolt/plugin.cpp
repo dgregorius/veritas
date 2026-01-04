@@ -40,6 +40,13 @@ IVsHull* VsJoltPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 
 
 //--------------------------------------------------------------------------------------------------
+void VsJoltPlugin::DestroyHull( IVsHull* Hull )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsMesh* VsJoltPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices )
 	{
 	return nullptr;
@@ -47,7 +54,14 @@ IVsMesh* VsJoltPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices
 
 
 //--------------------------------------------------------------------------------------------------
-IVsWorld* VsJoltPlugin::CreateWorld( const VsWorldDef& WorldDef )
+void VsJoltPlugin::DestroyMesh( IVsMesh* Mesh )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsWorld* VsJoltPlugin::CreateWorld()
 	{
 	return nullptr;
 	}

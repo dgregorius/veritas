@@ -25,7 +25,10 @@ struct VsJoltPlugin : IVsPlugin
 	virtual const char* GetVersion() const override;
 
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
+	virtual void DestroyHull( IVsHull* Hull ) override;
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) override;
-	virtual IVsWorld* CreateWorld( const VsWorldDef& WorldDef ) override;
+	virtual void DestroyMesh( IVsMesh* Mesh ) override;
+
+	virtual IVsWorld* CreateWorld() override;
 	virtual void DestroyWorld( IVsWorld* World ) override;
 	};

@@ -21,7 +21,7 @@ class VsTest
 	{
 	public:
 		// Construction / Destruction
-		VsTest( IVsPlugin* Plugin );
+		explicit VsTest( IVsPlugin* Plugin );
 		virtual ~VsTest();
 
 		// Frame management
@@ -47,7 +47,6 @@ struct VsTestEntry
 	VsCreator Creator = nullptr;
 	};
 
-int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator );
 std::vector< VsTestEntry >& vsGetTestEntries();
 
 
@@ -59,6 +58,8 @@ VsTest* vsCreateTest( IVsPlugin* Plugin )
 	{
 	return new T( Plugin );
 	}
+
+int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator );
 
 #define VS_DEFINE_TEST( Category, Name, Type ) \
 static const int s##Type = vsRegisterTest( Category, Name, vsCreateTest< Type > )

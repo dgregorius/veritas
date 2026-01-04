@@ -33,7 +33,7 @@ class VsTestlab
 
 		GLFWwindow* mWindow = nullptr;
 
-		std::vector< VsPluginInstance > mPlugins;
+		std::vector< VsModule* > mModules;
 		std::vector< VsTest* > mTests;
 		int mTestIndex = 0;
 	};

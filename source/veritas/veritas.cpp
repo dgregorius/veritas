@@ -11,76 +11,75 @@
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPluginModule
+// VsModule
 //--------------------------------------------------------------------------------------------------
-static void vsFreeLibrary( void* hModule )
+struct VsModule
 	{
-	if ( hModule )
-		{
-		FreeLibrary( (HMODULE)hModule );
-		}
-	}
+	HMODULE Handle = nullptr;
+	IVsPlugin* Plugin = nullptr;
+	VsDestroyPluginFunc DestroyFunc = nullptr;
+	};
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPluginInstance
-//--------------------------------------------------------------------------------------------------
-VsPluginInstance::VsPluginInstance( const fs::path& PluginPath )
+VsModule* vsLoadModule( const fs::path& Path )
 	{
-	SetDllDirectoryW( PluginPath.parent_path().c_str() );
-	HMODULE hModule = LoadLibraryW( PluginPath.c_str() );
+	SetDllDirectoryW( Path.parent_path().c_str() );
+	HMODULE hModule = LoadLibraryW( Path.c_str() );
 	SetDllDirectory( NULL );
 
-	if ( hModule )
+	if ( !hModule )
 		{
-		VsCreatePluginFunc vsCreatePlugin = (VsCreatePluginFunc)GetProcAddress( (HMODULE)hModule, "vsCreatePlugin" );
-		VsDestroyPluginFunc vsDestroyPlugin = (VsDestroyPluginFunc)GetProcAddress( (HMODULE)hModule, "vsDestroyPlugin" );
-		if ( vsCreatePlugin && vsDestroyPlugin )
-			{
-			mModule = ModuleHandle( hModule, vsFreeLibrary );
-			mPlugin = PluginHandle( vsCreatePlugin(), vsDestroyPlugin );
-			}
+		return nullptr;
 		}
+
+	VsCreatePluginFunc CreateFunc = (VsCreatePluginFunc)GetProcAddress( hModule, "vsCreatePlugin" );
+	VsDestroyPluginFunc DestroyFunc = (VsDestroyPluginFunc)GetProcAddress( hModule, "vsDestroyPlugin" );
+	if ( !CreateFunc || !DestroyFunc )
+		{
+		FreeLibrary( hModule );
+		return nullptr;
+		}
+
+	IVsPlugin* Plugin = CreateFunc();
+	if ( !Plugin )
+		{
+		FreeLibrary( hModule );
+		return nullptr;
+		}
+
+	return new VsModule { hModule, Plugin, DestroyFunc };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsPlugin* VsPluginInstance::Get() const
+IVsPlugin* vsGetPlugin( VsModule* Module )
 	{
-	return mPlugin.get();
+	return Module ? Module->Plugin : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsPlugin* VsPluginInstance::Get()
+void vsFreeModule( VsModule* Module )
 	{
-	return mPlugin.get();
-	}
+	if ( !Module )
+		{
+		return;
+		}
+	
+	if ( Module->Plugin && Module->DestroyFunc )
+		{
+		Module->DestroyFunc( Module->Plugin );
 
+		Module->Plugin = nullptr;
+		Module->DestroyFunc = nullptr;
+		}
+	
+	if ( Module->Handle )
+		{
+		FreeLibrary( Module->Handle );
+		Module->Handle = nullptr;
+		}
 
-//--------------------------------------------------------------------------------------------------
-const IVsPlugin* VsPluginInstance::operator->() const
-	{
-	return mPlugin.get();
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-IVsPlugin* VsPluginInstance::operator->()
-	{
-	return mPlugin.get();
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-IVsPlugin& VsPluginInstance::operator*()
-	{
-	return *mPlugin;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsPluginInstance::operator bool() const
-	{
-	return mPlugin != nullptr;
+	delete Module;
 	}

@@ -40,6 +40,13 @@ IVsHull* VsPhysXPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 
 
 //--------------------------------------------------------------------------------------------------
+void VsPhysXPlugin::DestroyHull( IVsHull* Hull )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsMesh* VsPhysXPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices )
 	{
 	return nullptr;
@@ -47,7 +54,14 @@ IVsMesh* VsPhysXPlugin::CreateMesh( int TriangleCount, const int* TriangleIndice
 
 
 //--------------------------------------------------------------------------------------------------
-IVsWorld* VsPhysXPlugin::CreateWorld( const VsWorldDef& WorldDef )
+void VsPhysXPlugin::DestroyMesh( IVsMesh* Mesh )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsWorld* VsPhysXPlugin::CreateWorld()
 	{
 	return nullptr;
 	}

@@ -111,9 +111,10 @@ void VsTestlab::Startup()
 			std::string Filename = Entry.path().filename().string();
 			if ( Filename.rfind( "veritas_", 0 ) == 0 )
 				{
-				// Get the absolute path for the loader
-				fs::path PluginPath = Entry.path();
-				mPlugins.emplace_back( PluginPath );
+				if ( VsModule* Module = vsLoadModule( Entry.path() ) )
+					{
+					mModules.push_back( Module );
+					}
 				}
 			}
 		}
@@ -131,10 +132,10 @@ void VsTestlab::Startup()
 		return CategoryCompare < 0;
 		} );
 
-	mTests.reserve( mPlugins.size() );
-	for ( VsPluginInstance& PluginInstance : mPlugins )
+	mTests.reserve( mModules.size() );
+	for ( VsModule* Module : mModules )
 		{
-		mTests.push_back( TestEntries[ mTestIndex ].Creator( PluginInstance.Get() ) );
+		mTests.push_back( TestEntries[ mTestIndex ].Creator( vsGetPlugin( Module ) ) );
 		}
 	}
 
@@ -169,7 +170,8 @@ void VsTestlab::Shutdown()
 	mTests.clear();
 	
 	// Terminate plugin framework
-	mPlugins.clear();
+	std::for_each( mModules.begin(), mModules.end(), []( VsModule* Module ) { vsFreeModule( Module ); } );
+	mModules.clear();
 	}
 
 

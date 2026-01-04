@@ -73,148 +73,6 @@ enum VsShapeType
 
 
 //--------------------------------------------------------------------------------------------------
-// VsSphereDef
-//--------------------------------------------------------------------------------------------------
-struct VsSphereDef
-	{
-	VsVector3 Center;
-	float Radius;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsCapsuleDef
-//--------------------------------------------------------------------------------------------------
-struct VsCapsuleDef
-	{
-	VsVector3 Center1;
-	VsVector3 Center2;
-	float Radius;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsHullDef
-//--------------------------------------------------------------------------------------------------
-struct VsHullDef
-	{
-	
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsMeshDef
-//--------------------------------------------------------------------------------------------------
-struct VsMeshDef
-	{
-	
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsShapeDef
-//--------------------------------------------------------------------------------------------------
-struct VsShapeDef
-	{
-	using VsShapeVariant = std::variant< VsSphereDef, VsCapsuleDef, VsHullDef, VsMeshDef >;
-	VsShapeVariant Variant;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsBodyType
-//--------------------------------------------------------------------------------------------------
-enum VsBodyType
-	{ 
-	VS_STATIC_BODY,
-	VS_KEYFRAME_BODY,
-	VS_DYNAMIC_BODY
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsBodyDef
-//--------------------------------------------------------------------------------------------------
-struct VsBodyDef
-	{
-	VsBodyType Type = VS_STATIC_BODY;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsSphericalJointDef
-//--------------------------------------------------------------------------------------------------
-struct VsSphericalJointDef
-	{
-	bool EnableSwingLimit = false;
-	float MaxSwingAngle = 90.0f;
-
-	bool EnableTwistLimt = false;
-	float MinTwistAngle = -175.0f;
-	float MaxTwistAngle = -175.0f;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsRevoluteJointDef
-//--------------------------------------------------------------------------------------------------
-struct VsRevoluteJointDef
-	{
-	bool EnableLimt = false;
-	float MinAngle = -175.0f;
-	float MaxAngle = -175.0f;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsPrismaticJointDef
-//--------------------------------------------------------------------------------------------------
-struct VsPrismaticJointDef
-	{
-	bool EnableLimt = false;
-	float MinOffset = 0.0f;
-	float MaxOffset = 1.0f;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsRigidJoint
-//--------------------------------------------------------------------------------------------------
-struct VsRigidJointDef
-	{
-	float LinearFrequency;
-	float LinearDampingRatio;
-	float AngularFrequency;
-	float AngularDampingRatio;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsJointDef
-//--------------------------------------------------------------------------------------------------
-struct VsJointDef
-	{
-	int BodyIndex1;
-	VsFrame LocalFrame1;
-	int BodyIndex2;
-	VsFrame LocalFrame2;
-
-	using VsJointVariant = std::variant< VsSphericalJointDef, VsRevoluteJointDef, VsPrismaticJointDef, VsRigidJointDef >;
-	VsJointVariant Variant;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// VsWorldDef
-//--------------------------------------------------------------------------------------------------
-struct VsWorldDef
-	{
-	std::vector< VsBodyDef > Bodies;
-	std::vector< VsJointDef > Joints;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
 // IVsShape
 //--------------------------------------------------------------------------------------------------
 struct IVsShape
@@ -256,6 +114,11 @@ struct IVsCapsuleShape : IVsShape
 //--------------------------------------------------------------------------------------------------
 struct IVsHull
 	{
+	virtual int GetVertexCount() const = 0;
+	virtual const VsVector3* GetVertices() const = 0;
+	virtual int GetEdgeCount() const = 0;
+	virtual const VsVector3* GetEdges() const = 0;
+
 	protected:
 		virtual ~IVsHull() = default;
 	};
@@ -266,6 +129,8 @@ struct IVsHull
 //--------------------------------------------------------------------------------------------------
 struct IVsHullShape : IVsShape
 	{
+	virtual const IVsHull* GetHull() const = 0;
+
 	protected:
 		virtual ~IVsHullShape() = default;
 	};
@@ -276,6 +141,9 @@ struct IVsHullShape : IVsShape
 //--------------------------------------------------------------------------------------------------
 struct IVsMesh
 	{
+	virtual int GetVertexCount() const = 0;
+	virtual const VsVector3* GetVertices() const = 0;
+
 	protected:
 		virtual ~IVsMesh() = default;
 	};
@@ -286,8 +154,21 @@ struct IVsMesh
 //--------------------------------------------------------------------------------------------------
 struct IVsMeshShape : IVsShape
 	{
+	virtual const IVsMesh* GetMesh() const = 0;
+
 	protected:
 		virtual ~IVsMeshShape() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBodyType
+//--------------------------------------------------------------------------------------------------
+enum VsBodyType
+	{
+	VS_STATIC_BODY,
+	VS_KEYFRAMED_BODY,
+	VS_DYNAMIC_BODY
 	};
 
 
@@ -303,24 +184,11 @@ struct IVsBody
 	virtual VsQuaternion GetOrientation() const = 0;
 	virtual void SetOrientation( const VsQuaternion& Orientation ) = 0;
 
-	virtual float GetMass() const = 0;
-	virtual float GetMassInv() const = 0;
-	virtual VsMatrix3 GetLocalInertia() const = 0;
-	virtual VsMatrix3 GetLocalInertiaInv() const = 0;
-	virtual VsMatrix3 GetInertia() const = 0;
-	virtual VsMatrix3 GetInertiaInv() const = 0;
-	virtual VsVector3 GetLocalMassCenter() const = 0;
-	virtual VsVector3 GetMassCenter() const = 0;
-
-	virtual IVsSphereShape* CreateSphere( const VsSphereDef& SphereDef ) = 0;
-	virtual IVsCapsuleShape* CreateCapulse( const VsCapsuleDef& CapsuleDef ) = 0;
-	virtual IVsHullShape* CreateHull( const VsHullDef& HullDef ) = 0;
-	virtual IVsMeshShape* CreateMesh( const VsMeshDef& MeshDef ) = 0;
+	virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) = 0;
+	virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) = 0;
+	virtual IVsHullShape* CreateHull( const IVsHull* Hull ) = 0;
+	virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) = 0;
 	virtual void DestroyShape( IVsShape* Shape ) = 0;
-
-	virtual int GetShapeCount() const = 0;
-	virtual IVsShape* GetShape( int ShapeIndex ) = 0;
-	virtual const IVsShape* GetShape( int ShapeIndex ) const = 0;
 
 	protected:
 		virtual ~IVsBody() = default;
@@ -335,7 +203,7 @@ struct IVsWorld
 	virtual VsVector3 GetGravity() const = 0;
 	virtual void SetGravity( const VsVector3& Gravity ) = 0;
 
-	virtual IVsBody* CreateBody( const VsBodyDef& BodyDef ) = 0;
+	virtual IVsBody* CreateBody( VsBodyType Type ) = 0;
 	virtual void DestroyBody( IVsBody* Body ) = 0;
 
 	protected:
@@ -352,59 +220,42 @@ struct IVsPlugin
 	virtual const char* GetVersion() const = 0;
 	
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
+	virtual void DestroyHull( IVsHull* Hull ) = 0;
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;
+	virtual void DestroyMesh( IVsMesh* Mesh ) = 0;
 
-	virtual IVsWorld* CreateWorld( const VsWorldDef& WorldDef ) = 0;
+	virtual IVsWorld* CreateWorld() = 0;
 	virtual void DestroyWorld( IVsWorld* World ) = 0;
 
 	protected:
 		virtual ~IVsPlugin() = default;
 	};
 
-
-//--------------------------------------------------------------------------------------------------
-// IVsPluginInstance
-//--------------------------------------------------------------------------------------------------
-class VsPluginInstance
-	{
-	public:
-		explicit VsPluginInstance( const fs::path& PluginPath );
-		
-		IVsPlugin* Get();
-		const IVsPlugin* Get() const;
-		
-		IVsPlugin* operator->();
-		const IVsPlugin* operator->() const;
-		IVsPlugin& operator*();
-
-		explicit operator bool() const;
-
-	private:
-		using ModuleHandle = std::unique_ptr< void, std::function< void ( void* ) > >;
-		ModuleHandle mModule;
-		using PluginHandle = std::unique_ptr< IVsPlugin, std::function< void( IVsPlugin* ) > >;
-		PluginHandle mPlugin;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-// Export
-//--------------------------------------------------------------------------------------------------
+// Plugin export
 extern "C"
 	{
 	typedef IVsPlugin* ( *VsCreatePluginFunc )( );
 	typedef void ( *VsDestroyPluginFunc )( IVsPlugin* );
 	}
 
-// Macro for plugin implementation
-#define VS_EXPORT_PLUGIN(PluginClass)								\
-    extern "C" __declspec(dllexport)								\
-    IVsPlugin* vsCreatePlugin()										\
-		{															\
-        return new PluginClass;										\
-		}															\
-    extern "C" __declspec(dllexport)								\
-    void vsDestroyPlugin(IVsPlugin* Plugin)							\
-		{															\
-        delete static_cast< PluginClass* >( Plugin );				\
-		}
+#define VS_EXPORT_PLUGIN(PluginClass)							\
+extern "C" __declspec(dllexport)								\
+IVsPlugin* vsCreatePlugin()										\
+	{															\
+    return new PluginClass;										\
+	}															\
+extern "C" __declspec(dllexport)								\
+void vsDestroyPlugin(IVsPlugin* Plugin)							\
+	{															\
+    delete static_cast< PluginClass* >( Plugin );				\
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsModule
+//--------------------------------------------------------------------------------------------------
+struct VsModule;
+
+VsModule* vsLoadModule( const fs::path& Path );
+IVsPlugin* vsGetPlugin( VsModule* Module );
+void vsFreeModule( VsModule* Module );
