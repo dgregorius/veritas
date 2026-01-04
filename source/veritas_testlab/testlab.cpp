@@ -157,7 +157,13 @@ void VsTestlab::UpdateFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::EndFrame()
 	{
-
+	// Render UI
+	BeginDockspace();
+	Explorer();
+	Viewport();
+	Profiler();
+	EndDockspace();
+	Shortcuts();
 	}
 
 
@@ -176,6 +182,234 @@ void VsTestlab::Shutdown()
 
 
 //--------------------------------------------------------------------------------------------------
+void VsTestlab::BeginDockspace()
+	{
+	ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDocking;
+	WindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	WindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+	const ImGuiViewport* Viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos( Viewport->WorkPos );
+	ImGui::SetNextWindowSize( Viewport->WorkSize );
+	ImGui::SetNextWindowViewport( Viewport->ID );
+
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f ); 
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
+	bool Open = ImGui::Begin( "##Testlab", nullptr, WindowFlags );
+	ImGui::PopStyleVar( 3 );
+
+	if ( Open )
+		{
+		ImGuiID DockspaceID = ImGui::GetID( "##DockspaceId" );
+		if ( !ImGui::DockBuilderGetNode( DockspaceID )  )
+			{
+			ImGui::DockBuilderRemoveNode( DockspaceID );
+			ImGui::DockBuilderAddNode( DockspaceID );
+
+			ImGuiID DockLeftID, DockRightID;
+			ImGui::DockBuilderSplitNode( DockspaceID, ImGuiDir_Left, 0.1f, &DockLeftID, &DockRightID );
+			ImGuiID DockTopRightID, DockBottomIRightID;
+			ImGui::DockBuilderSplitNode( DockRightID, ImGuiDir_Up, 0.7f, &DockTopRightID, &DockBottomIRightID );
+
+			ImGui::DockBuilderDockWindow( "Explorer", DockLeftID );
+			ImGui::DockBuilderDockWindow( "Viewport", DockTopRightID );
+			ImGui::DockBuilderDockWindow( "Profiler", DockBottomIRightID );
+			ImGui::DockBuilderFinish( DockspaceID );
+			}
+
+		ImGuiDockNodeFlags NodeFlags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoTabBar;
+		ImGui::DockSpace( DockspaceID, ImVec2( 0.0f, 0.0f ), NodeFlags );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::Explorer()
+	{
+	static bool Visible = true;
+	if ( Visible )
+		{
+		float Scale = ImGui::GetWindowDpiScale();
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 8, 8 ) * Scale ) );
+		if ( ImGui::Begin( "Explorer" ) )
+			{
+			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 8.0f );
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+			ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+			
+			// Test selections
+			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+			for ( size_t TestIndex = 0; TestIndex < TestEntries.size(); ++TestIndex )
+				{
+				// New category
+				const char* Category = TestEntries[ TestIndex ].Category;
+				if ( strcmp( TestEntries[ mTestIndex ].Category, Category ) == 0 )
+					{
+					// Assure the parent of the initial test selection is always open
+					ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+					}
+
+				ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+				bool CategoryOpen = ImGui::TreeNodeEx( Category, CategoryFlags );
+
+				while ( true )
+					{
+					if ( CategoryOpen )
+						{
+						bool Selected = ( TestIndex == mTestIndex );
+						ImGuiTreeNodeFlags TestFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+						if ( Selected )
+							{
+							TestFlags |= ImGuiTreeNodeFlags_Selected;
+							}
+
+						if ( ImGui::TreeNodeEx( TestEntries[ TestIndex ].Name, TestFlags ) )
+							{
+							if ( ImGui::IsItemClicked() )
+								{
+// 								delete mTest;
+// 								mTestIndex = TestIndex;
+// 								mTest = TestEntries[ mTestIndex ].Creator( mCamera );
+								}
+
+							ImGui::TreePop();
+							}
+						}
+
+					const char* NextCategory = TestIndex + 1 < TestEntries.size() ? TestEntries[ TestIndex + 1 ].Category : "";
+					if ( strcmp( NextCategory, Category ) != 0 )
+						{
+						break;
+						}
+
+					TestIndex++;
+					}
+
+				if ( CategoryOpen )
+					{
+					ImGui::TreePop();
+					}
+				}
+
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			// Test management
+			if ( ImGui::Button( "Pause", ImVec2( -1, 0 ) ) )
+				{
+// 				bool Paused = RkClock::IsPaused();
+// 				RkClock::SetPaused( !Paused );
+				}
+
+			if ( ImGui::Button( "Restart", ImVec2( -1, 0 ) ) )
+				{
+// 				delete mTest;
+// 				mTest = TestEntries[ mTestIndex ].Creator( nullptr );
+				}
+
+			if ( ImGui::Button( "Quit", ImVec2( -1, 0 ) ) )
+				{
+				glfwSetWindowShouldClose( mWindow, true );
+				}
+
+			ImGui::EndChild();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar( 2 );
+			}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::Viewport()
+	{
+	static bool Visible = true;
+	if ( Visible )
+		{
+		float Scale = ImGui::GetWindowDpiScale();
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 8, 8 ) * Scale ) );
+		if ( ImGui::Begin( "Viewport" ) )
+			{
+			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 8.0f );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+			ImGui::BeginChild( "##Child" );
+
+			ImGui::EndChild();
+			ImGui::PopStyleVar();
+			ImGui::PopStyleColor();
+			}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::Profiler()
+	{
+	if ( mShowProfiler )
+		{
+		float Scale = ImGui::GetWindowDpiScale();
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 8, 8 ) * Scale ) );
+		if ( ImGui::Begin( "Profiler" ) )
+			{
+			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 8.0f );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+			ImGui::BeginChild( "##Child" );
+
+			ImGui::EndChild();
+			ImGui::PopStyleVar();
+			ImGui::PopStyleColor();
+			}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::EndDockspace()
+	{
+	ImGui::End();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::Shortcuts()
+	{
+	if ( ImGui::IsKeyPressed( ImGuiKey_P ) )
+		{
+		
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
+		{
+
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_Tab ) )
+		{
+		mShowProfiler = !mShowProfiler;
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_Space ) )
+		{
+		
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+		{
+		glfwSetWindowShouldClose( mWindow, true );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // Every saga begins with a first step...
 //--------------------------------------------------------------------------------------------------
 int main()
@@ -183,7 +417,7 @@ int main()
 	// Enable run-time memory check for debug builds
 #if defined( DEBUG ) || defined( _DEBUG )
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-	//_CrtSetBreakAlloc( 666 );
+	_CrtSetBreakAlloc( 873 );
 #endif
 
 	VsTestlab PhysicsLab;

@@ -136,7 +136,7 @@ VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId )
 //--------------------------------------------------------------------------------------------------
 VsBox3dHullShape::~VsBox3dHullShape()
 	{
-	b3DestroyShape( ShapeId, true );
+	//b3DestroyShape( ShapeId, true );
 	}
 
 

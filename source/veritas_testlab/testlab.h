@@ -24,14 +24,22 @@ class VsTestlab
 	public:
 		int Run();
 
-	private:
 		void Startup();
 		void BeginFrame();
 		void UpdateFrame();
 		void EndFrame();
 		void Shutdown();
 
+	private:
+		void BeginDockspace();
+		void Explorer();
+		void Viewport();
+		void Profiler();
+		void EndDockspace();
+		void Shortcuts();
+
 		GLFWwindow* mWindow = nullptr;
+		bool mShowProfiler = false;
 
 		std::vector< VsModule* > mModules;
 		std::vector< VsTest* > mTests;
