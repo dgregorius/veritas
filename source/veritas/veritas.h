@@ -115,7 +115,8 @@ struct IVsCapsuleShape : IVsShape
 struct IVsHull
 	{
 	virtual int GetVertexCount() const = 0;
-	virtual const VsVector3* GetVertices() const = 0;
+	virtual const VsVector3* GetVertexPositions() const = 0;
+	virtual const VsVector3* GetVertexNormals() const = 0;
 	virtual int GetEdgeCount() const = 0;
 	virtual const VsVector3* GetEdges() const = 0;
 

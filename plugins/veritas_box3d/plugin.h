@@ -26,12 +26,14 @@ struct VsBox3dHull : IVsHull
 	virtual ~VsBox3dHull() override;
 
 	virtual int GetVertexCount() const override;
-	virtual const VsVector3* GetVertices() const override;
+	virtual const VsVector3* GetVertexPositions() const override;
+	virtual const VsVector3* GetVertexNormals() const override;
 	virtual int GetEdgeCount() const override;
 	virtual const VsVector3* GetEdges() const override;
 
 	b3Hull* Native = nullptr;
-	std::vector< VsVector3 > Vertices;
+	std::vector< VsVector3 > VertexPositions;
+	std::vector< VsVector3 > VertexNormals;
 	std::vector< VsVector3 > Edges;
 	};
 

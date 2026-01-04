@@ -14,19 +14,52 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 	B3_ASSERT( Hull );
 	Native = Hull;
 
-	int VertexCount = Hull->vertexCount;
-	const b3Vec3* HullVertices = b3GetHullPoints( Hull );
-	if ( VertexCount > 0 && HullVertices )
+	int FaceCount = Hull->faceCount;
+	if ( FaceCount > 0  )
 		{
-		Vertices.resize( VertexCount );
-		for ( int VertexIndex = 0; VertexIndex < VertexCount; ++VertexIndex )
+		VertexPositions.reserve( 3 * FaceCount );
+		VertexNormals.reserve( 3 * FaceCount );
+
+		const b3Vec3* HullVertices = b3GetHullPoints( Hull );
+		const b3HullHalfEdge* HullEdges = b3GetHullEdges( Hull );
+		const b3HullFace* HullFaces = b3GetHullFaces( Hull );
+		const b3Plane* HullPlanes = b3GetHullPlanes( Hull );
+		
+		for ( int FaceIndex = 0; FaceIndex < FaceCount; ++FaceIndex )
 			{
-			b3Vec3 Vertex = HullVertices[ VertexIndex ];
-			Vertices[ VertexIndex ] = { Vertex.x, Vertex.y, Vertex.z };
+			const b3HullFace* Face = HullFaces + FaceIndex;
+			const b3Plane& FacePlane = HullPlanes[ FaceIndex ];
+			b3Vec3 FaceNormal = FacePlane.normal;
+
+			const b3HullHalfEdge* Edge1 = HullEdges + Face->edge ;
+			const b3HullHalfEdge* Edge2 = HullEdges + Edge1->next;
+			const b3HullHalfEdge* Edge3 = HullEdges + Edge2->next;
+			
+			do
+				{
+				int VertexIndex1 = Edge1->origin;
+				b3Vec3 Vertex1 = HullVertices[ VertexIndex1 ];
+				VertexPositions.push_back( { Vertex1.x, Vertex1.y, Vertex1.z } );
+				VertexNormals.push_back( { FaceNormal.x, FaceNormal.y, FaceNormal.z } );
+				
+				int VertexIndex2 = Edge2->origin;
+				b3Vec3 Vertex2 = HullVertices[ VertexIndex2 ];
+				VertexPositions.push_back( { Vertex2.x, Vertex2.y, Vertex2.z } );
+				VertexNormals.push_back( { FaceNormal.x, FaceNormal.y, FaceNormal.z } );
+				
+				int VertexIndex3 = Edge3->origin;
+				b3Vec3 Vertex3 = HullVertices[ VertexIndex3 ];
+				VertexPositions.push_back( { Vertex3.x, Vertex3.y, Vertex3.z } );
+				VertexNormals.push_back( { FaceNormal.x, FaceNormal.y, FaceNormal.z } );
+
+				Edge2 = Edge3;
+				Edge3 = HullEdges + Edge3->next;
+				}
+			while ( Edge1 != Edge3 );
 			}
 
 		int EdgeCount = Hull->edgeCount;
-		const b3HullHalfEdge* HullEdges = b3GetHullEdges( Hull );
+		
 		if ( EdgeCount > 0 && HullEdges )
 			{
 			Edges.resize( EdgeCount );
@@ -58,21 +91,28 @@ VsBox3dHull::~VsBox3dHull()
 //--------------------------------------------------------------------------------------------------
 int VsBox3dHull::GetVertexCount() const
 	{
-	return static_cast< int >( Vertices.size() );
+	return static_cast< int >( VertexPositions.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const VsVector3* VsBox3dHull::GetVertices() const
+const VsVector3* VsBox3dHull::GetVertexPositions() const
 	{
-	return Vertices.data();
+	return VertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsBox3dHull::GetVertexNormals() const
+	{
+	return VertexNormals.data();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 int VsBox3dHull::GetEdgeCount() const
 	{
-	return static_cast< int >( Edges.size() );
+	return static_cast< int >( Edges.size() / 2 );
 	}
 
 
