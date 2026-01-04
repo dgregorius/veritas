@@ -219,6 +219,7 @@ struct IVsPlugin
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
 	
+	IVsHull* CreateBox( VsVector3 Extent );
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyHull( IVsHull* Hull ) = 0;
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;

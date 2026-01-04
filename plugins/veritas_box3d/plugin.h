@@ -41,13 +41,12 @@ struct VsBox3dHull : IVsHull
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dHullShape : IVsHullShape
 	{
-	explicit VsBox3dHullShape( b3ShapeId ShapeId, const VsBox3dHull* Hull );
+	explicit VsBox3dHullShape( b3ShapeId ShapeId );
 	virtual ~VsBox3dHullShape();
 
 	virtual const IVsHull* GetHull() const override;
 
 	b3ShapeId ShapeId = {};
-	const VsBox3dHull* Hull = nullptr;
 	};
 
 
@@ -72,13 +71,12 @@ struct VsBox3dMesh : IVsMesh
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dMeshShape : IVsMeshShape
 	{
-	explicit VsBox3dMeshShape( b3ShapeId ShapeId, const VsBox3dMesh* Mesh );
+	explicit VsBox3dMeshShape( b3ShapeId ShapeId );
 	virtual ~VsBox3dMeshShape();
 
 	virtual const IVsMesh* GetMesh() const override;
 
 	b3ShapeId ShapeId = {};
-	const VsBox3dMesh* Mesh = nullptr;
 	};
 
 

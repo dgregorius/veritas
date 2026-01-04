@@ -12,7 +12,25 @@
 class VsBasicScene1 : public VsTest
 	{
 	public:
-		using VsTest::VsTest;
+		VsBasicScene1( IVsPlugin* Plugin )
+			: VsTest( Plugin )
+			{
+			if ( IVsWorld* World = Plugin->CreateWorld() )
+				{
+				World->SetGravity( VsVector3( 0.0f, -10.0f, 0.0f ) );
+
+				IVsHull* Hull = Plugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+				IVsBody* Body = World->CreateBody( VS_STATIC_BODY );
+				Body->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+				Body->SetOrientation( VsQuaternion( 0.0f, 0.0f, 0.0f, 1.0f ) );
+				IVsShape* Shape = Body->CreateHull( Hull );
+
+				Body->DestroyShape( Shape );
+				World->DestroyBody( Body );
+				Plugin->DestroyHull( Hull );
+				Plugin->DestroyWorld( World );
+				}
+			}
 		
 	};
 

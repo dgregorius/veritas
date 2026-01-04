@@ -40,8 +40,8 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 				int VertexIndex2 = Twin->origin;
 				b3Vec3 Vertex2 = HullVertices[ VertexIndex2 ];
 
-				Edges[ 2 * EdgeIndex + 0 ] = { Vertex1.x, Vertex1.y, Vertex1.z };
-				Edges[ 2 * EdgeIndex + 1 ] = { Vertex2.x, Vertex2.y, Vertex2.z };
+				Edges[ EdgeIndex + 0 ] = { Vertex1.x, Vertex1.y, Vertex1.z };
+				Edges[ EdgeIndex + 1 ] = { Vertex2.x, Vertex2.y, Vertex2.z };
 				}
 			}
 		}
@@ -86,9 +86,8 @@ const VsVector3* VsBox3dHull::GetEdges() const
 //--------------------------------------------------------------------------------------------------
 // VsBox3dHullShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId, const VsBox3dHull* Hull )
+VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId )
 	: ShapeId( ShapeId )
-	, Hull( Hull )
 	{
 
 	}
@@ -104,7 +103,10 @@ VsBox3dHullShape::~VsBox3dHullShape()
 //--------------------------------------------------------------------------------------------------
 const IVsHull* VsBox3dHullShape::GetHull() const
 	{
-	return Hull;
+	// DIRK_TODO: ...
+	B3_ASSERT( 0 );
+
+	return nullptr;
 	}
 
 
@@ -163,9 +165,8 @@ const VsVector3* VsBox3dMesh::GetVertices() const
 //--------------------------------------------------------------------------------------------------
 // VsBox3dMeshShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dMeshShape::VsBox3dMeshShape( b3ShapeId ShapeId, const VsBox3dMesh* Mesh )
+VsBox3dMeshShape::VsBox3dMeshShape( b3ShapeId ShapeId )
 	: ShapeId( ShapeId )
-	, Mesh( Mesh )
 	{
 
 	}
@@ -181,7 +182,10 @@ VsBox3dMeshShape::~VsBox3dMeshShape()
 //--------------------------------------------------------------------------------------------------
 const IVsMesh* VsBox3dMeshShape::GetMesh() const
 	{
-	return Mesh;
+	// DIRK_TODO: ...
+	B3_ASSERT( 0 );
+
+	return nullptr;
 	}
 
 
@@ -276,7 +280,7 @@ IVsHullShape* VsBox3dBody::CreateHull( const IVsHull* Hull )
 	b3ShapeDef ShapeDef = b3DefaultShapeDef();
 	
 	b3ShapeId ShapeId = b3CreateHullShape( BodyId, &ShapeDef, static_cast< const VsBox3dHull* >( Hull )->Native );
-	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dHullShape( ShapeId, static_cast< const VsBox3dHull* >( Hull ) ) : nullptr;
+	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dHullShape( ShapeId ) : nullptr;
 	}
 
 
@@ -291,7 +295,7 @@ IVsMeshShape* VsBox3dBody::CreateMesh( const IVsMesh* Mesh )
 	b3ShapeDef ShapeDef = b3DefaultShapeDef();
 
 	b3ShapeId ShapeId = b3CreateMeshShape( BodyId, &ShapeDef, static_cast< const VsBox3dMesh* >( Mesh )->Native, { 1.0f, 1.0f, 1.0f } );
-	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dMeshShape( ShapeId, static_cast< const VsBox3dMesh* >( Mesh ) ) : nullptr;
+	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dMeshShape( ShapeId ) : nullptr;
 	}
 
 
@@ -410,6 +414,7 @@ void VsBox3dPlugin::DestroyMesh( IVsMesh* Mesh )
 IVsWorld* VsBox3dPlugin::CreateWorld()
 	{
 	b3WorldDef WorldDef = b3DefaultWorldDef();
+	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
 	
 	b3WorldId WorldId = b3CreateWorld( &WorldDef );
 	return B3_IS_NON_NULL( WorldId ) ? new VsBox3dWorld( WorldId ) : nullptr;
