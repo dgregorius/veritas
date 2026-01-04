@@ -73,9 +73,14 @@ workspace "veritas"
 			location "build/plugins/veritas_box3d"
 			files { "plugins/veritas_box3d/**" }
 			includedirs { "source", "externals/box3d/include" }
-			links { "box3d", "veritas" }	
 			libdirs { "externals/box3d/lib" }
-
+			links { "veritas" }
+			filter "configurations:Debug"
+				links { "box3dd" }
+			filter "configurations:Release"
+				links { "box3d" }
+   			filter {}
+			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_box3d.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/box3d" }
 			
 		-- Add Veritas Jolt
@@ -84,9 +89,9 @@ workspace "veritas"
 			location "build/plugins/veritas_jolt"
 			files { "plugins/veritas_jolt/**" }
 			includedirs { "source", "externals/jolt/include" }
-			links { "jolt", "veritas" }	
 			libdirs { "externals/jolt/lib" }
-
+			links { "jolt", "veritas" }	
+			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_jolt.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/jolt" }
 
 		-- Add Veritas PhysX
@@ -95,8 +100,8 @@ workspace "veritas"
 			location "build/plugins/veritas_physx"
 			files { "plugins/veritas_physx/**" }
 			includedirs { "source", "externals/physx/include" }
-			links { "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64", "veritas" }	
 			libdirs { "externals/physx/lib" }
+			links { "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64", "veritas" }	
 
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_physx.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/physx" }
 
@@ -116,8 +121,8 @@ workspace "veritas"
 			location "build/source/veritas_testlab"
 			files { "source/veritas_testlab/**" }
 			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/imgui" }
-			links { "glad", "glfw3", "imgui", "veritas" }	
 			libdirs { "externals/glfw3/lib" }
+			links { "glad", "glfw3", "imgui", "veritas" }	
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
 			debugcommand ( "bin/veritas_testlab.exe" )
