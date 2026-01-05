@@ -11,13 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <algorithm>
 #include <filesystem>
-#include <functional>
-#include <memory>
-#include <variant>
-#include <vector>
-
 namespace fs = std::filesystem;
 
 
@@ -207,6 +201,11 @@ struct IVsWorld
 
 	virtual IVsBody* CreateBody( VsBodyType Type ) = 0;
 	virtual void DestroyBody( IVsBody* Body ) = 0;
+	virtual int GetBodyCount() const = 0;
+	virtual IVsBody* GetBody( int BodyIndex ) = 0;
+	virtual const IVsBody* GetBody( int BodyIndex ) const = 0;
+
+	virtual void Step( float Timestep ) = 0;
 
 	protected:
 		virtual ~IVsWorld() = default;
@@ -218,30 +217,28 @@ struct IVsWorld
 //--------------------------------------------------------------------------------------------------
 struct IVsPlugin
 	{
+	// Module
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
 	
-	// Hulls
+	// Hull
 	IVsHull* CreateBox( VsVector3 Extent );
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyHull( IVsHull* Hull ) = 0;
-	
 	virtual int GetHullCount() const = 0;
 	virtual IVsHull* GetHull( int HullIndex ) = 0;
 	virtual const IVsHull* GetHull( int HullIndex ) const = 0;
 
-	// Meshes
+	// Mesh
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyMesh( IVsMesh* Mesh ) = 0;
-
 	virtual int GetMeshCount() const = 0;
 	virtual IVsMesh* GetMesh( int MeshIndex ) = 0;
 	virtual const IVsMesh* GetMesh( int MeshIndex ) const = 0;
 	
-	// Worlds
+	// World
 	virtual IVsWorld* CreateWorld() = 0;
 	virtual void DestroyWorld( IVsWorld* World ) = 0;
-
 	virtual int GetWorldCount() const = 0;
 	virtual IVsWorld* GetWorld( int WorldIndex ) = 0;
 	virtual const IVsWorld* GetWorld( int WorldIndex ) const = 0;

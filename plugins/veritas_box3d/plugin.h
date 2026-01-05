@@ -15,6 +15,32 @@
 
 // Box3D
 #include <box3d/box3d.h>
+#include <taskscheduler.h>
+
+
+struct VsBox3dHull;
+struct VsBox3dMesh;
+
+struct VsBox3dSphereShape;
+struct VsBox3dCapsuleShape;
+struct VsBox3dHullShape;
+struct VsBox3dMeshShape;
+struct VsBox3dBody;
+struct VsBox3dWorld;
+struct VsBox3dPlugin;
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBox3dTask
+//--------------------------------------------------------------------------------------------------
+class VsBox3dTask : public enki::ITaskSet
+	{
+	public:
+		virtual void ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex ) override;
+
+		b3TaskCallback* TaskCallback = nullptr;
+		void* TaskContext = nullptr;
+	};
 
 
 //--------------------------------------------------------------------------------------------------
@@ -43,13 +69,13 @@ struct VsBox3dHull : IVsHull
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dHullShape : IVsHullShape
 	{
-	explicit VsBox3dHullShape( b3ShapeId ShapeId, const IVsHull* Hull );
+	explicit VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull );
 	virtual ~VsBox3dHullShape();
 
 	virtual const IVsHull* GetHull() const override;
 
-	b3ShapeId ShapeId = {};
-	const IVsHull* Hull = nullptr;
+	const VsBox3dHull* Hull = nullptr;
+	b3ShapeId Native = {};
 	};
 
 
@@ -76,13 +102,13 @@ struct VsBox3dMesh : IVsMesh
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dMeshShape : IVsMeshShape
 	{
-	explicit VsBox3dMeshShape( b3ShapeId ShapeId, const IVsMesh* Mesh );
+	explicit VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh );
 	virtual ~VsBox3dMeshShape();
 
 	virtual const IVsMesh* GetMesh() const override;
 
-	b3ShapeId ShapeId = {};
-	const IVsMesh* Mesh = nullptr;
+	const VsBox3dMesh* Mesh = nullptr;
+	b3ShapeId Native = {};
 	};
 
 
@@ -91,7 +117,7 @@ struct VsBox3dMeshShape : IVsMeshShape
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dBody :IVsBody
 	{
-	VsBox3dBody( b3BodyId BodyId );
+	explicit VsBox3dBody( VsBox3dWorld* World, VsBodyType Type );
 	virtual ~VsBox3dBody() override;
 
 	virtual VsBodyType GetType() const override;
@@ -107,7 +133,7 @@ struct VsBox3dBody :IVsBody
 	virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) override;
 	virtual void DestroyShape( IVsShape* Shape ) override;
 
-	b3BodyId BodyId = {};
+	b3BodyId Native = {};
 	std::vector< IVsShape* > Shapes;
 	};
 
@@ -117,7 +143,7 @@ struct VsBox3dBody :IVsBody
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dWorld : IVsWorld
 	{
-	explicit VsBox3dWorld( b3WorldId WorldId );
+	explicit VsBox3dWorld( enki::TaskScheduler& TaskScheduler );
 	virtual ~VsBox3dWorld() override;
 
 	virtual VsVector3 GetGravity() const override;
@@ -125,9 +151,19 @@ struct VsBox3dWorld : IVsWorld
 
 	virtual IVsBody* CreateBody( VsBodyType Type ) override;
 	virtual void DestroyBody( IVsBody* Body ) override;
+	virtual int GetBodyCount() const override;
+	virtual IVsBody* GetBody( int BodyIndex ) override;
+	virtual const IVsBody* GetBody( int BodyIndex ) const override;
 
-	b3WorldId WorldId = {};
-	std::vector< IVsBody* > Bodies;
+	virtual void Step( float Timestep ) override;
+
+	int TaskCount = 0;
+	enum { MaxTasks = 32 };
+	VsBox3dTask TaskList[ MaxTasks ];
+	enki::TaskScheduler& TaskScheduler;
+
+	b3WorldId Native = {};
+	std::vector< VsBox3dBody* > Bodies;
 	};
 
 
@@ -136,6 +172,7 @@ struct VsBox3dWorld : IVsWorld
 //--------------------------------------------------------------------------------------------------
 struct VsBox3dPlugin : IVsPlugin
 	{
+	VsBox3dPlugin();
 	virtual ~VsBox3dPlugin() override;
 
 	virtual const char* GetName() const override;
@@ -165,7 +202,10 @@ struct VsBox3dPlugin : IVsPlugin
 	virtual IVsWorld* GetWorld( int WorldIndex ) override;
 	virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
-	std::vector< IVsHull* > Hulls;
-	std::vector< IVsMesh* > Meshes;
-	std::vector< IVsWorld* > Worlds;
+	// Threading
+	enki::TaskScheduler TaskScheduler;
+
+	std::vector< VsBox3dHull* > Hulls;
+	std::vector< VsBox3dMesh* > Meshes;
+	std::vector< VsBox3dWorld* > Worlds;
 	};

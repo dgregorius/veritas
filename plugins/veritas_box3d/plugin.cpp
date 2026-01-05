@@ -5,37 +5,43 @@
 //--------------------------------------------------------------------------------------------------
 #include "plugin.h"
 
-// EnkiTS
-#include <taskscheduler.h>
-
 
 //--------------------------------------------------------------------------------------------------
-// EnkiTS
+// VsBox3dTask
 //--------------------------------------------------------------------------------------------------
-class VsBox3dTask : public enki::ITaskSet
+void VsBox3dTask::ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex )
 	{
-	public:
-		virtual void ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex ) override
-			{
-			Task( Range.start, Range.end, WorkerIndex, TaskContext );
-			}
+	TaskCallback( Range.start, Range.end, WorkerIndex, TaskContext );
+	}
 
-		b3TaskCallback* Task = nullptr;
-		void* TaskContext = nullptr;
-	};
-
-
-//--------------------------------------------------------------------------------------------------
-static void* EnqueueTask( b3TaskCallback* Task, int32_t ItemCount, int32_t MinRange, void* TaskContext, void* UserContext )
+static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext )
 	{
-	
+	VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
+	if ( World->TaskCount < VsBox3dWorld::MaxTasks )
+		{
+		VsBox3dTask* Task = World->TaskList + World->TaskCount++;
+		Task->m_SetSize = ItemCount;
+		Task->m_MinRange = MinRange;
+		Task->TaskCallback = TaskCallback;
+		Task->TaskContext = TaskContext;
+
+		World->TaskScheduler.AddTaskSetToPipe( Task );
+		return Task;
+		}
+
+	// This is not fatal but the MaxTasks should be increased
+	B3_ASSERT( false );
+	TaskCallback( 0, ItemCount, 0, TaskContext );
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-static void FinishTask( void* Task, void* UserContext )
+void FinishTask( void* Task, void* UserContext )
 	{
-	
+	VsBox3dWorld* World = static_cast<VsBox3dWorld*>( UserContext );
+	World->TaskScheduler.WaitforTask( static_cast<VsBox3dTask*>( Task ) );
 	}
 
 
@@ -159,18 +165,18 @@ const VsVector3* VsBox3dHull::GetEdges() const
 //--------------------------------------------------------------------------------------------------
 // VsBox3dHullShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId, const IVsHull* Hull )
-	: ShapeId( ShapeId )
-	, Hull( Hull )
+VsBox3dHullShape::VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull )
+	: Hull( Hull )
 	{
-
+	b3ShapeDef ShapeDef = b3DefaultShapeDef();
+	Native = b3CreateHullShape( Body->Native, &ShapeDef, Hull->Native );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsBox3dHullShape::~VsBox3dHullShape()
 	{
-	b3DestroyShape( ShapeId, true );
+	b3DestroyShape( Native, true );
 	}
 
 
@@ -252,18 +258,18 @@ const VsVector3* VsBox3dMesh::GetVertexNormals() const
 //--------------------------------------------------------------------------------------------------
 // VsBox3dMeshShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dMeshShape::VsBox3dMeshShape( b3ShapeId ShapeId, const IVsMesh* Mesh )
-	: ShapeId( ShapeId )
-	, Mesh( Mesh )
+VsBox3dMeshShape::VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh )
+	: Mesh( Mesh )
 	{
-
+	b3ShapeDef ShapeDef = b3DefaultShapeDef();
+	Native = b3CreateMeshShape( Body->Native, &ShapeDef, Mesh->Native, { 1.0f, 1.0f, 1.0f } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsBox3dMeshShape::~VsBox3dMeshShape()
 	{
-	b3DestroyShape( ShapeId, false );
+	b3DestroyShape( Native, false );
 	}
 
 
@@ -274,28 +280,31 @@ const IVsMesh* VsBox3dMeshShape::GetMesh() const
 	}
 
 
-
 //--------------------------------------------------------------------------------------------------
 // VsBox3dBody
 //--------------------------------------------------------------------------------------------------
-VsBox3dBody::VsBox3dBody( b3BodyId BodyId )
-	: BodyId( BodyId )
+VsBox3dBody::VsBox3dBody( VsBox3dWorld* World, VsBodyType Type )
 	{
+	const b3BodyType TypeMap[] = { b3_staticBody, b3_kinematicBody, b3_staticBody };
 
+	b3BodyDef BodyDef = b3DefaultBodyDef();
+	BodyDef.type = TypeMap[ Type ];
+
+	Native = b3CreateBody( World->Native, &BodyDef );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsBox3dBody::~VsBox3dBody()
 	{
-	b3DestroyBody( BodyId );
+	b3DestroyBody( Native );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsBodyType VsBox3dBody::GetType() const
 	{
-	b3BodyType Type = b3Body_GetType( BodyId );
+	b3BodyType Type = b3Body_GetType( Native );
 
 	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
 	return TypeMap[ Type ];
@@ -305,7 +314,7 @@ VsBodyType VsBox3dBody::GetType() const
 //--------------------------------------------------------------------------------------------------
 VsVector3 VsBox3dBody::GetPosition() const
 	{
-	b3Vec3 Position = b3Body_GetPosition( BodyId );
+	b3Vec3 Position = b3Body_GetPosition( Native );
 	return VsVector3{ Position.x, Position.y, Position.z };
 	}
 
@@ -313,15 +322,15 @@ VsVector3 VsBox3dBody::GetPosition() const
 //--------------------------------------------------------------------------------------------------
 void VsBox3dBody::SetPosition( const VsVector3& Position )
 	{
-	b3Quat Rotation = b3Body_GetRotation( BodyId );
-	b3Body_SetTransform( BodyId, b3Vec3{ Position.X, Position.Y, Position.Z }, Rotation );
+	b3Quat Rotation = b3Body_GetRotation( Native );
+	b3Body_SetTransform( Native, b3Vec3{ Position.X, Position.Y, Position.Z }, Rotation );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsQuaternion VsBox3dBody::GetOrientation() const
 	{
-	b3Quat Rotation = b3Body_GetRotation( BodyId );
+	b3Quat Rotation = b3Body_GetRotation( Native );
 	return VsQuaternion{ Rotation.v.x, Rotation.v.y, Rotation.v.z, Rotation.s };
 	}
 
@@ -329,8 +338,8 @@ VsQuaternion VsBox3dBody::GetOrientation() const
 //--------------------------------------------------------------------------------------------------
 void VsBox3dBody::SetOrientation( const VsQuaternion& Orientation )
 	{
-	b3Vec3 Position = b3Body_GetPosition( BodyId );
-	b3Body_SetTransform( BodyId, Position, b3Quat( { Orientation.X, Orientation.Y, Orientation.Z }, Orientation.W ) );
+	b3Vec3 Position = b3Body_GetPosition( Native );
+	b3Body_SetTransform( Native, Position, b3Quat( { Orientation.X, Orientation.Y, Orientation.Z }, Orientation.W ) );
 	}
 
 
@@ -362,16 +371,10 @@ IVsHullShape* VsBox3dBody::CreateHull( const IVsHull* Hull )
 		return nullptr;
 		}
 
-	b3ShapeDef ShapeDef = b3DefaultShapeDef();
-	
-	b3ShapeId ShapeId = b3CreateHullShape( BodyId, &ShapeDef, static_cast< const VsBox3dHull* >( Hull )->Native );
-	if ( B3_IS_NON_NULL( ShapeId ) )
-		{
-		Shapes.push_back( new VsBox3dHullShape( ShapeId, Hull ) );
-		return static_cast< VsBox3dHullShape* >( Shapes.back() );
-		}
+	VsBox3dHullShape* Shape = new VsBox3dHullShape( this, static_cast< const VsBox3dHull* >( Hull ) );
+	Shapes.push_back( Shape );
 
-	return  nullptr;
+	return Shape;
 	}
 
 
@@ -383,16 +386,10 @@ IVsMeshShape* VsBox3dBody::CreateMesh( const IVsMesh* Mesh )
 		return nullptr;
 		}
 
-	b3ShapeDef ShapeDef = b3DefaultShapeDef();
+	VsBox3dMeshShape* Shape = new VsBox3dMeshShape( this, static_cast< const VsBox3dMesh* >( Mesh ) );
+	Shapes.push_back( Shape );
 
-	b3ShapeId ShapeId = b3CreateMeshShape( BodyId, &ShapeDef, static_cast< const VsBox3dMesh* >( Mesh )->Native, { 1.0f, 1.0f, 1.0f } );
-	if ( B3_IS_NON_NULL( ShapeId ) )
-		{
-		Shapes.push_back( new VsBox3dMeshShape( ShapeId, Mesh ) );
-		return static_cast< VsBox3dMeshShape* >( Shapes.back() );
-		}
-
-	return nullptr;
+	return Shape;
 	}
 
 
@@ -412,10 +409,16 @@ void VsBox3dBody::DestroyShape( IVsShape* Shape )
 //--------------------------------------------------------------------------------------------------
 // VsBox3dWorld
 //--------------------------------------------------------------------------------------------------
-VsBox3dWorld::VsBox3dWorld( b3WorldId WorldId )
-	: WorldId( WorldId )
+VsBox3dWorld::VsBox3dWorld( enki::TaskScheduler& TaskScheduler )
+	: TaskScheduler( TaskScheduler )
 	{
-	
+	b3WorldDef WorldDef = b3DefaultWorldDef();
+	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
+	WorldDef.workerCount = TaskScheduler.GetNumTaskThreads();
+	WorldDef.enqueueTask = EnqueueTask;
+	WorldDef.finishTask = FinishTask;
+
+	Native = b3CreateWorld( &WorldDef );
 	}
 
 
@@ -424,47 +427,38 @@ VsBox3dWorld::~VsBox3dWorld()
 	{
 	while ( !Bodies.empty() )
 		{
-		VsBox3dBody* Body = static_cast< VsBox3dBody* >( Bodies.back() );
+		VsBox3dBody* Body = Bodies.back();
 		Bodies.pop_back();
 
 		delete Body;
 		}
 
-	b3DestroyWorld( WorldId );
+	b3DestroyWorld( Native );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsVector3 VsBox3dWorld::GetGravity() const
 	{
-	b3Vec3 Gravity = b3World_GetGravity( WorldId );
-	return VsVector3{ Gravity.x, Gravity.y, Gravity.z };
+	b3Vec3 Gravity = b3World_GetGravity( Native );
+	return { Gravity.x, Gravity.y, Gravity.z };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dWorld::SetGravity( const VsVector3& Gravity )
 	{
-	b3World_SetGravity( WorldId, { Gravity.X, Gravity.Y, Gravity.Z } );
+	b3World_SetGravity( Native, { Gravity.X, Gravity.Y, Gravity.Z } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsBody* VsBox3dWorld::CreateBody( VsBodyType Type )
 	{
-	const b3BodyType TypeMap[] = { b3_staticBody, b3_kinematicBody, b3_staticBody };
-	
-	b3BodyDef BodyDef = b3DefaultBodyDef();
-	BodyDef.type = TypeMap[ Type ];
+	VsBox3dBody* Body = new VsBox3dBody( this, Type );
+	Bodies.push_back( Body );
 
-	b3BodyId BodyId = b3CreateBody( WorldId, &BodyDef );
-	if ( B3_IS_NON_NULL( BodyId ) )
-		{
-		Bodies.push_back( new VsBox3dBody( BodyId ) );
-		return Bodies.back();
-		}
-
-	return nullptr;
+	return Body;
 	}
 
 
@@ -481,14 +475,52 @@ void VsBox3dWorld::DestroyBody( IVsBody* Body )
 	}
 
 
+
+//--------------------------------------------------------------------------------------------------
+int VsBox3dWorld::GetBodyCount() const
+	{
+	return static_cast<int>( Bodies.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsBody* VsBox3dWorld::GetBody( int BodyIndex )
+	{
+	return ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? Bodies[ BodyIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsBody* VsBox3dWorld::GetBody( int BodyIndex ) const
+	{
+	return ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? Bodies[ BodyIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::Step( float Timestep )
+	{
+	b3World_Step( Native, Timestep, 4 );
+	TaskCount = 0;
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 // VsBox3dPlugin
+//--------------------------------------------------------------------------------------------------
+VsBox3dPlugin::VsBox3dPlugin()
+	{
+	int WorkerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
+	TaskScheduler.Initialize( WorkerCount );
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 VsBox3dPlugin::~VsBox3dPlugin()
 	{
 	while ( !Worlds.empty() )
 		{
-		VsBox3dWorld* World = static_cast< VsBox3dWorld* >( Worlds.back() );
+		VsBox3dWorld* World = Worlds.back();
 		Worlds.pop_back();
 
 		delete World;
@@ -496,7 +528,7 @@ VsBox3dPlugin::~VsBox3dPlugin()
 
 	while ( !Meshes.empty() )
 		{
-		VsBox3dMesh* Mesh = static_cast< VsBox3dMesh* >( Meshes.back() );
+		VsBox3dMesh* Mesh = Meshes.back();
 		Meshes.pop_back();
 
 		delete Mesh;
@@ -504,7 +536,7 @@ VsBox3dPlugin::~VsBox3dPlugin()
 
 	while ( !Hulls.empty() )
 		{
-		VsBox3dHull* Hull = static_cast< VsBox3dHull*> ( Hulls.back() );
+		VsBox3dHull* Hull = Hulls.back();
 		Hulls.pop_back();
 
 		delete Hull;
@@ -629,16 +661,8 @@ const IVsMesh* VsBox3dPlugin::GetMesh( int MeshIndex ) const
 //--------------------------------------------------------------------------------------------------
 IVsWorld* VsBox3dPlugin::CreateWorld()
 	{
-	b3WorldDef WorldDef = b3DefaultWorldDef();
-	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
-	// DIRK_TODO: EnkiTS...
-	
-	b3WorldId WorldId = b3CreateWorld( &WorldDef );
-	if ( B3_IS_NON_NULL( WorldId ) )
-		{
-		Worlds.push_back( new VsBox3dWorld( WorldId ) );
-		return Worlds.back();
-		}
+	VsBox3dWorld* World = new VsBox3dWorld( TaskScheduler );
+	Worlds.push_back( World );
 
 	return nullptr;
 	}
