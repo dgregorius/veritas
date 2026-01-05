@@ -437,6 +437,46 @@ VsBox3dWorld::~VsBox3dWorld()
 	}
 
 
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::AddListener( IVsWorldListener* Listener )
+	{
+	// Add 
+	if ( !Listener )
+		{
+		return;
+		}
+
+	if ( std::find( Listeners.begin(), Listeners.end(), Listener ) != Listeners.end() )
+		{
+		return;
+		}
+	Listeners.push_back( Listener );
+
+	// Sync
+	for ( VsBox3dBody* Body : Bodies )
+		{
+		Listener->OnBodyAdded( Body );
+		for ( IVsShape* Shape : Body->Shapes )
+			{
+			Listener->OnShapeAdded( Body, Shape );
+			}
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::RemoveListener( IVsWorldListener* Listener )
+	{
+	if ( !Listener )
+		{
+		return;
+		}
+
+	std::erase( Listeners, Listener );
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 VsVector3 VsBox3dWorld::GetGravity() const
 	{

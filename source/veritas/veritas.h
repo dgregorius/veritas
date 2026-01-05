@@ -192,10 +192,28 @@ struct IVsBody
 
 
 //--------------------------------------------------------------------------------------------------
+// IVsWorldListener
+//--------------------------------------------------------------------------------------------------
+struct IVsWorldListener
+	{
+	virtual void OnBodyAdded( IVsBody* Body ) = 0;
+	virtual void OnBodyRemoved( IVsBody* Body ) = 0;
+	virtual void OnShapeAdded( IVsBody* Body, IVsShape* Shape ) = 0;
+	virtual void OnShapeRemoved( IVsBody* Body, IVsShape* Shape ) = 0;
+
+	protected:
+		virtual ~IVsWorldListener() = default;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
 // IVsWorld
 //--------------------------------------------------------------------------------------------------
 struct IVsWorld
 	{
+	virtual void AddListener( IVsWorldListener* Listener ) = 0;
+	virtual void RemoveListener( IVsWorldListener* Listener ) = 0;
+
 	virtual VsVector3 GetGravity() const = 0;
 	virtual void SetGravity( const VsVector3& Gravity ) = 0;
 
@@ -210,6 +228,9 @@ struct IVsWorld
 	protected:
 		virtual ~IVsWorld() = default;
 	};
+
+
+
 
 
 //--------------------------------------------------------------------------------------------------

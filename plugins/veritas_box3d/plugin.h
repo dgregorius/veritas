@@ -146,6 +146,9 @@ struct VsBox3dWorld : IVsWorld
 	explicit VsBox3dWorld( enki::TaskScheduler& TaskScheduler );
 	virtual ~VsBox3dWorld() override;
 
+	virtual void AddListener( IVsWorldListener* Listener ) override;
+	virtual void RemoveListener( IVsWorldListener* Listener ) override;
+
 	virtual VsVector3 GetGravity() const override;
 	virtual void SetGravity( const VsVector3& Gravity ) override;
 
@@ -162,7 +165,10 @@ struct VsBox3dWorld : IVsWorld
 	VsBox3dTask TaskList[ MaxTasks ];
 	enki::TaskScheduler& TaskScheduler;
 
+	
+
 	b3WorldId Native = {};
+	std::vector< IVsWorldListener* > Listeners;
 	std::vector< VsBox3dBody* > Bodies;
 	};
 
