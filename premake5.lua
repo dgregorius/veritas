@@ -51,6 +51,12 @@ workspace "veritas"
 	-- Externals
 	group "externals"
 
+		-- Add EnkiTS 
+			project "enkits"
+			location "build/externals/enkits"
+			kind "StaticLib"
+			files { "externals/enkits/**" }	
+
 		-- Add GLAD 
 			project "glad"
 			location "build/externals/glad"

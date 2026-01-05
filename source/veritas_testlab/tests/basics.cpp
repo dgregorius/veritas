@@ -25,9 +25,9 @@ class VsBasicScene1 : public VsTest
 				Body->SetOrientation( VsQuaternion( 0.0f, 0.0f, 0.0f, 1.0f ) );
 				IVsShape* Shape = Body->CreateHull( Hull );
 
-				Body->DestroyShape( Shape );
-				World->DestroyBody( Body );
-				Plugin->DestroyHull( Hull );
+// 				Body->DestroyShape( Shape );
+// 				World->DestroyBody( Body );
+// 				Plugin->DestroyHull( Hull );
 				Plugin->DestroyWorld( World );
 				}
 			}

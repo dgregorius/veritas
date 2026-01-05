@@ -126,8 +126,9 @@ const VsVector3* VsBox3dHull::GetEdges() const
 //--------------------------------------------------------------------------------------------------
 // VsBox3dHullShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId )
+VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId, const IVsHull* Hull )
 	: ShapeId( ShapeId )
+	, Hull( Hull )
 	{
 
 	}
@@ -136,17 +137,14 @@ VsBox3dHullShape::VsBox3dHullShape( b3ShapeId ShapeId )
 //--------------------------------------------------------------------------------------------------
 VsBox3dHullShape::~VsBox3dHullShape()
 	{
-	//b3DestroyShape( ShapeId, true );
+	b3DestroyShape( ShapeId, true );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const IVsHull* VsBox3dHullShape::GetHull() const
 	{
-	// DIRK_TODO: ...
-	B3_ASSERT( 0 );
-
-	return nullptr;
+	return Hull;
 	}
 
 
@@ -163,7 +161,8 @@ VsBox3dMesh::VsBox3dMesh( b3MeshData* Mesh )
 	const b3Vec3* MeshVertices = b3GetMeshVertices( Mesh );
 	if ( TriangleCount > 0 && MeshTriangles && MeshVertices )
 		{
-		Vertices.resize( 3 * TriangleCount );
+		VertexPositions.resize( 3 * TriangleCount );
+		VertexNormals.resize( 3 * TriangleCount );
 		for ( int TriangleIndex = 0; TriangleIndex < TriangleCount; ++TriangleIndex )
 			{
 			int VertexIndex1 = MeshTriangles[ TriangleIndex ].index1;
@@ -173,9 +172,17 @@ VsBox3dMesh::VsBox3dMesh( b3MeshData* Mesh )
 			int VertexIndex3 = MeshTriangles[ TriangleIndex ].index3;
 			b3Vec3 Vertex3 = MeshVertices[ VertexIndex3 ];
 
-			Vertices[ 3 * TriangleIndex + 0 ] = { Vertex1.x, Vertex1.y, Vertex1.z };
-			Vertices[ 3 * TriangleIndex + 1 ] = { Vertex2.x, Vertex2.y, Vertex2.z };
-			Vertices[ 3 * TriangleIndex + 2 ] = { Vertex3.x, Vertex3.y, Vertex3.z };
+			b3Vec3 Edge1 = b3Sub( Vertex2, Vertex1 );
+			b3Vec3 Edge2 = b3Sub( Vertex3, Vertex1 );
+			b3Vec3 Normal = b3Cross( Edge1, Edge2 );
+			Normal = b3Normalize( Normal );
+
+			VertexPositions[ 3 * TriangleIndex + 0 ] = { Vertex1.x, Vertex1.y, Vertex1.z };
+			VertexNormals[ 3 * TriangleIndex + 0 ] = { Normal.x, Normal.y, Normal.z };
+			VertexPositions[ 3 * TriangleIndex + 1 ] = { Vertex2.x, Vertex2.y, Vertex2.z };
+			VertexNormals[ 3 * TriangleIndex + 1 ] = { Normal.x, Normal.y, Normal.z };
+			VertexPositions[ 3 * TriangleIndex + 2 ] = { Vertex3.x, Vertex3.y, Vertex3.z };
+			VertexNormals[ 3 * TriangleIndex + 2 ] = { Normal.x, Normal.y, Normal.z };
 			}
 		}
 	}
@@ -191,22 +198,30 @@ VsBox3dMesh::~VsBox3dMesh()
 //--------------------------------------------------------------------------------------------------
 int VsBox3dMesh::GetVertexCount() const
 	{
-	return static_cast< int >( Vertices.size() );
+	return static_cast< int >( VertexPositions.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const VsVector3* VsBox3dMesh::GetVertices() const
+const VsVector3* VsBox3dMesh::GetVertexPositions() const
 	{
-	return Vertices.data();
+	return VertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsBox3dMesh::GetVertexNormals() const
+	{
+	return VertexNormals.data();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dMeshShape
 //--------------------------------------------------------------------------------------------------
-VsBox3dMeshShape::VsBox3dMeshShape( b3ShapeId ShapeId )
+VsBox3dMeshShape::VsBox3dMeshShape( b3ShapeId ShapeId, const IVsMesh* Mesh )
 	: ShapeId( ShapeId )
+	, Mesh( Mesh )
 	{
 
 	}
@@ -222,10 +237,7 @@ VsBox3dMeshShape::~VsBox3dMeshShape()
 //--------------------------------------------------------------------------------------------------
 const IVsMesh* VsBox3dMeshShape::GetMesh() const
 	{
-	// DIRK_TODO: ...
-	B3_ASSERT( 0 );
-
-	return nullptr;
+	return Mesh;
 	}
 
 
@@ -320,7 +332,13 @@ IVsHullShape* VsBox3dBody::CreateHull( const IVsHull* Hull )
 	b3ShapeDef ShapeDef = b3DefaultShapeDef();
 	
 	b3ShapeId ShapeId = b3CreateHullShape( BodyId, &ShapeDef, static_cast< const VsBox3dHull* >( Hull )->Native );
-	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dHullShape( ShapeId ) : nullptr;
+	if ( B3_IS_NON_NULL( ShapeId ) )
+		{
+		Shapes.push_back( new VsBox3dHullShape( ShapeId, Hull ) );
+		return static_cast< VsBox3dHullShape* >( Shapes.back() );
+		}
+
+	return  nullptr;
 	}
 
 
@@ -335,14 +353,26 @@ IVsMeshShape* VsBox3dBody::CreateMesh( const IVsMesh* Mesh )
 	b3ShapeDef ShapeDef = b3DefaultShapeDef();
 
 	b3ShapeId ShapeId = b3CreateMeshShape( BodyId, &ShapeDef, static_cast< const VsBox3dMesh* >( Mesh )->Native, { 1.0f, 1.0f, 1.0f } );
-	return B3_IS_NON_NULL( ShapeId ) ? new VsBox3dMeshShape( ShapeId ) : nullptr;
+	if ( B3_IS_NON_NULL( ShapeId ) )
+		{
+		Shapes.push_back( new VsBox3dMeshShape( ShapeId, Mesh ) );
+		return static_cast< VsBox3dMeshShape* >( Shapes.back() );
+		}
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dBody::DestroyShape( IVsShape* Shape )
 	{
-	
+	if ( !Shape )
+		{
+		return;
+		}
+
+	size_t Count = std::erase( Shapes, Shape );
+	B3_ASSERT( Count == 1 );
 	}
 
 
@@ -359,6 +389,14 @@ VsBox3dWorld::VsBox3dWorld( b3WorldId WorldId )
 //--------------------------------------------------------------------------------------------------
 VsBox3dWorld::~VsBox3dWorld()
 	{
+	while ( !Bodies.empty() )
+		{
+		VsBox3dBody* Body = static_cast< VsBox3dBody* >( Bodies.back() );
+		Bodies.pop_back();
+
+		delete Body;
+		}
+
 	b3DestroyWorld( WorldId );
 	}
 
@@ -387,19 +425,60 @@ IVsBody* VsBox3dWorld::CreateBody( VsBodyType Type )
 	BodyDef.type = TypeMap[ Type ];
 
 	b3BodyId BodyId = b3CreateBody( WorldId, &BodyDef );
-	return B3_IS_NON_NULL( BodyId ) ? new VsBox3dBody( BodyId ) : nullptr;
+	if ( B3_IS_NON_NULL( BodyId ) )
+		{
+		Bodies.push_back( new VsBox3dBody( BodyId ) );
+		return Bodies.back();
+		}
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dWorld::DestroyBody( IVsBody* Body )
 	{
+	if ( !Body )
+		{
+		return;
+		}
+
+	std::erase( Bodies, Body );
 	delete static_cast< VsBox3dBody* >( Body );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dPlugin
+//--------------------------------------------------------------------------------------------------
+VsBox3dPlugin::~VsBox3dPlugin()
+	{
+	while ( !Worlds.empty() )
+		{
+		VsBox3dWorld* World = static_cast< VsBox3dWorld* >( Worlds.back() );
+		Worlds.pop_back();
+
+		delete World;
+		}
+
+	while ( !Meshes.empty() )
+		{
+		VsBox3dMesh* Mesh = static_cast< VsBox3dMesh* >( Meshes.back() );
+		Meshes.pop_back();
+
+		delete Mesh;
+		}
+
+	while ( !Hulls.empty() )
+		{
+		VsBox3dHull* Hull = static_cast< VsBox3dHull*> ( Hulls.back() );
+		Hulls.pop_back();
+
+		delete Hull;
+		}
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 const char* VsBox3dPlugin::GetName() const
 	{
@@ -417,15 +496,47 @@ const char* VsBox3dPlugin::GetVersion() const
 //--------------------------------------------------------------------------------------------------
 IVsHull* VsBox3dPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 	{
-	b3Hull* Hull = b3CreateHull( (const b3Vec3*)Vertices, VertexCount );
-	return Hull ? new VsBox3dHull( Hull ) : nullptr;
+	if ( b3Hull* Hull = b3CreateHull( (const b3Vec3*)Vertices, VertexCount ) )
+		{
+		Hulls.push_back( new VsBox3dHull( Hull ) );
+		return Hulls.back();
+		}
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dPlugin::DestroyHull( IVsHull* Hull )
 	{
+	if ( !Hull )
+		{
+		return;
+		}
+
+	std::erase( Hulls, Hull );
 	delete static_cast< VsBox3dHull* >( Hull );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsBox3dPlugin::GetHullCount() const
+	{
+	return static_cast< int >( Hulls.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsHull* VsBox3dPlugin::GetHull( int HullIndex )
+	{
+	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? Hulls[ HullIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsHull* VsBox3dPlugin::GetHull( int HullIndex ) const
+	{
+	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? Hulls[ HullIndex ] : nullptr;
 	}
 
 
@@ -438,15 +549,47 @@ IVsMesh* VsBox3dPlugin::CreateMesh( int TriangleCount, const int* TriangleIndice
 	MeshDef.vertexCount = VertexCount;
 	MeshDef.vertices = (b3Vec3*)Vertices;
 	
-	b3MeshData* Mesh = b3CreateMesh( &MeshDef, NULL, 0 );
-	return Mesh ? new VsBox3dMesh( Mesh ) : nullptr;
+	if ( b3MeshData* Mesh = b3CreateMesh( &MeshDef, NULL, 0 ) )
+		{
+		Meshes.push_back( new VsBox3dMesh( Mesh ) );
+		return Meshes.back();
+		}
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dPlugin::DestroyMesh( IVsMesh* Mesh )
 	{
+	if ( !Mesh )
+		{
+		return;
+		}
+
+	std::erase( Meshes, Mesh );
 	delete static_cast< VsBox3dMesh* >( Mesh );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsBox3dPlugin::GetMeshCount() const
+	{
+	return static_cast< int >( Meshes.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsMesh* VsBox3dPlugin::GetMesh( int MeshIndex )
+	{
+	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? Meshes[ MeshIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsMesh* VsBox3dPlugin::GetMesh( int MeshIndex ) const
+	{
+	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? Meshes[ MeshIndex ] : nullptr;
 	}
 
 
@@ -455,17 +598,52 @@ IVsWorld* VsBox3dPlugin::CreateWorld()
 	{
 	b3WorldDef WorldDef = b3DefaultWorldDef();
 	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
+	// DIRK_TODO: EnkiTS...
 	
 	b3WorldId WorldId = b3CreateWorld( &WorldDef );
-	return B3_IS_NON_NULL( WorldId ) ? new VsBox3dWorld( WorldId ) : nullptr;
+	if ( B3_IS_NON_NULL( WorldId ) )
+		{
+		Worlds.push_back( new VsBox3dWorld( WorldId ) );
+		return Worlds.back();
+		}
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dPlugin::DestroyWorld( IVsWorld* World )
 	{
+	if ( !World )
+		{
+		return;
+		}
+
+	std::erase( Worlds, World );
 	delete static_cast< VsBox3dWorld* >( World );
 	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsBox3dPlugin::GetWorldCount() const
+	{
+	return static_cast< int >( Worlds.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex )
+	{
+	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? Worlds[ WorldIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex ) const
+	{
+	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? Worlds[ WorldIndex ] : nullptr;
+	}
+
 
 // Export
 VS_EXPORT_PLUGIN( VsBox3dPlugin );

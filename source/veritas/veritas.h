@@ -143,7 +143,8 @@ struct IVsHullShape : IVsShape
 struct IVsMesh
 	{
 	virtual int GetVertexCount() const = 0;
-	virtual const VsVector3* GetVertices() const = 0;
+	virtual const VsVector3* GetVertexPositions() const = 0;
+	virtual const VsVector3* GetVertexNormals() const = 0;
 
 	protected:
 		virtual ~IVsMesh() = default;
@@ -220,14 +221,30 @@ struct IVsPlugin
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
 	
+	// Hulls
 	IVsHull* CreateBox( VsVector3 Extent );
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyHull( IVsHull* Hull ) = 0;
+	
+	virtual int GetHullCount() const = 0;
+	virtual IVsHull* GetHull( int HullIndex ) = 0;
+	virtual const IVsHull* GetHull( int HullIndex ) const = 0;
+
+	// Meshes
 	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyMesh( IVsMesh* Mesh ) = 0;
 
+	virtual int GetMeshCount() const = 0;
+	virtual IVsMesh* GetMesh( int MeshIndex ) = 0;
+	virtual const IVsMesh* GetMesh( int MeshIndex ) const = 0;
+	
+	// Worlds
 	virtual IVsWorld* CreateWorld() = 0;
 	virtual void DestroyWorld( IVsWorld* World ) = 0;
+
+	virtual int GetWorldCount() const = 0;
+	virtual IVsWorld* GetWorld( int WorldIndex ) = 0;
+	virtual const IVsWorld* GetWorld( int WorldIndex ) const = 0;
 
 	protected:
 		virtual ~IVsPlugin() = default;
