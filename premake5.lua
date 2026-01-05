@@ -78,9 +78,9 @@ workspace "veritas"
 			kind "SharedLib"
 			location "build/plugins/veritas_box3d"
 			files { "plugins/veritas_box3d/**" }
-			includedirs { "source", "externals/box3d/include" }
+			includedirs { "source", "externals/box3d/include", "externals/enkits" }
 			libdirs { "externals/box3d/lib" }
-			links { "veritas" }
+			links { "enkits", "veritas" }
 			filter "configurations:Debug"
 				links { "box3dd" }
 			filter "configurations:Release"

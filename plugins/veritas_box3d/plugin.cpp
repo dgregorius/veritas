@@ -5,6 +5,39 @@
 //--------------------------------------------------------------------------------------------------
 #include "plugin.h"
 
+// EnkiTS
+#include <taskscheduler.h>
+
+
+//--------------------------------------------------------------------------------------------------
+// EnkiTS
+//--------------------------------------------------------------------------------------------------
+class VsBox3dTask : public enki::ITaskSet
+	{
+	public:
+		virtual void ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex ) override
+			{
+			Task( Range.start, Range.end, WorkerIndex, TaskContext );
+			}
+
+		b3TaskCallback* Task = nullptr;
+		void* TaskContext = nullptr;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+static void* EnqueueTask( b3TaskCallback* Task, int32_t ItemCount, int32_t MinRange, void* TaskContext, void* UserContext )
+	{
+	
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+static void FinishTask( void* Task, void* UserContext )
+	{
+	
+	}
+
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dHull
