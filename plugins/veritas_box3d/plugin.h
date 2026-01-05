@@ -17,17 +17,17 @@
 #include <box3d/box3d.h>
 #include <taskscheduler.h>
 
-
-struct VsBox3dHull;
-struct VsBox3dMesh;
-
-struct VsBox3dSphereShape;
-struct VsBox3dCapsuleShape;
-struct VsBox3dHullShape;
-struct VsBox3dMeshShape;
-struct VsBox3dBody;
-struct VsBox3dWorld;
-struct VsBox3dPlugin;
+// Forward declarations
+class VsBox3dTask;
+class VsBox3dSphereShape;
+class VsBox3dCapsuleShape;
+class VsBox3dHull;
+class VsBox3dHullShape;
+class VsBox3dMesh;
+class VsBox3dMeshShape;
+class VsBox3dBody;
+class VsBox3dWorld;
+class VsBox3dPlugin;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -46,172 +46,221 @@ class VsBox3dTask : public enki::ITaskSet
 //--------------------------------------------------------------------------------------------------
 // VsBox3Hull
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dHull : IVsHull
+class VsBox3dHull : public IVsHull
 	{
-	explicit VsBox3dHull( b3Hull* Hull );
-	virtual ~VsBox3dHull() override;
+	public:
+		explicit VsBox3dHull( b3Hull* Hull );
+		virtual ~VsBox3dHull() override;
+		
+		b3Hull* GetNative() const;
+		
+		virtual int GetVertexCount() const override;
+		virtual const VsVector3* GetVertexPositions() const override;
+		virtual const VsVector3* GetVertexNormals() const override;
+		virtual int GetEdgeCount() const override;
+		virtual const VsVector3* GetEdges() const override;
 
-	virtual int GetVertexCount() const override;
-	virtual const VsVector3* GetVertexPositions() const override;
-	virtual const VsVector3* GetVertexNormals() const override;
-	virtual int GetEdgeCount() const override;
-	virtual const VsVector3* GetEdges() const override;
-
-	b3Hull* Native = nullptr;
-	std::vector< VsVector3 > VertexPositions;
-	std::vector< VsVector3 > VertexNormals;
-	std::vector< VsVector3 > Edges;
+	private:
+		b3Hull* mNative = nullptr;
+		std::vector< VsVector3 > mVertexPositions;
+		std::vector< VsVector3 > mVertexNormals;
+		std::vector< VsVector3 > mEdges;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dHullShape
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dHullShape : IVsHullShape
+class VsBox3dHullShape : public IVsHullShape
 	{
-	explicit VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull );
-	virtual ~VsBox3dHullShape();
+	public:
+		explicit VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull );
+		virtual ~VsBox3dHullShape();
 
-	virtual const IVsHull* GetHull() const override;
+		b3ShapeId GetNative() const;
 
-	const VsBox3dHull* Hull = nullptr;
-	b3ShapeId Native = {};
+		virtual const IVsHull* GetHull() const override;
+
+	private:
+		VsBox3dBody* mBody = nullptr;
+		const VsBox3dHull* mHull = nullptr;
+		b3ShapeId mNative = {};
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dMesh
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dMesh : IVsMesh
+class VsBox3dMesh : public IVsMesh
 	{
-	explicit VsBox3dMesh( b3MeshData* Mesh );
-	virtual ~VsBox3dMesh() override;
+	public:
+		explicit VsBox3dMesh( b3MeshData* Mesh );
+		virtual ~VsBox3dMesh() override;
 
-	virtual int GetVertexCount() const override;
-	virtual const VsVector3* GetVertexPositions() const override;
-	virtual const VsVector3* GetVertexNormals() const override;
+		b3MeshData* GetNative() const;
 
-	b3MeshData* Native = nullptr;
-	std::vector< VsVector3 > VertexPositions;
-	std::vector< VsVector3 > VertexNormals;
+		virtual int GetVertexCount() const override;
+		virtual const VsVector3* GetVertexPositions() const override;
+		virtual const VsVector3* GetVertexNormals() const override;
+
+	private:
+		b3MeshData* mNative = nullptr;
+		std::vector< VsVector3 > mVertexPositions;
+		std::vector< VsVector3 > mVertexNormals;
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dMeshShape
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dMeshShape : IVsMeshShape
+class VsBox3dMeshShape : public IVsMeshShape
 	{
-	explicit VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh );
-	virtual ~VsBox3dMeshShape();
+	public:
+		VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh );
+		virtual ~VsBox3dMeshShape();
 
-	virtual const IVsMesh* GetMesh() const override;
+		b3ShapeId GetNative() const;
 
-	const VsBox3dMesh* Mesh = nullptr;
-	b3ShapeId Native = {};
+		virtual const IVsMesh* GetMesh() const override;
+
+	private:
+		VsBox3dBody* mBody = nullptr;
+		const VsBox3dMesh* mMesh = nullptr;
+		b3ShapeId mNative = {};
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dBody
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dBody :IVsBody
+class VsBox3dBody : public IVsBody
 	{
-	explicit VsBox3dBody( VsBox3dWorld* World, VsBodyType Type );
-	virtual ~VsBox3dBody() override;
+	public:
+		// Construction / Destruction
+		explicit VsBox3dBody( VsBox3dWorld* World, VsBodyType Type );
+		virtual ~VsBox3dBody() override;
 
-	virtual VsBodyType GetType() const override;
+		// Native
+		b3BodyId GetNative() const;
 
-	virtual VsVector3 GetPosition() const override;
-	virtual void SetPosition( const VsVector3& Position ) override;
-	virtual VsQuaternion GetOrientation() const override;
-	virtual void SetOrientation( const VsQuaternion& Orientation ) override;
+		// Type
+		virtual VsBodyType GetType() const override;
 
-	virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
-	virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) override;
-	virtual IVsHullShape* CreateHull( const IVsHull* Hull ) override;
-	virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) override;
-	virtual void DestroyShape( IVsShape* Shape ) override;
+		// Transform
+		virtual VsVector3 GetPosition() const override;
+		virtual void SetPosition( const VsVector3& Position ) override;
+		virtual VsQuaternion GetOrientation() const override;
+		virtual void SetOrientation( const VsQuaternion& Orientation ) override;
 
-	b3BodyId Native = {};
-	std::vector< IVsShape* > Shapes;
+		// Shapes
+		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
+		virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) override;
+		virtual IVsHullShape* CreateHull( const IVsHull* Hull ) override;
+		virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) override;
+		virtual void DestroyShape( IVsShape* Shape ) override;
+
+		virtual int GetShapeCount() const override;
+		virtual IVsShape* GetShape( int ShapeIndex ) override;
+		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
+
+	private:	
+		VsBox3dWorld* mWorld = nullptr;
+		std::vector< IVsShape* > mShapes;
+		b3BodyId mNative = {};
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dWorld
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dWorld : IVsWorld
+class VsBox3dWorld : public IVsWorld
 	{
-	explicit VsBox3dWorld( enki::TaskScheduler& TaskScheduler );
-	virtual ~VsBox3dWorld() override;
+	public:
+		explicit VsBox3dWorld( VsBox3dPlugin* Plugin );
+		virtual ~VsBox3dWorld() override;
 
-	virtual void AddListener( IVsWorldListener* Listener ) override;
-	virtual void RemoveListener( IVsWorldListener* Listener ) override;
+		b3WorldId GetNative() const;
 
-	virtual VsVector3 GetGravity() const override;
-	virtual void SetGravity( const VsVector3& Gravity ) override;
+		virtual void AddListener( IVsWorldListener* Listener ) override;
+		virtual void RemoveListener( IVsWorldListener* Listener ) override;
 
-	virtual IVsBody* CreateBody( VsBodyType Type ) override;
-	virtual void DestroyBody( IVsBody* Body ) override;
-	virtual int GetBodyCount() const override;
-	virtual IVsBody* GetBody( int BodyIndex ) override;
-	virtual const IVsBody* GetBody( int BodyIndex ) const override;
+		virtual VsVector3 GetGravity() const override;
+		virtual void SetGravity( const VsVector3& Gravity ) override;
 
-	virtual void Step( float Timestep ) override;
+		virtual IVsBody* CreateBody( VsBodyType Type ) override;
+		virtual void DestroyBody( IVsBody* Body ) override;
+		virtual int GetBodyCount() const override;
+		virtual IVsBody* GetBody( int BodyIndex ) override;
+		virtual const IVsBody* GetBody( int BodyIndex ) const override;
 
-	int TaskCount = 0;
+		virtual void Step( float Timestep ) override;
+
+	private:
+		static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext );
+		void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext );
+		static void FinishTask( void* Task, void* UserContext );
+		void FinishTask( void* Task );
+
+		void NotifyBodyAdded( IVsBody* Body );
+		void NotifyBodyRemoved( IVsBody* Body );
+		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
+		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
+	b3WorldId mNative = {};
+	VsBox3dPlugin* mPlugin = nullptr;
+	std::vector< IVsWorldListener* > mListeners;
+	std::vector< VsBox3dBody* > mBodies;
+
+	int mTaskCount = 0;
 	enum { MaxTasks = 32 };
-	VsBox3dTask TaskList[ MaxTasks ];
-	enki::TaskScheduler& TaskScheduler;
-
-	
-
-	b3WorldId Native = {};
-	std::vector< IVsWorldListener* > Listeners;
-	std::vector< VsBox3dBody* > Bodies;
+	VsBox3dTask mTaskList[ MaxTasks ];
 	};
 
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dPlugin
 //--------------------------------------------------------------------------------------------------
-struct VsBox3dPlugin : IVsPlugin
+class VsBox3dPlugin : public IVsPlugin
 	{
-	VsBox3dPlugin();
-	virtual ~VsBox3dPlugin() override;
+	public:
+		VsBox3dPlugin();
+		virtual ~VsBox3dPlugin() override;
 
-	virtual const char* GetName() const override;
-	virtual const char* GetVersion() const override;
+		virtual const char* GetName() const override;
+		virtual const char* GetVersion() const override;
 
-	// Hulls
-	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
-	virtual void DestroyHull( IVsHull* Hull ) override;
+		// Scheduler
+		enki::TaskScheduler& GetTaskScheduler();
+		const enki::TaskScheduler& GetTaskScheduler() const;
 
-	virtual int GetHullCount() const override;
-	virtual IVsHull* GetHull( int HullIndex ) override;
-	virtual const IVsHull* GetHull( int HullIndex ) const override;
+		// Hulls
+		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
+		virtual void DestroyHull( IVsHull* Hull ) override;
+
+		virtual int GetHullCount() const override;
+		virtual IVsHull* GetHull( int HullIndex ) override;
+		virtual const IVsHull* GetHull( int HullIndex ) const override;
 	
-	// Meshes
-	virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) override;
-	virtual void DestroyMesh( IVsMesh* Mesh ) override;
+		// Meshes
+		virtual IVsMesh* CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices ) override;
+		virtual void DestroyMesh( IVsMesh* Mesh ) override;
 
-	virtual int GetMeshCount() const override;
-	virtual IVsMesh* GetMesh( int MeshIndex ) override;
-	virtual const IVsMesh* GetMesh( int MeshIndex ) const override;
+		virtual int GetMeshCount() const override;
+		virtual IVsMesh* GetMesh( int MeshIndex ) override;
+		virtual const IVsMesh* GetMesh( int MeshIndex ) const override;
 
-	// Worlds
-	virtual IVsWorld* CreateWorld() override;
-	virtual void DestroyWorld( IVsWorld* World ) override;
+		// Worlds
+		virtual IVsWorld* CreateWorld() override;
+		virtual void DestroyWorld( IVsWorld* World ) override;
 
-	virtual int GetWorldCount() const override;
-	virtual IVsWorld* GetWorld( int WorldIndex ) override;
-	virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
+		virtual int GetWorldCount() const override;
+		virtual IVsWorld* GetWorld( int WorldIndex ) override;
+		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
-	// Threading
-	enki::TaskScheduler TaskScheduler;
+	private:
+		enki::TaskScheduler mTaskScheduler;
 
-	std::vector< VsBox3dHull* > Hulls;
-	std::vector< VsBox3dMesh* > Meshes;
-	std::vector< VsBox3dWorld* > Worlds;
+		std::vector< VsBox3dHull* > mHulls;
+		std::vector< VsBox3dMesh* > mMeshes;
+		std::vector< VsBox3dWorld* > mWorlds;
 	};

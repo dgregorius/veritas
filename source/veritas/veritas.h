@@ -173,18 +173,25 @@ enum VsBodyType
 //--------------------------------------------------------------------------------------------------
 struct IVsBody
 	{
+	// Type 
 	virtual VsBodyType GetType() const = 0;
 
+	// Transform
 	virtual VsVector3 GetPosition() const = 0;
 	virtual void SetPosition( const VsVector3& Position ) = 0;
 	virtual VsQuaternion GetOrientation() const = 0;
 	virtual void SetOrientation( const VsQuaternion& Orientation ) = 0;
 
+	// Shapes
 	virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) = 0;
 	virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) = 0;
 	virtual IVsHullShape* CreateHull( const IVsHull* Hull ) = 0;
 	virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) = 0;
 	virtual void DestroyShape( IVsShape* Shape ) = 0;
+	
+	virtual int GetShapeCount() const = 0;
+	virtual IVsShape* GetShape( int ShapeIndex ) = 0;
+	virtual const IVsShape* GetShape( int ShapeIndex ) const = 0;
 
 	protected:
 		virtual ~IVsBody() = default;
