@@ -126,7 +126,7 @@ workspace "veritas"
 			kind "ConsoleApp"
 			location "build/source/veritas_testlab"
 			files { "source/veritas_testlab/**" }
-			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/imgui" }
+			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include", "externals/imgui" }
 			libdirs { "externals/glfw3/lib" }
 			links { "glad", "glfw3", "imgui", "veritas" }	
 			

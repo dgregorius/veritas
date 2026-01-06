@@ -6,7 +6,7 @@
 	@version	0.1
 	@date		12/30/2025
 
-	Copyright(C) D. Gregorius. All rights reserved.
+	Copyright (c) D. Gregorius. All rights reserved.
 */
 //--------------------------------------------------------------------------------------------------
 #pragma once
@@ -14,6 +14,9 @@
 #include "camera.h"
 #include "geometry.h"
 #include "instancedmesh.h"
+#include "shader.h"
+#include "shaderlibrary.h"
+#include "vertex.h"
 
 // Veritas
 #include <veritas//veritas.h>

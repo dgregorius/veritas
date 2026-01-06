@@ -5,13 +5,27 @@
 //--------------------------------------------------------------------------------------------------
 #include "worldrenderer.h"
 
+// OpenGL
+#include <glad.h>
+#include <glfw3.h>
+
 
 //--------------------------------------------------------------------------------------------------
 // VsWorldRenderer
 //--------------------------------------------------------------------------------------------------
 void VsWorldRenderer::DrawFrame( VsCamera* Camera )
 	{
+	glDepthMask( GL_FALSE );
+	glBindVertexArray( VsClearVertex::Format );
+	
+	VsShader* ClearShader = VsShaderLibrary::ClearShader;
+	ClearShader->Use();
+	glDrawArrays( GL_TRIANGLES, 0, 3 );
 
+	glBindVertexArray( GL_NONE );
+	glDepthMask( GL_TRUE );
+
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 

@@ -80,6 +80,7 @@ int VsTestlab::Run()
 				{
 				BeginFrame();
 				UpdateFrame();
+				RenderFrame();
 				EndFrame();
 				}
 			ImGui::EndFrame( mWindow );
@@ -102,6 +103,13 @@ int VsTestlab::Run()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::Startup()
 	{
+	// Initialize renderer
+	vsLoadVertexLibrary();
+	vsLoadShaderLibrary();
+
+	mCamera = new VsCamera;
+	mRenderTarget = new VsRenderTarget( 0, 0, 4 );
+
 	// Initialize plugin framework
 	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
 		{
@@ -155,6 +163,30 @@ void VsTestlab::UpdateFrame()
 
 
 //--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderFrame()
+	{
+	mRenderTarget->Bind();
+
+	// 1. Clear everything
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	// 2. Draw the Sky
+	VsShaderLibrary::ClearShader->Use();
+	
+	glBindVertexArray( VsClearVertex::Format );
+	glDepthMask( GL_FALSE );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	glDepthMask( GL_TRUE );
+	glEnable( GL_DEPTH_TEST );
+	glBindVertexArray( GL_NONE );
+
+	//std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Render( 0, 0 ); } );
+
+	mRenderTarget->Unbind();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsTestlab::EndFrame()
 	{
 	// Render UI
@@ -178,6 +210,15 @@ void VsTestlab::Shutdown()
 	// Terminate plugin framework
 	std::for_each( mModules.begin(), mModules.end(), []( VsModule* Module ) { vsFreeModule( Module ); } );
 	mModules.clear();
+
+	// Terminate renderer
+	delete mRenderTarget;
+	mRenderTarget = nullptr;
+	delete mCamera;
+	mCamera = nullptr;
+
+	vsUnloadShaderLibrary();
+	vsUnloadVertexLibrary();
 	}
 
 
@@ -338,6 +379,13 @@ void VsTestlab::Viewport()
 			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 8.0f );
 			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 			ImGui::BeginChild( "##Child" );
+
+			ImVec2 WindowPos = ImGui::GetCursorScreenPos();
+			ImVec2 WindowSize = ImGui::GetContentRegionAvail();
+			mRenderTarget->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
+
+			ImDrawList* DrawList = ImGui::GetWindowDrawList();
+			DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 8.0f );
 
 			ImGui::EndChild();
 			ImGui::PopStyleVar();

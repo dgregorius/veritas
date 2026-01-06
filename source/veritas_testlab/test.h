@@ -6,10 +6,17 @@
 	@version	0.1
 	@date		12/30/2025
 
-	Copyright(C) D. Gregorius. All rights reserved.
+	Copyright (c) D. Gregorius. All rights reserved.
 */
 //--------------------------------------------------------------------------------------------------
 #pragma once
+
+#include "graphics/camera.h"
+#include "graphics/rendertarget.h"
+#include "graphics/shader.h"
+#include "graphics/shaderlibrary.h"
+#include "graphics/vertex.h"
+#include "graphics/worldrenderer.h"
 
 #include <veritas/veritas.h>
 
@@ -24,14 +31,17 @@ class VsTest
 		explicit VsTest( IVsPlugin* Plugin );
 		virtual ~VsTest();
 
-		// Frame management
-		virtual void BeginFrame( double Time, float Timestep );
-		virtual void UpdateFrame( double Time, float Timestep );
-		virtual void RenderFrame( double Time, float Timestep );
-		virtual void EndFrame( double Time, float Timestep );
+		// Lifetime management
+		virtual void Create( VsCamera* Camera ) = 0;
+		virtual void Update( double Time, float Timestep );
+		virtual void Render( double Time, float Timestep );
+		virtual void Destroy();
 
 	protected:
 		IVsPlugin* mPlugin = nullptr;
+		IVsWorld* mWorld = nullptr;
+
+		VsWorldRenderer* mWorldRenderer = nullptr;
 	};
 
 

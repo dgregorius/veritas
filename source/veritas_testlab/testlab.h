@@ -6,7 +6,7 @@
 	@version	0.1
 	@date		12/30/2025
 
-	Copyright(C) D. Gregorius. All rights reserved.
+	Copyright (c) D. Gregorius. All rights reserved.
 */
 //--------------------------------------------------------------------------------------------------
 #pragma once
@@ -27,6 +27,7 @@ class VsTestlab
 		void Startup();
 		void BeginFrame();
 		void UpdateFrame();
+		void RenderFrame();
 		void EndFrame();
 		void Shutdown();
 
@@ -40,6 +41,9 @@ class VsTestlab
 
 		GLFWwindow* mWindow = nullptr;
 		bool mShowProfiler = false;
+
+		VsCamera* mCamera = nullptr;
+		VsRenderTarget* mRenderTarget = nullptr;
 
 		std::vector< VsModule* > mModules;
 		std::vector< VsTest* > mTests;

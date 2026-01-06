@@ -12,39 +12,33 @@
 VsTest::VsTest( IVsPlugin* Plugin )
 	{
 	mPlugin = Plugin;
+	mWorld = Plugin->CreateWorld();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsTest::~VsTest()
 	{
-	
+	mPlugin->DestroyWorld( mWorld );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::BeginFrame( double Time, float Timestep )
-	{
-
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsTest::UpdateFrame( double Time, float Timestep )
+void VsTest::Update( double Time, float Timestep )
 	{
 	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::RenderFrame( double Time, float Timestep )
+void VsTest::Render( double Time, float Timestep )
 	{
-
+	mWorldRenderer->DrawFrame( nullptr );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::EndFrame( double Time, float Timestep )
+void VsTest::Destroy()
 	{
 
 	}

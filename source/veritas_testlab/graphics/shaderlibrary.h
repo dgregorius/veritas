@@ -1,34 +1,27 @@
 //--------------------------------------------------------------------------------------------------
-/**
-	@file		instancedmesh.h
+/*
+	@file		shaderlibrary.h
 
 	@author		Dirk Gregorius
 	@version	0.1
 	@date		12/30/2025
 
-	Copyright (c) D. Gregorius. All rights reserved.
+	Copyright (c) by D. Gregorius. All rights reserved.
 */
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-struct VsGeometry;
+class VsShader;
 
 
 //--------------------------------------------------------------------------------------------------
-// VsInstancedMesh
+// VsShaderLibrary
 //--------------------------------------------------------------------------------------------------
-class VsInstancedMesh
+struct VsShaderLibrary
 	{
-	public:
-		// Construction / Destruction
-		explicit VsInstancedMesh( VsGeometry* Geometry );
-		~VsInstancedMesh();
-
-		// Geometry
-		VsGeometry* GetGeometry() const;
-
-	private:
-		VsGeometry* mGeometry = nullptr;
+	static inline VsShader* ClearShader = nullptr;
+	static inline VsShader* MeshShader = nullptr;
 	};
 
-
+void vsLoadShaderLibrary();
+void vsUnloadShaderLibrary();
