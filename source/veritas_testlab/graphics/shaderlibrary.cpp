@@ -73,14 +73,14 @@ R"(
 //--------------------------------------------------------------------------------------------------
 void vsLoadShaderLibrary()
 	{
-    VS_ASSERT( !VsShaderLibrary::ClearShader );
-    VsShaderLibrary::ClearShader = new VsShader( SuperTriangleVertexShaderSource, BackgroundFragmentShaderSource );
+    VS_ASSERT( !VsShaderLibrary::BackgroundShader );
+    VsShaderLibrary::BackgroundShader = new VsShader( SuperTriangleVertexShaderSource, BackgroundFragmentShaderSource );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void vsUnloadShaderLibrary()
 	{
-    delete VsShaderLibrary::ClearShader;
-    VsShaderLibrary::ClearShader = nullptr;
+    delete VsShaderLibrary::BackgroundShader;
+    VsShaderLibrary::BackgroundShader = nullptr;
 	}

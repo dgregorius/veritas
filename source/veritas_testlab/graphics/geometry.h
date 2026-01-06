@@ -12,7 +12,7 @@
 #pragma once
 
 // Veritas
-#include <veritas//veritas.h>
+#include <veritas/veritas.h>
 
 
 //--------------------------------------------------------------------------------------------------

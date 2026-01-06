@@ -16,14 +16,13 @@ class VsBasicScene1 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			if ( mWorld )
-				{
-				IVsHull* Hull = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
-				IVsBody* Body = mWorld->CreateBody( VS_STATIC_BODY );
-				Body->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
-				Body->SetOrientation( VsQuaternion( 0.0f, 0.0f, 0.0f, 1.0f ) );
-				Body->CreateHull( Hull );
-				}
+			
+// 			IVsHull* Hull = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+// 			IVsBody* Body = mWorld->CreateBody( VS_STATIC_BODY );
+// 			Body->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+// 			Body->SetOrientation( VsQuaternion( 0.0f, 0.0f, 0.0f, 1.0f ) );
+// 			Body->CreateHull( Hull );
+				
 			}
 	};
 

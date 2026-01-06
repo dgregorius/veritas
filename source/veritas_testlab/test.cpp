@@ -11,14 +11,21 @@
 //--------------------------------------------------------------------------------------------------
 VsTest::VsTest( IVsPlugin* Plugin )
 	{
+	VS_ASSERT( Plugin );
 	mPlugin = Plugin;
+
 	mWorld = Plugin->CreateWorld();
+	mWorldRenderer = new VsWorldRenderer;
+	mWorld->AddListener( mWorldRenderer );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsTest::~VsTest()
 	{
+	mWorld->RemoveListener( mWorldRenderer );
+	delete mWorldRenderer;
+
 	mPlugin->DestroyWorld( mWorld );
 	}
 

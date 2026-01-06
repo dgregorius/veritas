@@ -39,6 +39,9 @@ class VsTestlab
 		void EndDockspace();
 		void Shortcuts();
 
+		void RenderBackground();
+		void RenderTests();
+
 		GLFWwindow* mWindow = nullptr;
 		bool mShowProfiler = false;
 

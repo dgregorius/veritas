@@ -27,6 +27,7 @@ class VsRenderTarget
 		// Binding
 		void Bind();
 		void Unbind();
+		void Clear( float R = 0.1f, float G = 0.1f, float B = 0.1f, float A = 1.0f );
 
 		// Size
 		int GetWidth() const;

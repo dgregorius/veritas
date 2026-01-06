@@ -10,7 +10,101 @@
 
 
 //--------------------------------------------------------------------------------------------------
+// VsPhysXWorld
+//--------------------------------------------------------------------------------------------------
+VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
+	: mPlugin( Plugin )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsPhysXWorld::~VsPhysXWorld()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::RemoveListener( IVsWorldListener* Listener )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsPhysXWorld::GetGravity() const
+	{
+	return { 0.0f, -10.0f, 0.0f };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::SetGravity( const VsVector3& Gravity )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsBody* VsPhysXWorld::CreateBody( VsBodyType Type )
+	{
+	return nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::DestroyBody( IVsBody* Body )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsPhysXWorld::GetBodyCount() const
+	{
+	return 0;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsBody* VsPhysXWorld::GetBody( int BodyIndex )
+	{
+	return nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsBody* VsPhysXWorld::GetBody( int BodyIndex ) const
+	{
+	return nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::Step( float Timestep )
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXPlugin
+//--------------------------------------------------------------------------------------------------
+VsPhysXPlugin::VsPhysXPlugin()
+	{
+
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::~VsPhysXPlugin()
 	{
@@ -49,21 +143,21 @@ void VsPhysXPlugin::DestroyHull( IVsHull* Hull )
 //--------------------------------------------------------------------------------------------------
 int VsPhysXPlugin::GetHullCount() const
 	{
-	return static_cast< int >( Hulls.size() );
+	return static_cast< int >( mHulls.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsHull* VsPhysXPlugin::GetHull( int HullIndex )
 	{
-	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? Hulls[ HullIndex ] : nullptr;
+	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? mHulls[ HullIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const IVsHull* VsPhysXPlugin::GetHull( int HullIndex ) const
 	{
-	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? Hulls[ HullIndex ] : nullptr;
+	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? mHulls[ HullIndex ] : nullptr;
 	}
 
 
@@ -84,56 +178,65 @@ void VsPhysXPlugin::DestroyMesh( IVsMesh* Mesh )
 //--------------------------------------------------------------------------------------------------
 int VsPhysXPlugin::GetMeshCount() const
 	{
-	return static_cast< int >( Meshes.size() );
+	return static_cast< int >( mMeshes.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsMesh* VsPhysXPlugin::GetMesh( int MeshIndex )
 	{
-	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? Meshes[ MeshIndex ] : nullptr;
+	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? mMeshes[ MeshIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const IVsMesh* VsPhysXPlugin::GetMesh( int MeshIndex ) const
 	{
-	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? Meshes[ MeshIndex ] : nullptr;
+	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? mMeshes[ MeshIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsWorld* VsPhysXPlugin::CreateWorld()
 	{
-	return nullptr;
+	VsPhysXWorld* World = new VsPhysXWorld( this );
+	mWorlds.push_back( World );
+
+	return World;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsPhysXPlugin::DestroyWorld( IVsWorld* World )
 	{
+	if ( !World )
+		{
+		return;
+		}
 
+	std::erase( mWorlds, World );
+	delete static_cast< VsPhysXWorld* >( World );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 int VsPhysXPlugin::GetWorldCount() const
 	{
-	return static_cast< int >( Worlds.size() );
+	return static_cast< int >( mWorlds.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex )
 	{
-	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? Worlds[ WorldIndex ] : nullptr;
+	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex ) const
 	{
-	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? Worlds[ WorldIndex ] : nullptr;
+	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
 	}
 
 

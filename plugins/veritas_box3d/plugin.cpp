@@ -855,7 +855,7 @@ IVsWorld* VsBox3dPlugin::CreateWorld()
 	VsBox3dWorld* World = new VsBox3dWorld( this );
 	mWorlds.push_back( World );
 
-	return nullptr;
+	return World;
 	}
 
 

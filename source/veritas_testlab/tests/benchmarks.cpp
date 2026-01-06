@@ -11,8 +11,10 @@
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene1 : public VsTest
 	{
+	using VsTest::VsTest;
+
 	public:
-		using VsTest::VsTest;
+		
 
 	};
 

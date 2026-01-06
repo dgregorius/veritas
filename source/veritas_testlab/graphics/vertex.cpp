@@ -16,12 +16,12 @@
 void vsLoadVertexLibrary()
 	{
 	// Initialize vertex formats
-	VS_ASSERT( !VsClearVertex::Format );
+	VS_ASSERT( !VsEmptyVertex::Format );
 		{
 		uint32_t VAO = 0;
 		glCreateVertexArrays( 1, &VAO );
 		VS_ASSERT( glGetError() == GL_NO_ERROR );
-		VsClearVertex::Format = VAO;
+		VsEmptyVertex::Format = VAO;
 		}
 
 	VS_ASSERT( !VsMeshVertex::Format );
@@ -52,7 +52,7 @@ void vsUnloadVertexLibrary()
 	glDeleteVertexArrays( 1, &VsMeshVertex::Format );
 	VsMeshVertex::Format = 0;
 
-	VS_ASSERT( VsClearVertex::Format );
-	glDeleteVertexArrays( 1, &VsClearVertex::Format );
-	VsClearVertex::Format = 0;
+	VS_ASSERT( VsEmptyVertex::Format );
+	glDeleteVertexArrays( 1, &VsEmptyVertex::Format );
+	VsEmptyVertex::Format = 0;
 	}

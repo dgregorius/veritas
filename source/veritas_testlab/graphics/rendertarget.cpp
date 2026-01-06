@@ -59,6 +59,23 @@ void VsRenderTarget::Unbind()
 	glDisable( GL_MULTISAMPLE );
 	}
 
+//--------------------------------------------------------------------------------------------------
+void VsRenderTarget::Clear( float R, float G, float B, float A )
+	{
+	if ( !mMSFramebuffer )
+		{
+		return;
+		}
+
+	// Clear Color Buffer (Attachment 0)
+	float Color[] = { R, G, B, A };
+	glClearNamedFramebufferfv( mMSFramebuffer, GL_COLOR, 0, Color );
+
+	// Clear Depth Buffer
+	float Depth = 1.0f;
+	glClearNamedFramebufferfv( mMSFramebuffer, GL_DEPTH, 0, &Depth );
+	}
+
 
 //--------------------------------------------------------------------------------------------------
 int VsRenderTarget::GetWidth() const

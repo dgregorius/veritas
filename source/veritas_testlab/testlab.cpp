@@ -30,6 +30,7 @@ int VsTestlab::Run()
 		return EXIT_FAILURE;
 		}
 
+	glfwWindowHint( GLFW_MAXIMIZED, GLFW_TRUE );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 6 );
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
@@ -166,21 +167,10 @@ void VsTestlab::UpdateFrame()
 void VsTestlab::RenderFrame()
 	{
 	mRenderTarget->Bind();
+	mRenderTarget->Clear();
 
-	// 1. Clear everything
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	// 2. Draw the Sky
-	VsShaderLibrary::ClearShader->Use();
-	
-	glBindVertexArray( VsClearVertex::Format );
-	glDepthMask( GL_FALSE );
-	glDrawArrays( GL_TRIANGLES, 0, 3 );
-	glDepthMask( GL_TRUE );
-	glEnable( GL_DEPTH_TEST );
-	glBindVertexArray( GL_NONE );
-
-	//std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Render( 0, 0 ); } );
+	RenderBackground();
+	RenderTests();
 
 	mRenderTarget->Unbind();
 	}
@@ -454,6 +444,28 @@ void VsTestlab::Shortcuts()
 		{
 		glfwSetWindowShouldClose( mWindow, true );
 		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderBackground()
+	{
+	VsShader* BackgroundShader = VsShaderLibrary::BackgroundShader;
+	BackgroundShader->Use();
+
+	glBindVertexArray( VsEmptyVertex::Format );
+	glDepthMask( GL_FALSE );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	glDepthMask( GL_TRUE );
+	glEnable( GL_DEPTH_TEST );
+	glBindVertexArray( GL_NONE );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderTests()
+	{
+	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Render( 0, 0 ); } );
 	}
 
 

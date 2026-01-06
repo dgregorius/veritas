@@ -248,9 +248,11 @@ class VsBox3dWorld : public IVsWorld
 class VsBox3dPlugin : public IVsPlugin
 	{
 	public:
+		// Construction / Destruction
 		VsBox3dPlugin();
 		virtual ~VsBox3dPlugin() override;
 
+		// Module
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 
