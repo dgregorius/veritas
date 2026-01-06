@@ -121,6 +121,13 @@ workspace "veritas"
 			files { "source/veritas/**" }
 			includedirs { "source" }
 
+		-- Add Veritas Renderer
+		project "veritas_renderer"
+			kind "StaticLib"
+			location "build/source/veritas_renderer/"
+			files { "source/veritas_renderer/**" }
+			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include" }
+
 		-- Add Veritas TestLab
 		project "veritas_testlab"
 			kind "ConsoleApp"
@@ -128,7 +135,7 @@ workspace "veritas"
 			files { "source/veritas_testlab/**" }
 			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include", "externals/imgui" }
 			libdirs { "externals/glfw3/lib" }
-			links { "glad", "glfw3", "imgui", "veritas" }	
+			links { "glad", "glfw3", "imgui", "veritas", "veritas_renderer" }	
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
 			debugcommand ( "bin/veritas_testlab.exe" )

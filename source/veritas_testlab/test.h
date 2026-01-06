@@ -11,14 +11,14 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "graphics/camera.h"
-#include "graphics/rendertarget.h"
-#include "graphics/shader.h"
-#include "graphics/shaderlibrary.h"
-#include "graphics/vertex.h"
-#include "graphics/worldrenderer.h"
-
 #include <veritas/veritas.h>
+
+#include <veritas_renderer/camera.h>
+#include <veritas_renderer/rendertarget.h>
+#include <veritas_renderer/shader.h>
+#include <veritas_renderer/shaderlibrary.h>
+#include <veritas_renderer/vertex.h>
+#include <veritas_renderer/worldrenderer.h>
 
 
 //--------------------------------------------------------------------------------------------------
