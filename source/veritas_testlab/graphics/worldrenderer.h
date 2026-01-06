@@ -12,8 +12,8 @@
 #pragma once
 
 #include "camera.h"
+#include "geometry.h"
 #include "instancedmesh.h"
-#include "mesh.h"
 
 // Veritas
 #include <veritas//veritas.h>

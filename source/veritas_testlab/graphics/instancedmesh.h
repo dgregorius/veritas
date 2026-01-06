@@ -11,7 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-struct VsMesh;
+struct VsGeometry;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -20,7 +20,15 @@ struct VsMesh;
 class VsInstancedMesh
 	{
 	public:
-		explicit VsInstancedMesh( VsMesh* Mesh );
+		// Construction / Destruction
+		explicit VsInstancedMesh( VsGeometry* Geometry );
+		~VsInstancedMesh();
+
+		// Geometry
+		VsGeometry* GetGeometry() const;
+
+	private:
+		VsGeometry* mGeometry = nullptr;
 	};
 
 

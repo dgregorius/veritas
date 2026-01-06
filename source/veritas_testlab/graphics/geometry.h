@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /**
-	@file		mesh.h
+	@file		geometry.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,20 +11,20 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-struct IVsShape;
+// Veritas
+#include <veritas//veritas.h>
 
 
 //--------------------------------------------------------------------------------------------------
-// VsMesh
+// VsGeometry
 //--------------------------------------------------------------------------------------------------
-struct VsMesh
+struct VsGeometry
 	{
 
 	};
 
 
 // Physics -> Graphics bridge
-VsMesh* vsCreateMesh( IVsShape* Shape );
-void vsDestroyMesh( VsMesh* Mesh );
+VsGeometry* vsCreateGeometry( IVsShape* Shape );
 
 

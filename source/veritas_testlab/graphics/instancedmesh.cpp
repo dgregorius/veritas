@@ -4,12 +4,28 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "instancedmesh.h"
+#include "geometry.h"
 
 
 //--------------------------------------------------------------------------------------------------
 // VsInstancedMesh
 //--------------------------------------------------------------------------------------------------
-VsInstancedMesh::VsInstancedMesh( VsMesh* Mesh )
+VsInstancedMesh::VsInstancedMesh( VsGeometry* Geometry )
+	{
+	VS_ASSERT( Geometry );
+	mGeometry = Geometry;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsInstancedMesh::~VsInstancedMesh()
 	{
 
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsGeometry* VsInstancedMesh::GetGeometry() const
+	{
+	return mGeometry;
 	}

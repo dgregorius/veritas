@@ -100,8 +100,8 @@ void VsWorldRenderer::OnHullAdded( IVsShape* Shape )
 	const IVsHull* Hull = HullShape->GetHull();
 	if ( !mHullMap.contains( Hull ) )
 		{
-		VsMesh* Mesh = vsCreateMesh( HullShape );
-		VsInstancedMesh* InstancedMesh = new VsInstancedMesh( Mesh );
+		VsGeometry* Geometry = vsCreateGeometry( HullShape );
+		VsInstancedMesh* InstancedMesh = new VsInstancedMesh( Geometry );
 		mHullMap[ Hull ] = InstancedMesh;
 		}
 	
@@ -113,7 +113,25 @@ void VsWorldRenderer::OnHullAdded( IVsShape* Shape )
 //--------------------------------------------------------------------------------------------------
 void VsWorldRenderer::OnHullRemoved( IVsShape* Shape )
 	{
+	VS_ASSERT( Shape->GetType() == VS_HULL_SHAPE );
+	IVsHullShape* HullShape = static_cast<IVsHullShape*>( Shape );
 
+	const IVsHull* Hull = HullShape->GetHull();
+	VS_ASSERT( mHullMap.contains( Hull ) );
+	VsInstancedMesh* InstancedMesh = mHullMap[ Hull ];
+	VS_ASSERT( mHullInstances.contains( InstancedMesh ) );
+	std::vector< IVsHullShape* >& HullShapes = mHullInstances[ InstancedMesh ];
+	VS_ASSERT( std::find( HullShapes.begin(), HullShapes.end(), HullShape ) != HullShapes.end() );
+	std::erase( HullShapes, HullShape );
+	if ( HullShapes.empty() )
+		{
+		mHullMap.erase( Hull );
+		mHullInstances.erase( InstancedMesh );
+
+		VsGeometry* Geomtery = InstancedMesh->GetGeometry();
+		delete InstancedMesh;
+		delete Geomtery;
+		}
 	}
 
 

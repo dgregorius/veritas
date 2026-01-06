@@ -1,49 +1,46 @@
 //--------------------------------------------------------------------------------------------------
-// mesh.cpp	
+// geometry.cpp	
 //
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
-#include "mesh.h"
-
-// Veritas
-#include <veritas//veritas.h>
+#include "geometry.h"
 
 
 //--------------------------------------------------------------------------------------------------
-// VsMesh
+// VsGeometry
 //--------------------------------------------------------------------------------------------------
-static VsMesh* vsOnCreateSphere( IVsShape* SphereShape )
+static VsGeometry* vsOnCreateSphere( IVsShape* SphereShape )
 	{
 	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-static VsMesh* vsOnCreateCapsule( IVsShape* CapsuleShape )
+static VsGeometry* vsOnCreateCapsule( IVsShape* CapsuleShape )
 	{
 	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-static VsMesh* vsOnCreateHull( IVsShape* HullShape )
+static VsGeometry* vsOnCreateHull( IVsShape* HullShape )
 	{
 	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-static VsMesh* vsOnCreateMesh( IVsShape* MeshShape )
+static VsGeometry* vsOnCreateMesh( IVsShape* MeshShape )
 	{
 	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsMesh* vsCreateMesh( IVsShape* Shape )
+VsGeometry* vsCreateGeometry( IVsShape* Shape )
 	{
-	typedef VsMesh* ( *VsMeshCreator )( IVsShape* );
-	static const VsMeshCreator Creator[] =
+	typedef VsGeometry* ( *VsGeometryCreator )( IVsShape* );
+	static const VsGeometryCreator Creator[] =
 		{
 		vsOnCreateSphere,
 		vsOnCreateCapsule,
@@ -53,11 +50,4 @@ VsMesh* vsCreateMesh( IVsShape* Shape )
 
 	VsShapeType Type = Shape->GetType();
 	return Creator[ Type ]( Shape );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void vsDestroyMesh( VsMesh* Mesh )
-	{
-	delete Mesh;
 	}
