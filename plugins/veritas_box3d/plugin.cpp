@@ -166,6 +166,13 @@ b3ShapeId VsBox3dHullShape::GetNative() const
 
 
 //--------------------------------------------------------------------------------------------------
+VsShapeType VsBox3dHullShape::GetType() const
+	{
+	return VS_HULL_SHAPE;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 const IVsHull* VsBox3dHullShape::GetHull() const
 	{
 	return mHull;
@@ -270,6 +277,13 @@ VsBox3dMeshShape::~VsBox3dMeshShape()
 b3ShapeId VsBox3dMeshShape::GetNative() const
 	{
 	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsShapeType VsBox3dMeshShape::GetType() const
+	{
+	return VS_MESH_SHAPE;
 	}
 
 
@@ -381,6 +395,7 @@ IVsHullShape* VsBox3dBody::CreateHull( const IVsHull* Hull )
 
 	VsBox3dHullShape* Shape = new VsBox3dHullShape( this, static_cast< const VsBox3dHull* >( Hull ) );
 	mShapes.push_back( Shape );
+	mWorld->NotifyShapeAdded( this, Shape );
 
 	return Shape;
 	}
@@ -396,7 +411,8 @@ IVsMeshShape* VsBox3dBody::CreateMesh( const IVsMesh* Mesh )
 
 	VsBox3dMeshShape* Shape = new VsBox3dMeshShape( this, static_cast< const VsBox3dMesh* >( Mesh ) );
 	mShapes.push_back( Shape );
-
+	mWorld->NotifyShapeAdded( this, Shape );
+	
 	return Shape;
 	}
 
@@ -409,8 +425,10 @@ void VsBox3dBody::DestroyShape( IVsShape* Shape )
 		return;
 		}
 
-	size_t Count = std::erase( mShapes, Shape );
-	B3_ASSERT( Count == 1 );
+	mWorld->NotifyShapeRemoved( this, Shape );
+	std::erase( mShapes, Shape );
+
+	DeleteShape( Shape );
 	}
 
 
@@ -474,56 +492,6 @@ b3WorldId VsBox3dWorld::GetNative() const
 	return mNative;
 	}
 
-//--------------------------------------------------------------------------------------------------
-void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext )
-	{
-	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
-	return World->EnqueueTask( TaskCallback, ItemCount, MinRange, TaskContext );
-	}
-
-//--------------------------------------------------------------------------------------------------
-void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext )
-	{
-	if ( mTaskCount < MaxTasks )
-		{
-		VsBox3dTask* Task = mTaskList + mTaskCount++;
-		Task->m_SetSize = ItemCount;
-		Task->m_MinRange = MinRange;
-		Task->TaskCallback = TaskCallback;
-		Task->TaskContext = TaskContext;
-
-		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
-		TaskScheduler.AddTaskSetToPipe( Task );
-
-		return Task;
-		}
-
-	// This is not fatal but the MaxTasks should be increased
-	B3_ASSERT( false );
-	TaskCallback( 0, ItemCount, 0, TaskContext );
-
-	return nullptr;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::FinishTask( void* Task, void* UserContext )
-	{
-	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
-	return World->FinishTask( Task );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::FinishTask( void* Task )
-	{
-	if ( Task )
-		{
-		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
-		TaskScheduler.WaitforTask( static_cast< VsBox3dTask* >( Task ) );
-		}
-	}
-
 
 //--------------------------------------------------------------------------------------------------
 void VsBox3dWorld::AddListener( IVsWorldListener* Listener )
@@ -562,6 +530,34 @@ void VsBox3dWorld::RemoveListener( IVsWorldListener* Listener )
 		}
 
 	std::erase( mListeners, Listener );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 
@@ -636,30 +632,53 @@ void VsBox3dWorld::Step( float Timestep )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
+void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext )
 	{
-	std::for_each( mListeners.begin(), mListeners.end(), [=]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
+	static VsBox3dWorld* World = static_cast<VsBox3dWorld*>( UserContext );
+	return World->EnqueueTask( TaskCallback, ItemCount, MinRange, TaskContext );
+	}
+
+//--------------------------------------------------------------------------------------------------
+void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext )
+	{
+	if ( mTaskCount < MaxTasks )
+		{
+		VsBox3dTask* Task = mTaskList + mTaskCount++;
+		Task->m_SetSize = ItemCount;
+		Task->m_MinRange = MinRange;
+		Task->TaskCallback = TaskCallback;
+		Task->TaskContext = TaskContext;
+
+		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
+		TaskScheduler.AddTaskSetToPipe( Task );
+
+		return Task;
+		}
+
+	// This is not fatal but the MaxTasks should be increased
+	B3_ASSERT( false );
+	TaskCallback( 0, ItemCount, 0, TaskContext );
+
+	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
+void VsBox3dWorld::FinishTask( void* Task, void* UserContext )
 	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
+	static VsBox3dWorld* World = static_cast<VsBox3dWorld*>( UserContext );
+	return World->FinishTask( Task );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+void VsBox3dWorld::FinishTask( void* Task )
 	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
+	if ( Task )
+		{
+		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
+		TaskScheduler.WaitforTask( static_cast<VsBox3dTask*>( Task ) );
+		}
 	}
 
 

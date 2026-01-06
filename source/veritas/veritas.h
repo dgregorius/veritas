@@ -16,6 +16,18 @@ namespace fs = std::filesystem;
 
 
 //--------------------------------------------------------------------------------------------------
+// VS_ASSERT
+//--------------------------------------------------------------------------------------------------
+#if defined( DEBUG ) || defined( _DEBUG )
+#define VS_BREAK							__debugbreak()
+#define VS_ASSERT( Cond )					do { if ( !( Cond ) ) VS_BREAK; } while( 0 )
+#else
+#define VS_BREAK
+#define VS_ASSERT( Cond )					do { (void)sizeof( Cond ); } while( 0 )
+#endif
+
+
+//--------------------------------------------------------------------------------------------------
 // VsVector3
 //--------------------------------------------------------------------------------------------------
 struct VsVector3
@@ -71,7 +83,11 @@ enum VsShapeType
 //--------------------------------------------------------------------------------------------------
 struct IVsShape
 	{
+	// Type
+	virtual VsShapeType GetType() const = 0;
+
 	protected:
+		friend struct IVsBody;
 		virtual ~IVsShape() = default;
 	};
 
@@ -194,6 +210,7 @@ struct IVsBody
 	virtual const IVsShape* GetShape( int ShapeIndex ) const = 0;
 
 	protected:
+		static void DeleteShape( IVsShape* Shape );
 		virtual ~IVsBody() = default;
 	};
 

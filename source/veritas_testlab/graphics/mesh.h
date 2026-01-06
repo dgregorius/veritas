@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /**
-	@file		renderer.h
+	@file		mesh.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,22 +11,20 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <veritas/veritas.h>
+struct IVsShape;
 
 
 //--------------------------------------------------------------------------------------------------
-// VsWorldRenderer
+// VsMesh
 //--------------------------------------------------------------------------------------------------
-class VsWorldRenderer : public IVsWorldListener
+struct VsMesh
 	{
-	public:
-		
-	private:
-		// World listener 
-		virtual void OnBodyAdded( IVsBody* Body ) override;
-		virtual void OnBodyRemoved( IVsBody* Body ) override;
-		virtual void OnShapeAdded( IVsBody* Body, IVsShape* Shape ) override;
-		virtual void OnShapeRemoved( IVsBody* Body, IVsShape* Shape ) override;
-
 
 	};
+
+
+// Physics -> Graphics bridge
+VsMesh* vsCreateMesh( IVsShape* Shape );
+void vsDestroyMesh( VsMesh* Mesh );
+
+

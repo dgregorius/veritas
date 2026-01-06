@@ -49,11 +49,14 @@ class VsBox3dTask : public enki::ITaskSet
 class VsBox3dHull : public IVsHull
 	{
 	public:
+		// Construction / Destruction
 		explicit VsBox3dHull( b3Hull* Hull );
 		virtual ~VsBox3dHull() override;
 		
+		// Native Box3d type
 		b3Hull* GetNative() const;
 		
+		// IVsHull
 		virtual int GetVertexCount() const override;
 		virtual const VsVector3* GetVertexPositions() const override;
 		virtual const VsVector3* GetVertexNormals() const override;
@@ -74,11 +77,17 @@ class VsBox3dHull : public IVsHull
 class VsBox3dHullShape : public IVsHullShape
 	{
 	public:
+		// Construction / Destruction
 		explicit VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull );
 		virtual ~VsBox3dHullShape();
 
+		// Native Box3d type
 		b3ShapeId GetNative() const;
 
+		// IVsShape
+		virtual VsShapeType GetType() const override;
+
+		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
 
 	private:
@@ -94,11 +103,14 @@ class VsBox3dHullShape : public IVsHullShape
 class VsBox3dMesh : public IVsMesh
 	{
 	public:
+		// Construction / Destruction
 		explicit VsBox3dMesh( b3MeshData* Mesh );
 		virtual ~VsBox3dMesh() override;
 
+		// Native Box3d type
 		b3MeshData* GetNative() const;
 
+		// IVsMesh
 		virtual int GetVertexCount() const override;
 		virtual const VsVector3* GetVertexPositions() const override;
 		virtual const VsVector3* GetVertexNormals() const override;
@@ -116,11 +128,17 @@ class VsBox3dMesh : public IVsMesh
 class VsBox3dMeshShape : public IVsMeshShape
 	{
 	public:
+		// Construction / Destruction
 		VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh );
 		virtual ~VsBox3dMeshShape();
 
+		// Native Box3d type
 		b3ShapeId GetNative() const;
 
+		// IVsShape
+		virtual VsShapeType GetType() const override;
+
+		// IVsMeshShape
 		virtual const IVsMesh* GetMesh() const override;
 
 	private:
@@ -176,44 +194,51 @@ class VsBox3dBody : public IVsBody
 class VsBox3dWorld : public IVsWorld
 	{
 	public:
+		// Construction / Destruction
 		explicit VsBox3dWorld( VsBox3dPlugin* Plugin );
 		virtual ~VsBox3dWorld() override;
 
+		// Native Box3d type
 		b3WorldId GetNative() const;
 
+		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
-
-		virtual VsVector3 GetGravity() const override;
-		virtual void SetGravity( const VsVector3& Gravity ) override;
-
-		virtual IVsBody* CreateBody( VsBodyType Type ) override;
-		virtual void DestroyBody( IVsBody* Body ) override;
-		virtual int GetBodyCount() const override;
-		virtual IVsBody* GetBody( int BodyIndex ) override;
-		virtual const IVsBody* GetBody( int BodyIndex ) const override;
-
-		virtual void Step( float Timestep ) override;
-
-	private:
-		static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext );
-		void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext );
-		static void FinishTask( void* Task, void* UserContext );
-		void FinishTask( void* Task );
 
 		void NotifyBodyAdded( IVsBody* Body );
 		void NotifyBodyRemoved( IVsBody* Body );
 		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
 		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
 
-	b3WorldId mNative = {};
-	VsBox3dPlugin* mPlugin = nullptr;
-	std::vector< IVsWorldListener* > mListeners;
-	std::vector< VsBox3dBody* > mBodies;
+		// Gravity
+		virtual VsVector3 GetGravity() const override;
+		virtual void SetGravity( const VsVector3& Gravity ) override;
 
-	int mTaskCount = 0;
-	enum { MaxTasks = 32 };
-	VsBox3dTask mTaskList[ MaxTasks ];
+		// Bodies
+		virtual IVsBody* CreateBody( VsBodyType Type ) override;
+		virtual void DestroyBody( IVsBody* Body ) override;
+		virtual int GetBodyCount() const override;
+		virtual IVsBody* GetBody( int BodyIndex ) override;
+		virtual const IVsBody* GetBody( int BodyIndex ) const override;
+
+		// Simulation
+		virtual void Step( float Timestep ) override;
+
+	private:
+		// EnkiTS
+		static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext );
+		void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext );
+		static void FinishTask( void* Task, void* UserContext );
+		void FinishTask( void* Task );
+
+		b3WorldId mNative = {};
+		VsBox3dPlugin* mPlugin = nullptr;
+		std::vector< IVsWorldListener* > mListeners;
+		std::vector< VsBox3dBody* > mBodies;
+
+		int mTaskCount = 0;
+		enum { MaxTasks = 32 };
+		VsBox3dTask mTaskList[ MaxTasks ];
 	};
 
 
