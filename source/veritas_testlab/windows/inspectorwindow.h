@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /*
-	@file		session.h
+	@file		inspectorwindow.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,12 +11,22 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "veritas_testlab/window.h"
+
 
 //--------------------------------------------------------------------------------------------------
-// VsSession
+// VsInspectorWindow
 //--------------------------------------------------------------------------------------------------
-class VsSession
+class VsInspectorWindow : public VsWindow
 	{
 	public:
+        // Construction / Destruction
+		VsInspectorWindow( const char* Name, bool Visible = true );
+		virtual ~VsInspectorWindow() = default;
+
+		// Render
+		virtual void Render( VsSession* Session ) override;
+
+	private:
 
 	};

@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /*
-	@file		session.h
+	@file		outlinerwindow.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,12 +11,22 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "veritas_testlab/window.h"
+
 
 //--------------------------------------------------------------------------------------------------
-// VsSession
+// VsOutlinerWindow
 //--------------------------------------------------------------------------------------------------
-class VsSession
+class VsOutlinerWindow : public VsWindow
 	{
 	public:
+		// Construction / Destruction
+		VsOutlinerWindow( const char* Name, bool Visible = true );
+		virtual ~VsOutlinerWindow() = default;
+
+		// Render
+		virtual void Render( VsSession* Session ) override;
+
+	private:
 
 	};

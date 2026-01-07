@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /*
-	@file		session.h
+	@file		window.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,12 +11,30 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+class VsSession;
+
 
 //--------------------------------------------------------------------------------------------------
-// VsSession
+// VsWindow
 //--------------------------------------------------------------------------------------------------
-class VsSession
+class VsWindow
 	{
 	public:
+        // Construction / Destruction
+		VsWindow( const char* Name, bool Visible );
+		virtual ~VsWindow() = default;
 
+		// Name
+		const char* GetName() const;
+
+		// Visibility 
+		bool IsVisible() const;
+		void SetVisible( bool Visible );
+
+		// Render
+		virtual void Render( VsSession* Session ) = 0;
+
+	protected:
+		const char* mName;
+		bool mVisible;
 	};

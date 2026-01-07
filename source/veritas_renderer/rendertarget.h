@@ -21,6 +21,7 @@ class VsRenderTarget
 	{
 	public:
 		// Construction / Destruction
+		VsRenderTarget( int Samples = 4);
 		VsRenderTarget( int Width, int Height, int Samples = 4 );
 		~VsRenderTarget();
 

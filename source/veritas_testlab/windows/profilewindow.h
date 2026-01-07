@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------------------
 /*
-	@file		session.h
+	@file		profilewindow.h
 
 	@author		Dirk Gregorius
 	@version	0.1
@@ -11,12 +11,22 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "veritas_testlab/window.h"
+
 
 //--------------------------------------------------------------------------------------------------
-// VsSession
+// VsProfileWindow
 //--------------------------------------------------------------------------------------------------
-class VsSession
+class VsProfileWindow : public VsWindow
 	{
 	public:
+		// Construction / Destruction
+		VsProfileWindow( const char* Name, bool Visible = true );
+		virtual ~VsProfileWindow() = default;
+
+		// Render
+		virtual void Render( VsSession* Session ) override;
+
+	private:
 
 	};
