@@ -312,6 +312,14 @@ VsBox3dBody::VsBox3dBody( VsBox3dWorld* World, VsBodyType Type )
 //--------------------------------------------------------------------------------------------------
 VsBox3dBody::~VsBox3dBody()
 	{
+	while ( !mShapes.empty() )
+		{
+		IVsShape* Shape = mShapes.back();
+		mShapes.pop_back();
+
+		DeleteShape( Shape );
+		}
+
 	b3DestroyBody( mNative );
 	}
 

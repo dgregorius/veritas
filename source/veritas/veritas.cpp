@@ -101,9 +101,8 @@ void vsFreeModule( VsModule* Module )
 	if ( Module->Plugin && Module->DestroyFunc )
 		{
 		Module->DestroyFunc( Module->Plugin );
-
-		Module->Plugin = nullptr;
 		Module->DestroyFunc = nullptr;
+		Module->Plugin = nullptr;
 		}
 	
 	if ( Module->Handle )

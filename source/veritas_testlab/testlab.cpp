@@ -22,13 +22,95 @@
 //--------------------------------------------------------------------------------------------------
 // VsTestlab
 //--------------------------------------------------------------------------------------------------
+int VsTestlab::Run()
+	{
+	// Initialize GLFW
+	if ( !glfwInit() )
+		{
+		return EXIT_FAILURE;
+		}
+
+	glfwWindowHint( GLFW_MAXIMIZED, GLFW_TRUE );
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 6 );
+	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GLFW_FALSE );
+
+#if defined( DEBUG ) || defined( _DEBUG )
+	glfwWindowHint( GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE );
+#endif
+
+	mWindow = glfwCreateWindow( 1920, 1080, "TestLab", NULL, NULL );
+	if ( !mWindow )
+		{
+		glfwTerminate();
+		return EXIT_FAILURE;
+		}
+
+	glfwMakeContextCurrent( mWindow );
+	glfwSwapInterval( 1 );
+
+	// Setup GLAD bindings
+	if ( !gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress ) )
+		{
+		glfwTerminate();
+		return EXIT_FAILURE;
+		}
+
+	// Initialize OpenGL
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.0f, 2.0f );
+	glEnable( GL_CULL_FACE );
+	glCullFace( GL_BACK );
+	glFrontFace( GL_CCW );
+
+#if defined( DEBUG ) || defined( _DEBUG )
+	glEnable( GL_DEBUG_OUTPUT );
+	glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
+	glDebugMessageCallback( gladDebugOutput, NULL );
+	glDebugMessageControl( GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_TRUE );
+#endif
+
+	// Simulation loop
+	ImGui::Startup( mWindow );
+	{
+	Startup();
+	while ( !glfwWindowShouldClose( mWindow ) )
+		{
+		ImGui::BeginFrame( mWindow );
+		{
+		BeginFrame();
+		UpdateFrame();
+		RenderFrame();
+		EndFrame();
+		}
+		ImGui::EndFrame( mWindow );
+
+		glfwPollEvents();
+		}
+	Shutdown();
+	}
+	ImGui::Shutdown( mWindow );
+
+	// Terminate GLFW
+	glfwDestroyWindow( mWindow );
+	mWindow = nullptr;
+	glfwTerminate();
+
+	return EXIT_SUCCESS;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsTestlab::Startup()
 	{
 	// Initialize renderer
 	vsLoadShaderLibrary();
 	vsLoadVertexLibrary();
 
+	mCameraBuffer = VsCamera::CreateBuffer();
 	mCamera = new VsCamera;
+
 	mRenderTarget = new VsRenderTarget;
 
 	// Initialize plugin framework
@@ -87,12 +169,16 @@ void VsTestlab::UpdateFrame()
 void VsTestlab::RenderFrame()
 	{
 	mCamera->Update();
-	//mCamera->Upload();
+	mCamera->Upload( mCameraBuffer );
+
+	// DIRK_TODO: Lighting...
 
 	mRenderTarget->Bind();
 	mRenderTarget->Clear();
 
-	// Render background, grid and tests
+	RenderBackground();
+	RenderGrid();
+	//RenderTests();
 
 	mRenderTarget->Unbind();
 	}
@@ -126,11 +212,60 @@ void VsTestlab::Shutdown()
 	// Terminate renderer
 	delete mRenderTarget;
 	mRenderTarget = nullptr;
+	
 	delete mCamera;
 	mCamera = nullptr;
+	VsCamera::DestroyBuffer( mCameraBuffer );
+	mCameraBuffer = 0;
 
 	vsUnloadShaderLibrary();
 	vsUnloadVertexLibrary();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderBackground()
+	{
+	VsShader* BackgroundShader = VsShaderLibrary::BackgroundShader;
+	BackgroundShader->Use();
+
+	glBindVertexArray( VsEmptyVertex::Format );
+	
+	glDepthMask( GL_FALSE );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	glDepthMask( GL_TRUE );
+	glEnable( GL_DEPTH_TEST );
+	
+	glBindVertexArray( GL_NONE );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderGrid()
+	{
+	VsShader* GridShader = VsShaderLibrary::GridShader;
+	GridShader->Use();
+
+	glBindVertexArray( VsEmptyVertex::Format );
+	
+	glDisable( GL_CULL_FACE );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_FALSE );
+	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	glDepthMask( GL_TRUE );
+	glDisable( GL_BLEND );
+	glEnable( GL_CULL_FACE );
+
+	glBindVertexArray( GL_NONE );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderTests()
+	{
+
 	}
 
 
@@ -254,12 +389,13 @@ void VsTestlab::RenderViewport()
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child" );
 
-// 		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
-// 		ImVec2 WindowSize = ImGui::GetContentRegionAvail();
-// 		mRenderTarget->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
-// 
-// 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
-// 		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
+		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
+		ImVec2 WindowSize = ImGui::GetContentRegionAvail();
+		mCamera->SetAspectRatio( WindowSize.x / ImMax( 1.0f, WindowSize.y ) );
+		mRenderTarget->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
+
+		ImDrawList* DrawList = ImGui::GetWindowDrawList();
+		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
 
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
@@ -301,7 +437,7 @@ int main()
 	// Enable run-time memory check for debug builds
 #if defined( DEBUG ) || defined( _DEBUG )
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-	//_CrtSetBreakAlloc( 873 );
+	//_CrtSetBreakAlloc( 745 );
 #endif
 
 	VsTestlab PhysicsLab;

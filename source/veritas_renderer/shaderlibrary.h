@@ -20,7 +20,7 @@ class VsShader;
 struct VsShaderLibrary
 	{
 	static inline VsShader* BackgroundShader = nullptr;
-	static inline VsShader* MeshShader = nullptr;
+	static inline VsShader* GridShader = nullptr;
 	};
 
 void vsLoadShaderLibrary();

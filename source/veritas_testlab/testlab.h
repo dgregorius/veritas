@@ -11,24 +11,34 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "application.h"
 #include "test.h"
+
+struct GLFWwindow;
 
 
 //--------------------------------------------------------------------------------------------------
 // VsTestlab
 //--------------------------------------------------------------------------------------------------
-class VsTestlab : public VsApplication
+class VsTestlab 
 	{
 	public:
-		virtual void Startup() override;
-		virtual void BeginFrame() override;
-		virtual void UpdateFrame() override;
-		virtual void RenderFrame() override;
-		virtual void EndFrame() override;
-		virtual void Shutdown() override;
+		// Main loop
+		int Run();
+
+		void Startup();
+		void BeginFrame();
+		void UpdateFrame();
+		void RenderFrame();
+		void EndFrame();
+		void Shutdown();
 
 	private:
+		// Viewport
+		void RenderBackground();
+		void RenderGrid();
+		void RenderTests();
+
+		// UI
 		void BeginDockspace();
 		void RenderInspector();
 		void RenderOutliner();
@@ -37,7 +47,10 @@ class VsTestlab : public VsApplication
 		void EndDockspace();
 		void Status();
 
+		GLFWwindow* mWindow = nullptr;
+
 		VsCamera* mCamera = nullptr;
+		uint32_t mCameraBuffer = 0;
 		VsRenderTarget* mRenderTarget = nullptr;
 
 		std::vector< VsModule* > mModules;

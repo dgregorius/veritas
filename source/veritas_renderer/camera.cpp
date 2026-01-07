@@ -5,6 +5,14 @@
 //--------------------------------------------------------------------------------------------------
 #include "camera.h"
 
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
+
+// OpenGL
+#include <glad.h>
+#include <glfw3.h>
+
 
 //--------------------------------------------------------------------------------------------------
 // VsCamera
@@ -90,6 +98,21 @@ void VsCamera::SetFOV( float FOV )
 
 
 //--------------------------------------------------------------------------------------------------
+void VsCamera::SetAspectRatio( float AspectRatio )
+	{
+	VS_ASSERT( AspectRatio >= 0.0f );
+	mAspectRatio = AspectRatio;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsCamera::GetAspectRatio() const
+	{
+	return mAspectRatio;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 float VsCamera::GetNearPlane() const
 	{
 	return mNearPlane;
@@ -120,64 +143,94 @@ void VsCamera::SetFarPlane( float FarPlane )
 
 
 //--------------------------------------------------------------------------------------------------
-glm::mat4 VsCamera::GetProjectionMatrix( int Width, int Height ) const
+glm::mat4 VsCamera::GetProjectionMatrix( ) const
 	{
-	float Aspect = static_cast< float >( Width ) / static_cast< float >( std::max( 1, Height ) );
-	return glm::perspective( glm::radians( mFOV ), Aspect, mNearPlane, mFarPlane );
+	return glm::perspective( glm::radians( mFOV ), mAspectRatio, mNearPlane, mFarPlane );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsCamera::Update()
 	{
-// 	// 1. Check if the mouse is over an ImGui window
-// 	ImGuiIO& IO = ImGui::GetIO();
-// 	if ( IO.WantCaptureMouse )
-// 		{
-// 		return;
-// 		}
-// 
-// 	// 2. Handle Maya-style "Alt" Navigation
-// 	if ( ImGui::IsKeyDown( ImGuiKey_LeftAlt ) || ImGui::IsKeyDown( ImGuiKey_RightAlt ) )
-// 		{
-// 		// ORBIT (Alt + Left Click)
-// 		if ( ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
-// 			{
-// 			const float Sensitivity = 0.25f;
-// 			mYaw += IO.MouseDelta.x * Sensitivity;
-// 			mPitch -= IO.MouseDelta.y * Sensitivity;
-// 			mPitch = glm::clamp( mPitch, -89.0f, 89.0f );
-// 			}
-// 
-// 		// PAN (Alt + Middle Click)
-// 		if ( ImGui::IsMouseDown( ImGuiMouseButton_Middle ) )
-// 			{
-// 			const float Sensitivity = 0.001f;
-// 			float PanSpeed = mRadius * Sensitivity;
-// 
-// 			mTarget -= GetRight() * ( IO.MouseDelta.x * PanSpeed );
-// 			mTarget += GetUp() * ( IO.MouseDelta.y * PanSpeed );
-// 			}
-// 
-// 		// DOLLY/ZOOM (Alt + Right Click)
-// 		if ( ImGui::IsMouseDown( ImGuiMouseButton_Right ) )
-// 			{
-// 			// Horizontal mouse movement for zooming
-// 			const float Sensitivity = 0.01f;
-// 			float ZoomSpeed = mRadius * Sensitivity;
-// 
-// 			mRadius += IO.MouseDelta.x * ZoomSpeed;
-// 			mRadius = glm::max( mRadius, 0.03f );
-// 			}
-// 		}
-// 
-// 	// 3. Handle Scroll Wheel Zoom (standard outside of Alt mode)
-// 	if ( IO.MouseWheel != 0.0f )
-// 		{
-// 		const float Sensitivity = 0.1f;
-// 		float ScrollSpeed = mRadius * Sensitivity;
-// 
-// 		mRadius -= IO.MouseWheel * ScrollSpeed;
-// 		mRadius = glm::max( mRadius, 0.03f );
-// 		}
+	ImGuiIO& IO = ImGui::GetIO();
+
+	// Handle Maya-style "Alt" Navigation
+	if ( ImGui::IsKeyDown( ImGuiKey_LeftAlt ) || ImGui::IsKeyDown( ImGuiKey_RightAlt ) )
+		{
+		// ORBIT (Alt + Left Click)
+		if ( ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
+			{
+			const float Sensitivity = 0.25f;
+			mYaw -= IO.MouseDelta.x * Sensitivity;
+			mPitch -= IO.MouseDelta.y * Sensitivity;
+			mPitch = glm::clamp( mPitch, -89.0f, 89.0f );
+			}
+
+		// PAN (Alt + Middle Click)
+		if ( ImGui::IsMouseDown( ImGuiMouseButton_Middle ) )
+			{
+			const float Sensitivity = 0.001f;
+			float PanSpeed = mRadius * Sensitivity;
+
+			mTarget -= GetRight() * ( IO.MouseDelta.x * PanSpeed );
+			mTarget += GetUp() * ( IO.MouseDelta.y * PanSpeed );
+			}
+
+		// DOLLY/ZOOM (Alt + Right Click)
+		if ( ImGui::IsMouseDown( ImGuiMouseButton_Right ) )
+			{
+			// Horizontal mouse movement for zooming
+			const float Sensitivity = 0.01f;
+			float ZoomSpeed = mRadius * Sensitivity;
+
+			mRadius += IO.MouseDelta.x * ZoomSpeed;
+			mRadius = glm::max( mRadius, 0.03f );
+			}
+		}
+
+	// Handle Scroll Wheel Zoom (standard outside of Alt mode)
+	if ( IO.MouseWheel != 0.0f )
+		{
+		const float Sensitivity = 0.1f;
+		float ScrollSpeed = mRadius * Sensitivity;
+
+		mRadius -= IO.MouseWheel * ScrollSpeed;
+		mRadius = glm::max( mRadius, 0.03f );
+		}
 	}
+
+
+//--------------------------------------------------------------------------------------------------
+uint32_t VsCamera::CreateBuffer()
+	{
+	uint32_t UBO = 0;
+	glCreateBuffers( 1, &UBO );
+	glNamedBufferStorage( UBO, sizeof( GPUData ), nullptr, GL_DYNAMIC_STORAGE_BIT );
+	glBindBufferBase( GL_UNIFORM_BUFFER, 0, UBO );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+
+	return UBO;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::DestroyBuffer( uint32_t UBO )
+	{
+	glDeleteBuffers( 1, &UBO );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::Upload( uint32_t UBO ) const
+	{
+	GPUData DataBlock;
+	DataBlock.ViewMatrix = GetViewMatrix();
+	DataBlock.ProjectionMatrix = GetProjectionMatrix();
+	DataBlock.Position = { GetPosition(), 1.0f };
+
+	glNamedBufferSubData( UBO, 0, sizeof( GPUData ), &DataBlock );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	}
+
+

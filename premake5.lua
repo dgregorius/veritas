@@ -126,7 +126,7 @@ workspace "veritas"
 			kind "StaticLib"
 			location "build/source/veritas_renderer/"
 			files { "source/veritas_renderer/**" }
-			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include" }
+			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include", "externals/imgui" }
 
 		-- Add Veritas TestLab
 		project "veritas_testlab"
