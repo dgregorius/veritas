@@ -14,6 +14,16 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+// Forward
+struct IVsShape;
+struct IVsSphereShape;
+struct IVsCapsuleShape;
+struct IVsHullShape;
+struct IVsMeshShape;
+struct IVsBody;
+struct IVsWorld;
+struct IVsPlugin;
+
 
 //--------------------------------------------------------------------------------------------------
 // VS_ASSERT
@@ -85,6 +95,9 @@ struct IVsShape
 	{
 	// Type
 	virtual VsShapeType GetType() const = 0;
+
+	// Body
+	virtual IVsBody* GetBody() const = 0;
 
 	protected:
 		friend struct IVsBody;
@@ -192,6 +205,9 @@ struct IVsBody
 	// Type 
 	virtual VsBodyType GetType() const = 0;
 
+	// World
+	virtual IVsWorld* GetWorld() const = 0;
+
 	// Transform
 	virtual VsVector3 GetPosition() const = 0;
 	virtual void SetPosition( const VsVector3& Position ) = 0;
@@ -235,6 +251,8 @@ struct IVsWorldListener
 //--------------------------------------------------------------------------------------------------
 struct IVsWorld
 	{
+	virtual IVsPlugin* GetPlugin() const = 0;
+
 	virtual void AddListener( IVsWorldListener* Listener ) = 0;
 	virtual void RemoveListener( IVsWorldListener* Listener ) = 0;
 
@@ -252,9 +270,6 @@ struct IVsWorld
 	protected:
 		virtual ~IVsWorld() = default;
 	};
-
-
-
 
 
 //--------------------------------------------------------------------------------------------------

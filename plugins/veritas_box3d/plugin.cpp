@@ -98,13 +98,6 @@ VsBox3dHull::~VsBox3dHull()
 
 
 //--------------------------------------------------------------------------------------------------
-b3Hull* VsBox3dHull::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 int VsBox3dHull::GetVertexCount() const
 	{
 	return static_cast< int >( mVertexPositions.size() );
@@ -140,6 +133,13 @@ const VsVector3* VsBox3dHull::GetEdges() const
 
 
 //--------------------------------------------------------------------------------------------------
+b3Hull* VsBox3dHull::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsBox3dHullShape
 //--------------------------------------------------------------------------------------------------
 VsBox3dHullShape::VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull )
@@ -159,13 +159,6 @@ VsBox3dHullShape::~VsBox3dHullShape()
 
 
 //--------------------------------------------------------------------------------------------------
-b3ShapeId VsBox3dHullShape::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 VsShapeType VsBox3dHullShape::GetType() const
 	{
 	return VS_HULL_SHAPE;
@@ -173,9 +166,23 @@ VsShapeType VsBox3dHullShape::GetType() const
 
 
 //--------------------------------------------------------------------------------------------------
+IVsBody* VsBox3dHullShape::GetBody() const
+	{
+	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 const IVsHull* VsBox3dHullShape::GetHull() const
 	{
 	return mHull;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+b3ShapeId VsBox3dHullShape::GetNative() const
+	{
+	return mNative;
 	}
 
 
@@ -227,13 +234,6 @@ VsBox3dMesh::~VsBox3dMesh()
 
 
 //--------------------------------------------------------------------------------------------------
-b3MeshData* VsBox3dMesh::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 int VsBox3dMesh::GetVertexCount() const
 	{
 	return static_cast< int >( mVertexPositions.size() );
@@ -251,6 +251,13 @@ const VsVector3* VsBox3dMesh::GetVertexPositions() const
 const VsVector3* VsBox3dMesh::GetVertexNormals() const
 	{
 	return mVertexNormals.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+b3MeshData* VsBox3dMesh::GetNative() const
+	{
+	return mNative;
 	}
 
 
@@ -274,13 +281,6 @@ VsBox3dMeshShape::~VsBox3dMeshShape()
 
 
 //--------------------------------------------------------------------------------------------------
-b3ShapeId VsBox3dMeshShape::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 VsShapeType VsBox3dMeshShape::GetType() const
 	{
 	return VS_MESH_SHAPE;
@@ -288,9 +288,23 @@ VsShapeType VsBox3dMeshShape::GetType() const
 
 
 //--------------------------------------------------------------------------------------------------
+IVsBody* VsBox3dMeshShape::GetBody() const
+	{
+	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 const IVsMesh* VsBox3dMeshShape::GetMesh() const
 	{
 	return mMesh;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+b3ShapeId VsBox3dMeshShape::GetNative() const
+	{
+	return mNative;
 	}
 
 
@@ -325,9 +339,9 @@ VsBox3dBody::~VsBox3dBody()
 
 
 //--------------------------------------------------------------------------------------------------
-b3BodyId VsBox3dBody::GetNative() const
+IVsWorld* VsBox3dBody::GetWorld() const
 	{
-	return mNative;
+	return mWorld;
 	}
 
 
@@ -462,6 +476,13 @@ const IVsShape* VsBox3dBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+b3BodyId VsBox3dBody::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsBox3dWorld
 //--------------------------------------------------------------------------------------------------
 VsBox3dWorld::VsBox3dWorld( VsBox3dPlugin* Plugin )
@@ -495,9 +516,9 @@ VsBox3dWorld::~VsBox3dWorld()
 
 
 //--------------------------------------------------------------------------------------------------
-b3WorldId VsBox3dWorld::GetNative() const
+IVsPlugin* VsBox3dWorld::GetPlugin() const
 	{
-	return mNative;
+	return mPlugin;
 	}
 
 
@@ -538,34 +559,6 @@ void VsBox3dWorld::RemoveListener( IVsWorldListener* Listener )
 		}
 
 	std::erase( mListeners, Listener );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 
@@ -636,6 +629,41 @@ void VsBox3dWorld::Step( float Timestep )
 	{
 	b3World_Step( mNative, Timestep, 4 );
 	mTaskCount = 0;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+b3WorldId VsBox3dWorld::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 
@@ -740,20 +768,6 @@ const char* VsBox3dPlugin::GetName() const
 const char* VsBox3dPlugin::GetVersion() const
 	{
 	return "0.1.1";
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler()
-	{
-	return mTaskScheduler;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler() const
-	{
-	return mTaskScheduler;
 	}
 
 
@@ -898,6 +912,20 @@ IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex )
 const IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler()
+	{
+	return mTaskScheduler;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler() const
+	{
+	return mTaskScheduler;
 	}
 
 

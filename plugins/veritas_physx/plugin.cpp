@@ -27,6 +27,13 @@ VsPhysXWorld::~VsPhysXWorld()
 
 
 //--------------------------------------------------------------------------------------------------
+IVsPlugin* VsPhysXWorld::GetPlugin() const
+	{
+	return mPlugin;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 	{
 

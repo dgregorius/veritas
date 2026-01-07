@@ -17,7 +17,7 @@
 #include <box3d/box3d.h>
 #include <taskscheduler.h>
 
-// Forward declarations
+// Forward
 class VsBox3dTask;
 class VsBox3dSphereShape;
 class VsBox3dCapsuleShape;
@@ -53,21 +53,22 @@ class VsBox3dHull : public IVsHull
 		explicit VsBox3dHull( b3Hull* Hull );
 		virtual ~VsBox3dHull() override;
 		
-		// Native Box3d type
-		b3Hull* GetNative() const;
-		
 		// IVsHull
 		virtual int GetVertexCount() const override;
 		virtual const VsVector3* GetVertexPositions() const override;
 		virtual const VsVector3* GetVertexNormals() const override;
+
 		virtual int GetEdgeCount() const override;
 		virtual const VsVector3* GetEdges() const override;
 
+		// Native Box3d type
+		b3Hull* GetNative() const;
+
 	private:
-		b3Hull* mNative = nullptr;
 		std::vector< VsVector3 > mVertexPositions;
 		std::vector< VsVector3 > mVertexNormals;
 		std::vector< VsVector3 > mEdges;
+		b3Hull* mNative = nullptr;
 	};
 
 
@@ -81,14 +82,15 @@ class VsBox3dHullShape : public IVsHullShape
 		explicit VsBox3dHullShape( VsBox3dBody* Body, const VsBox3dHull* Hull );
 		virtual ~VsBox3dHullShape();
 
-		// Native Box3d type
-		b3ShapeId GetNative() const;
-
 		// IVsShape
 		virtual VsShapeType GetType() const override;
+		virtual IVsBody* GetBody() const override;
 
 		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
+
+		// Native Box3d type
+		b3ShapeId GetNative() const;
 
 	private:
 		VsBox3dBody* mBody = nullptr;
@@ -107,18 +109,19 @@ class VsBox3dMesh : public IVsMesh
 		explicit VsBox3dMesh( b3MeshData* Mesh );
 		virtual ~VsBox3dMesh() override;
 
-		// Native Box3d type
-		b3MeshData* GetNative() const;
-
 		// IVsMesh
 		virtual int GetVertexCount() const override;
 		virtual const VsVector3* GetVertexPositions() const override;
 		virtual const VsVector3* GetVertexNormals() const override;
 
+		// Native Box3d type
+		b3MeshData* GetNative() const;
+
 	private:
-		b3MeshData* mNative = nullptr;
+		
 		std::vector< VsVector3 > mVertexPositions;
 		std::vector< VsVector3 > mVertexNormals;
+		b3MeshData* mNative = nullptr;
 	};
 
 
@@ -132,14 +135,15 @@ class VsBox3dMeshShape : public IVsMeshShape
 		VsBox3dMeshShape( VsBox3dBody* Body, const VsBox3dMesh* Mesh );
 		virtual ~VsBox3dMeshShape();
 
-		// Native Box3d type
-		b3ShapeId GetNative() const;
-
 		// IVsShape
 		virtual VsShapeType GetType() const override;
+		virtual IVsBody* GetBody() const override;
 
 		// IVsMeshShape
 		virtual const IVsMesh* GetMesh() const override;
+
+		// Native Box3d type
+		b3ShapeId GetNative() const;
 
 	private:
 		VsBox3dBody* mBody = nullptr;
@@ -158,8 +162,8 @@ class VsBox3dBody : public IVsBody
 		explicit VsBox3dBody( VsBox3dWorld* World, VsBodyType Type );
 		virtual ~VsBox3dBody() override;
 
-		// Native
-		b3BodyId GetNative() const;
+		// World
+		virtual IVsWorld* GetWorld() const override;
 
 		// Type
 		virtual VsBodyType GetType() const override;
@@ -181,6 +185,9 @@ class VsBox3dBody : public IVsBody
 		virtual IVsShape* GetShape( int ShapeIndex ) override;
 		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
 
+		// Native
+		b3BodyId GetNative() const;
+
 	private:	
 		VsBox3dWorld* mWorld = nullptr;
 		std::vector< IVsShape* > mShapes;
@@ -198,17 +205,12 @@ class VsBox3dWorld : public IVsWorld
 		explicit VsBox3dWorld( VsBox3dPlugin* Plugin );
 		virtual ~VsBox3dWorld() override;
 
-		// Native Box3d type
-		b3WorldId GetNative() const;
+		// Plugin
+		virtual IVsPlugin* GetPlugin() const override;
 
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
-
-		void NotifyBodyAdded( IVsBody* Body );
-		void NotifyBodyRemoved( IVsBody* Body );
-		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
-		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
 
 		// Gravity
 		virtual VsVector3 GetGravity() const override;
@@ -224,14 +226,20 @@ class VsBox3dWorld : public IVsWorld
 		// Simulation
 		virtual void Step( float Timestep ) override;
 
+		// Native 
+		b3WorldId GetNative() const;
+
+		void NotifyBodyAdded( IVsBody* Body );
+		void NotifyBodyRemoved( IVsBody* Body );
+		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
+		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
 	private:
-		// EnkiTS
 		static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext );
 		void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext );
 		static void FinishTask( void* Task, void* UserContext );
 		void FinishTask( void* Task );
 
-		b3WorldId mNative = {};
 		VsBox3dPlugin* mPlugin = nullptr;
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsBox3dBody* > mBodies;
@@ -239,6 +247,7 @@ class VsBox3dWorld : public IVsWorld
 		int mTaskCount = 0;
 		enum { MaxTasks = 32 };
 		VsBox3dTask mTaskList[ MaxTasks ];
+		b3WorldId mNative = {};
 	};
 
 
@@ -255,10 +264,6 @@ class VsBox3dPlugin : public IVsPlugin
 		// Module
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
-
-		// Scheduler
-		enki::TaskScheduler& GetTaskScheduler();
-		const enki::TaskScheduler& GetTaskScheduler() const;
 
 		// Hulls
 		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
@@ -284,10 +289,14 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
-	private:
-		enki::TaskScheduler mTaskScheduler;
+		// Scheduler
+		enki::TaskScheduler& GetTaskScheduler();
+		const enki::TaskScheduler& GetTaskScheduler() const;
 
+	private:
 		std::vector< VsBox3dHull* > mHulls;
 		std::vector< VsBox3dMesh* > mMeshes;
 		std::vector< VsBox3dWorld* > mWorlds;
+
+		enki::TaskScheduler mTaskScheduler;
 	};

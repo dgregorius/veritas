@@ -11,7 +11,6 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "camera.h"
 #include "geometry.h"
 #include "instancedmesh.h"
 #include "shader.h"
@@ -21,6 +20,7 @@
 // Veritas
 #include <veritas//veritas.h>
 
+// STD
 #include <functional>
 #include <unordered_map>
 #include <vector>
@@ -32,7 +32,7 @@
 class VsWorldRenderer : public IVsWorldListener
 	{
 	public:
-		void DrawFrame( VsCamera* Camera );
+		void DrawFrame();
 		
 	private:
 		// World listener 

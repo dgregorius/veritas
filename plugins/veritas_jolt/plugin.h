@@ -28,6 +28,9 @@ class VsJoltWorld : public IVsWorld
 		explicit VsJoltWorld( VsJoltPlugin* Plugin );
 		virtual ~VsJoltWorld() override;
 
+		// Plugin
+		virtual IVsPlugin* GetPlugin() const override;
+
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;

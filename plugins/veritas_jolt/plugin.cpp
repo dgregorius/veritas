@@ -27,6 +27,13 @@ VsJoltWorld::~VsJoltWorld()
 
 
 //--------------------------------------------------------------------------------------------------
+IVsPlugin* VsJoltWorld::GetPlugin() const
+	{
+	return mPlugin;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsJoltWorld::AddListener( IVsWorldListener* Listener )
 	{
 

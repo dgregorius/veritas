@@ -11,11 +11,56 @@
 
 
 //--------------------------------------------------------------------------------------------------
+// Local utilities
+//--------------------------------------------------------------------------------------------------
+static inline glm::mat4 vsAsMat4( const VsVector3& Position, const VsQuaternion& Orientation )
+	{
+	glm::mat4 Rotation = glm::mat4_cast( glm::quat { Orientation.W, Orientation.X, Orientation.Y, Orientation.Z } );
+
+	glm::mat4 Translation( 1.0f );
+	Translation = glm::translate( Translation, { Position.X, Position.Y, Position.Z });
+
+	return Translation * Rotation;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsWorldRenderer
 //--------------------------------------------------------------------------------------------------
-void VsWorldRenderer::DrawFrame( VsCamera* Camera )
+void VsWorldRenderer::DrawFrame()
 	{
+	// Render instances
+	glEnable( GL_CULL_FACE );
+	glEnable( GL_DEPTH_TEST );
+	glBindVertexArray( VsMeshVertex::Format );
+
+	VsShader* MeshShader = VsShaderLibrary::MeshShader;
+	MeshShader->Use();
 	
+	for ( const auto& [ InstancedHull, HullShapes ] : mHullInstances )
+		{
+		size_t ShapeCount = HullShapes.size();
+		std::vector< VsInstanceData > InstanceData;
+		InstanceData.resize( ShapeCount );
+
+		for ( size_t ShapeIndex = 0; ShapeIndex < ShapeCount; ++ShapeIndex )
+			{
+			IVsShape* Shape = HullShapes[ ShapeIndex ];
+
+			IVsBody* Body = Shape->GetBody();
+			InstanceData[ ShapeIndex ].Transform = vsAsMat4( Body->GetPosition(), Body->GetOrientation() );
+			InstanceData[ ShapeIndex ].Color = { 0.8f, 0.0f, 0.0f, 1.0f };
+			}
+
+		InstancedHull->Upload( InstanceData );
+		InstancedHull->Render();
+		}
+
+	glBindVertexArray( GL_NONE );
+	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_CULL_FACE );
+
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 

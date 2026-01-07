@@ -11,7 +11,25 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
-struct VsGeometry;
+// Veritas
+#include <veritas/veritas.h>
+
+// GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+class VsGeometry;
+
+
+//--------------------------------------------------------------------------------------------------
+// VsInstanceData
+//--------------------------------------------------------------------------------------------------
+struct VsInstanceData
+	{
+	glm::mat4 Transform;
+	glm::vec4 Color;
+	};
 
 
 //--------------------------------------------------------------------------------------------------
@@ -27,8 +45,16 @@ class VsInstancedMesh
 		// Geometry
 		VsGeometry* GetGeometry() const;
 
+		// Rendering
+		void Upload( const std::vector< VsInstanceData >& InstanceData );
+		void Render();
+
 	private:
 		VsGeometry* mGeometry = nullptr;
+
+		int mInstanceSize = 0;
+		int mInstanceCapacity = 0;
+		uint32_t mInstanceBuffer = 0;
 	};
 
 

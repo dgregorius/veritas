@@ -40,7 +40,7 @@ void VsTest::Update( double Time, float Timestep )
 //--------------------------------------------------------------------------------------------------
 void VsTest::Render( double Time, float Timestep )
 	{
-	mWorldRenderer->DrawFrame( nullptr );
+	mWorldRenderer->DrawFrame();
 	}
 
 

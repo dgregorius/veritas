@@ -146,7 +146,10 @@ void VsTestlab::Startup()
 	mTests.reserve( mModules.size() );
 	for ( VsModule* Module : mModules )
 		{
-		mTests.push_back( TestEntries[ mTestIndex ].Creator( vsGetPlugin( Module ) ) );
+		VsTest* Test = TestEntries[ mTestIndex ].Creator( vsGetPlugin( Module ) );
+		Test->Create( mCamera );
+
+		mTests.push_back( Test );
 		}
 	}
 
@@ -178,7 +181,7 @@ void VsTestlab::RenderFrame()
 
 	RenderBackground();
 	RenderGrid();
-	//RenderTests();
+	RenderTests();
 
 	mRenderTarget->Unbind();
 	}
@@ -202,12 +205,23 @@ void VsTestlab::Shutdown()
 	{
 	// Terminate test framework
 	mTestIndex = -1;
-	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { delete Test; } );
-	mTests.clear();
+	while ( !mTests.empty() )
+		{
+		VsTest* Test = mTests.back();
+		mTests.pop_back();
+
+		Test->Destroy();
+		delete Test;
+		}
 
 	// Terminate plugin framework
-	std::for_each( mModules.begin(), mModules.end(), []( VsModule* Module ) { vsFreeModule( Module ); } );
-	mModules.clear();
+	while ( !mModules.empty() )
+		{
+		VsModule* Module = mModules.back();
+		mModules.pop_back();
+
+		vsFreeModule( Module );
+		}
 
 	// Terminate renderer
 	delete mRenderTarget;
@@ -265,7 +279,13 @@ void VsTestlab::RenderGrid()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderTests()
 	{
+	double Time = 0;
+	float ElapsedTime = 0.0f;
 
+	for ( VsTest* Test : mTests )
+		{
+		Test->Render( Time, ElapsedTime );
+		}
 	}
 
 

@@ -15,7 +15,7 @@
 //--------------------------------------------------------------------------------------------------
 void vsLoadVertexLibrary()
 	{
-	// Initialize vertex formats
+	// Create vertex formats
 	VS_ASSERT( !VsEmptyVertex::Format );
 		{
 		uint32_t VAO = 0;
@@ -47,7 +47,7 @@ void vsLoadVertexLibrary()
 //--------------------------------------------------------------------------------------------------
 void vsUnloadVertexLibrary()
 	{
-	// Terminate vertex formats
+	// Free vertex formats
 	VS_ASSERT( VsMeshVertex::Format );
 	glDeleteVertexArrays( 1, &VsMeshVertex::Format );
 	VsMeshVertex::Format = 0;

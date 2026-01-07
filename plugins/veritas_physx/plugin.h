@@ -28,6 +28,9 @@ class VsPhysXWorld : public IVsWorld
 		explicit VsPhysXWorld( VsPhysXPlugin* Plugin );
 		virtual ~VsPhysXWorld() override;
 
+		// Plugin
+		virtual IVsPlugin* GetPlugin() const override;
+
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
