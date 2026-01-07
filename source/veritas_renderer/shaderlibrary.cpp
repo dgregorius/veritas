@@ -44,24 +44,22 @@ out vec4 FragColor;
 
 void main() 
 {
-    // 1. Define your colors (Muted, professional palette)
-    // Zenith is the top of the sky, Horizon is the bottom
-    vec3 ZenithColor  = vec3( 0.05, 0.15, 0.30 ); // Deep, dark blue
-    vec3 HorizonColor = vec3( 0.40, 0.50, 0.60 ); // Desaturated grey-blue
+   // Exact colors sampled from your uploaded image
+    vec3 topColor    = vec3(0.38, 0.45, 0.50); // Muted slate blue
+    vec3 bottomColor = vec3(0.69, 0.73, 0.75); // Light grey-blue
 
-    // 2. Adjust the 'bias' of the gradient
-    // Using pow( vUV.y, 0.8 ) makes the horizon feel 'wider' and more natural
-    float Weight = pow( clamp( vUV.y, 0.0, 1.0 ), 0.8 );
+    // Smoothstep creates a more natural "lens" feel than a linear mix
+    // It holds the colors slightly longer at the top and bottom
+    float t = smoothstep(-0.1, 1.1, vUV.y);
+    
+    vec3 sky = mix(bottomColor, topColor, t);
 
-    // 3. Mix the colors based on vertical position
-    vec3 Sky = mix( HorizonColor, ZenithColor, Weight );
-
-    // 4. Subtle Dithering
-    // This adds a tiny amount of noise to break up color banding
-    float Noise = fract( sin( dot( vUV, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
-    Sky += ( Noise - 0.5 ) * ( 1.0 / 255.0 );
-
-    FragColor = vec4( Sky, 1.0 );
+    // Simple noise dither to prevent 8-bit banding
+    float ditherStrength = 0.5; 
+    float noise = fract(sin(dot(vUV, vec2(12.9898, 78.233))) * 43758.5453);
+    sky += (noise - 0.5) * (ditherStrength / 255.0);
+   
+    FragColor = vec4(sky, 1.0);
 }
 )";
 
@@ -77,24 +75,35 @@ layout( std140, binding = 0 ) uniform CameraBlock
     vec4 Position;
 } Camera;
 
-layout( location = 0 ) out vec3 vWorldPos;
+out vec3 vNearPoint;
+out vec3 vFarPoint;
 
-void main()
+// Helper to un-project screen coordinates back into world space
+vec3 UnprojectPoint(float X, float Y, float Z, mat4 ViewInv, mat4 ProjInv) 
 {
-    vec2 UV = vec2( ( gl_VertexID << 1 ) & 2, gl_VertexID & 2 );
-    vec2 Position = 2.0f * UV - 1.0;
+    vec4 UnprojectedPoint =  ViewInv * ProjInv * vec4(X, Y, Z, 1.0);
+    return UnprojectedPoint.xyz / UnprojectedPoint.w;
+}
 
-    float GridScale = 1000.0; 
-    vWorldPos = vec3( Position.x * GridScale, 0.0, Position.y * GridScale );
-    
-    gl_Position = Camera.ProjectionMatrix * Camera.ViewMatrix * vec4( vWorldPos, 1.0 );
-} 
+void main() {
+    uint Index = uint(gl_VertexID);
+    float X = float((Index & 1U) << 2U) - 1.0;
+    float Y = float((Index & 2U) << 1U) - 1.0;
+
+    mat4 ViewInv = inverse(Camera.ViewMatrix);
+    mat4 ProjInv = inverse(Camera.ProjectionMatrix);
+
+    // We calculate a ray from the 'near plane' to the 'far plane' for every pixel
+    vNearPoint = UnprojectPoint(X, Y, 0.0, ViewInv, ProjInv);
+    vFarPoint = UnprojectPoint(X, Y, 1.0, ViewInv, ProjInv);
+
+    gl_Position = vec4(X, Y, 0.0, 1.0); // Full screen coverage
+}
 )";
 
 const char* GridFS = R"(
 #version 460 core
 
-// Uniforms
 layout( std140, binding = 0 ) uniform CameraBlock 
 {
     mat4 ViewMatrix;
@@ -102,47 +111,50 @@ layout( std140, binding = 0 ) uniform CameraBlock
     vec4 Position;
 } Camera;
 
-// Varying
-layout( location = 0 ) in vec3 vWorldPos;
+in vec3 vNearPoint;
+in vec3 vFarPoint;
 
-// Output
-layout( location = 0 ) out vec4 FragColor;
+out vec4 FragColor;
 
 
-float calculateGrid( vec2 planePos, float scale )
-{
-    vec2 coord = planePos * scale;
-    vec2 derivative = fwidth( coord );
-    vec2 grid = abs( fract( coord - 0.5 ) - 0.5 ) / derivative;
-    float line = min( grid.x, grid.y );
-    return 1.0 - min( line, 1.0 );
+float getGrid(vec2 pos, float scale, float thickness) {
+    vec2 coord = pos / scale; 
+    vec2 derivative = fwidth(coord);
+    vec2 grid = abs(fract(coord - 0.5) - 0.5) / (derivative * thickness);
+    float line = min(grid.x, grid.y);
+    return 1.0 - clamp(line, 0.0, 1.0);
 }
 
-void main()
-{
-    float dist = length( vWorldPos - Camera.Position.xyz );
-    
-    float thickLine = calculateGrid( vWorldPos.xz, 0.1 );
-    float thinLine  = calculateGrid( vWorldPos.xz, 1.0 );
-    
-    float xAxis = 1.0 - smoothstep( 0.0, fwidth( vWorldPos.z ) * 2.5, abs( vWorldPos.z ) );
-    float zAxis = 1.0 - smoothstep( 0.0, fwidth( vWorldPos.x ) * 2.5, abs( vWorldPos.x ) );
+void main() {
+    float t = -vNearPoint.y / (vFarPoint.y - vNearPoint.y);
+    if (t <= 0.0) discard;
+    vec3 worldPos = vNearPoint + t * (vFarPoint - vNearPoint);
 
-    vec4 color = vec4( 0.2, 0.2, 0.2, thinLine * 0.3 );
-    color = mix( color, vec4( 0.3, 0.3, 0.3, 1.0 ), thickLine * 0.6 );
-    
-    color = mix( color, vec4( 0.8, 0.1, 0.1, 1.0 ), xAxis );
-    color = mix( color, vec4( 0.1, 0.1, 0.8, 1.0 ), zAxis );
+    // BACKGROUND: The horizon color you picked (0.69, 0.73, 0.75)
+    vec3 bg = vec3(0.69, 0.73, 0.75);
 
-    float fade = exp( -0.005 * dist );
-    
-    FragColor = color;
-    FragColor.a *= fade;
+    // GREYISH GRID COLORS:
+    // Minor: Only slightly darker than background
+    // Major: A medium neutral grey
+    vec3 minorColor = vec3(0.42, 0.45, 0.48); 
+    vec3 majorColor = vec3(0.30, 0.33, 0.36); 
 
-    if ( FragColor.a < 0.01 ) 
-    {
-        discard;
-    }
+    float minorGrid = getGrid(worldPos.xz, 1.0, 0.75);
+    float majorGrid = getGrid(worldPos.xz, 10.0, 1.25);
+
+    float fogDensity = 0.012;
+    float dist = length(worldPos - Camera.Position.xyz);
+    float fade = exp(-fogDensity * dist);
+
+    // Blend major over minor
+    vec3 gridRGB = mix(minorColor, majorColor, majorGrid);
+    float gridMask = max(minorGrid, majorGrid);
+
+    // Final mix with background
+    vec3 color = mix(bg, gridRGB, gridMask * fade);
+
+    FragColor = vec4(color, fade);
+    if (fade < 0.01) discard;
 }
 )";
 
