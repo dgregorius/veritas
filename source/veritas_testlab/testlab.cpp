@@ -4,12 +4,6 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "testlab.h"
-#include "session.h"
-
-#include "windows/inspectorwindow.h"
-#include "windows/outlinerwindow.h"
-#include "windows/profilewindow.h"
-#include "windows/viewportwindow.h"
 
 // ImGUI
 #include <imgui.h>
@@ -32,15 +26,6 @@ void VsTestlab::Startup()
 	{
 	vsLoadShaderLibrary();
 	vsLoadVertexLibrary();
-
-	// Start session
-	mSession = new VsSession;
-
-	// Create dock windows
-	mDockWindows.push_back( new VsInspectorWindow( "Inspector" ) );
-	mDockWindows.push_back( new VsOutlinerWindow( "Outliner" ) );
-	mDockWindows.push_back( new VsProfileWindow( "Profile" ) );
-	mDockWindows.push_back( new VsViewportWindow( "Viewport" ) );
 	}
 
 
@@ -61,34 +46,26 @@ void VsTestlab::UpdateFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderFrame()
 	{
-	BeginDockspace();
-	for ( VsWindow* DockWindow : mDockWindows )
-		{
-		DockWindow->Render( mSession );
-		}
-	EndDockspace();
-	Status();
+	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::EndFrame()
 	{
-	
+	BeginDockspace();
+		RenderInspector();
+		RenderOutliner();
+		RenderProfiler();
+		RenderViewport();
+	EndDockspace();
+	Status();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::Shutdown()
 	{
-	// Destroy dock windows
-	std::for_each( mDockWindows.begin(), mDockWindows.end(), []( VsWindow* DockWindow ) { delete DockWindow; } );
-	mDockWindows.clear();
-
-	// Close session
-	delete mSession;
-	mSession = nullptr;
-
 	vsUnloadShaderLibrary();
 	vsUnloadVertexLibrary();
 	}
@@ -129,14 +106,104 @@ void VsTestlab::BeginDockspace()
 
 			ImGui::DockBuilderDockWindow( "Inspector", DockRightTopCenterID );
 			ImGui::DockBuilderDockWindow( "Outliner", DockLeftID );
+			ImGui::DockBuilderDockWindow( "Profiler", DockBottomCenterID );
 			ImGui::DockBuilderDockWindow( "Viewport", DockLeftTopCenterID );
-			ImGui::DockBuilderDockWindow( "Profile", DockBottomCenterID );
 			ImGui::DockBuilderFinish( DockspaceID );
 			}
 
 		ImGuiDockNodeFlags NodeFlags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoTabBar;
 		ImGui::DockSpace( DockspaceID, ImVec2( 0.0f, 0.0f ), NodeFlags );
 		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderInspector()
+	{
+	float Scale = ImGui::GetWindowDpiScale();
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	if ( ImGui::Begin( "Inspector" ) )
+		{
+		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar( 2 );
+		}
+	ImGui::End();
+	ImGui::PopStyleVar();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderOutliner()
+	{
+	float Scale = ImGui::GetWindowDpiScale();
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	if ( ImGui::Begin( "Outliner" ) )
+		{
+		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar( 2 );
+		}
+	ImGui::End();
+	ImGui::PopStyleVar();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderProfiler()
+	{
+	float Scale = ImGui::GetWindowDpiScale();
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	if ( ImGui::Begin( "Profiler" ) )
+		{
+		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar( 2 );
+		}
+	ImGui::End();
+	ImGui::PopStyleVar();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::RenderViewport()
+	{
+	float Scale = ImGui::GetWindowDpiScale();
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	if ( ImGui::Begin( "Viewport" ) )
+		{
+		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+		ImGui::BeginChild( "##Child" );
+
+// 		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
+// 		ImVec2 WindowSize = ImGui::GetContentRegionAvail();
+// 		mRenderTarget->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
+// 
+// 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
+// 		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
+
+		ImGui::EndChild();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
+		}
+	ImGui::End();
+	ImGui::PopStyleVar();	
 	}
 
 

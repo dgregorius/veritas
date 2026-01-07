@@ -12,12 +12,7 @@
 #pragma once
 
 #include "application.h"
-
-#include <algorithm>
-#include <vector>
-
-class VsSession;
-class VsWindow;
+#include "test.h"
 
 
 //--------------------------------------------------------------------------------------------------
@@ -35,10 +30,10 @@ class VsTestlab : public VsApplication
 
 	private:
 		void BeginDockspace();
+		void RenderInspector();
+		void RenderOutliner();
+		void RenderProfiler();
+		void RenderViewport();
 		void EndDockspace();
 		void Status();
-
-		VsSession* mSession = nullptr;
-		std::vector< VsWindow* > mDockWindows;
-		bool mResetLayout = false;
 	};
