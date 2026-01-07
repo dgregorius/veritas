@@ -27,6 +27,15 @@ class VsCamera
 	{
 	public:
 		// View
+		float GetYaw() const;
+		void SetYaw( float Yaw );
+		float GetPitch() const;
+		void SetPitch( float Pitch );
+		float GetRadius()  const;
+		void SetRadius( float Radius );
+		glm::vec3 GetTarget() const;
+		void SetTarget( const glm::vec3& Target );
+
 		glm::vec3 GetPosition() const;
 		glm::quat GetOrientation() const;
 		glm::mat4 GetTransform() const;
@@ -65,7 +74,7 @@ class VsCamera
 
 		float mYaw = 45.0f;
 		float mPitch = -25.0f;
-		float mRadius = 15.0f;
+		float mRadius = 25.0f;
 		glm::vec3 mTarget = { 0.0f, 0.0f, 0.0f };
 
 		float mFOV = 50.0f;
