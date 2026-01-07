@@ -25,6 +25,7 @@ class VsOutlinerWindow : public VsWindow
 		virtual ~VsOutlinerWindow() = default;
 
 		// Render
+		virtual void Update( VsSession* Session ) override;
 		virtual void Render( VsSession* Session ) override;
 
 	private:

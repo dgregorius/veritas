@@ -25,6 +25,7 @@ class VsProfileWindow : public VsWindow
 		virtual ~VsProfileWindow() = default;
 
 		// Render
+		virtual void Update( VsSession* Session ) override;
 		virtual void Render( VsSession* Session ) override;
 
 	private:

@@ -25,6 +25,7 @@ class VsInspectorWindow : public VsWindow
 		virtual ~VsInspectorWindow() = default;
 
 		// Render
+		virtual void Update( VsSession* Session ) override;
 		virtual void Render( VsSession* Session ) override;
 
 	private:
