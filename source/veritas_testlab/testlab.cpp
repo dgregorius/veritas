@@ -24,8 +24,48 @@
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::Startup()
 	{
+	// Initialize renderer
 	vsLoadShaderLibrary();
 	vsLoadVertexLibrary();
+
+	mCamera = new VsCamera;
+	mRenderTarget = new VsRenderTarget;
+
+	// Initialize plugin framework
+	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
+		{
+		if ( Entry.is_regular_file() )
+			{
+			// Check for your "veritas_" prefix
+			std::string Filename = Entry.path().filename().string();
+			if ( Filename.rfind( "veritas_", 0 ) == 0 )
+				{
+				if ( VsModule* Module = vsLoadModule( Entry.path() ) )
+					{
+					mModules.push_back( Module );
+					}
+				}
+			}
+		}
+
+	// Initialize test framework
+	std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+	std::sort( TestEntries.begin(), TestEntries.end(), []( VsTestEntry Lhs, VsTestEntry Rhs )
+		{
+		int CategoryCompare = strcmp( Lhs.Category, Rhs.Category );
+		if ( CategoryCompare == 0 )
+			{
+			return strcmp( Lhs.Name, Rhs.Name ) < 0;
+			}
+
+		return CategoryCompare < 0;
+		} );
+
+	mTests.reserve( mModules.size() );
+	for ( VsModule* Module : mModules )
+		{
+		mTests.push_back( TestEntries[ mTestIndex ].Creator( vsGetPlugin( Module ) ) );
+		}
 	}
 
 
@@ -39,14 +79,22 @@ void VsTestlab::BeginFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::UpdateFrame()
 	{
-
+	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderFrame()
 	{
-	
+	mCamera->Update();
+	//mCamera->Upload();
+
+	mRenderTarget->Bind();
+	mRenderTarget->Clear();
+
+	// Render background, grid and tests
+
+	mRenderTarget->Unbind();
 	}
 
 
@@ -66,6 +114,21 @@ void VsTestlab::EndFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::Shutdown()
 	{
+	// Terminate test framework
+	mTestIndex = -1;
+	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { delete Test; } );
+	mTests.clear();
+
+	// Terminate plugin framework
+	std::for_each( mModules.begin(), mModules.end(), []( VsModule* Module ) { vsFreeModule( Module ); } );
+	mModules.clear();
+
+	// Terminate renderer
+	delete mRenderTarget;
+	mRenderTarget = nullptr;
+	delete mCamera;
+	mCamera = nullptr;
+
 	vsUnloadShaderLibrary();
 	vsUnloadVertexLibrary();
 	}

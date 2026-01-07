@@ -36,4 +36,11 @@ class VsTestlab : public VsApplication
 		void RenderViewport();
 		void EndDockspace();
 		void Status();
+
+		VsCamera* mCamera = nullptr;
+		VsRenderTarget* mRenderTarget = nullptr;
+
+		std::vector< VsModule* > mModules;
+		std::vector< VsTest* > mTests;
+		int mTestIndex = 0;
 	};
