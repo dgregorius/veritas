@@ -52,7 +52,8 @@ class VsTestlab
 		VsCamera* mCamera = nullptr;
 		VsRenderTarget* mRenderTarget = nullptr;
 
-		std::vector< VsModule* > mModules;
+		using VsPluginPtr = std::unique_ptr< IVsPlugin, std::function< void ( IVsPlugin* ) > >;
+		std::vector< VsPluginPtr > mPlugins;
 		std::vector< VsTest* > mTests;
 		int mTestIndex = 0;
 	};

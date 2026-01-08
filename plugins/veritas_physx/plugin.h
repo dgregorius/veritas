@@ -65,6 +65,7 @@ class VsPhysXPlugin : public IVsPlugin
 		virtual ~VsPhysXPlugin() override;
 
 		// Module
+		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 

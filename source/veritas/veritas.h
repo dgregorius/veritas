@@ -278,6 +278,7 @@ struct IVsWorld
 struct IVsPlugin
 	{
 	// Module
+	virtual void Release() = 0;
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
 	
@@ -311,7 +312,6 @@ struct IVsPlugin
 extern "C"
 	{
 	typedef IVsPlugin* ( *VsCreatePluginFunc )( );
-	typedef void ( *VsDestroyPluginFunc )( IVsPlugin* );
 	}
 
 #define VS_EXPORT_PLUGIN(PluginClass)							\
@@ -319,19 +319,4 @@ extern "C" __declspec(dllexport)								\
 IVsPlugin* vsCreatePlugin()										\
 	{															\
     return new PluginClass;										\
-	}															\
-extern "C" __declspec(dllexport)								\
-void vsDestroyPlugin(IVsPlugin* Plugin)							\
-	{															\
-    delete static_cast< PluginClass* >( Plugin );				\
 	}
-
-
-//--------------------------------------------------------------------------------------------------
-// VsModule
-//--------------------------------------------------------------------------------------------------
-struct VsModule;
-
-VsModule* vsLoadModule( const fs::path& Path );
-IVsPlugin* vsGetPlugin( VsModule* Module );
-void vsFreeModule( VsModule* Module );

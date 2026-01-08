@@ -314,7 +314,7 @@ b3ShapeId VsBox3dMeshShape::GetNative() const
 VsBox3dBody::VsBox3dBody( VsBox3dWorld* World, VsBodyType Type )
 	: mWorld( World )
 	{
-	const b3BodyType TypeMap[] = { b3_staticBody, b3_kinematicBody, b3_staticBody };
+	const b3BodyType TypeMap[] = { b3_staticBody, b3_kinematicBody, b3_dynamicBody };
 
 	b3BodyDef BodyDef = b3DefaultBodyDef();
 	BodyDef.type = TypeMap[ Type ];
@@ -494,6 +494,7 @@ VsBox3dWorld::VsBox3dWorld( VsBox3dPlugin* Plugin )
 	WorldDef.workerCount = TaskScheduler.GetNumTaskThreads();
 	WorldDef.enqueueTask = EnqueueTask;
 	WorldDef.finishTask = FinishTask;
+	WorldDef.userTaskContext = this;
 
 	mNative = b3CreateWorld( &WorldDef );
 	}
@@ -669,7 +670,7 @@ void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 //--------------------------------------------------------------------------------------------------
 void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext )
 	{
-	static VsBox3dWorld* World = static_cast<VsBox3dWorld*>( UserContext );
+	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
 	return World->EnqueueTask( TaskCallback, ItemCount, MinRange, TaskContext );
 	}
 
@@ -753,6 +754,13 @@ VsBox3dPlugin::~VsBox3dPlugin()
 
 		delete Hull;
 		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dPlugin::Release()
+	{
+	delete this;
 	}
 
 

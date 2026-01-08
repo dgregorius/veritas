@@ -65,6 +65,7 @@ class VsJoltPlugin : public IVsPlugin
 		virtual ~VsJoltPlugin() override;
 
 		// Module
+		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 

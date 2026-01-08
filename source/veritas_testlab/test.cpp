@@ -29,14 +29,14 @@ VsTest::~VsTest()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::Update( double Time, float Timestep )
+void VsTest::Update( double Time, float ElapsedTime )
 	{
-	
+	mWorld->Step( ElapsedTime );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::Render( double Time, float Timestep )
+void VsTest::Render( double Time, float ElapsedTime )
 	{
 	mWorldRenderer->DrawFrame();
 	}

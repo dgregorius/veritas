@@ -16,13 +16,20 @@ class VsBasicScene1 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			IVsHull* Hull = mPlugin->CreateBox( VsVector3( 10.0f, 1.0f, 10.0f ) );
-			IVsBody* Body = mWorld->CreateBody( VS_STATIC_BODY );
-			if ( Body )
+			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 15.0f, 1.0f, 15.0f ) );
+			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
+			if ( GroundBody )
 				{
-				Body->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
-				Body->SetOrientation( VsQuaternion( 0.0f, 0.0f, 0.0f, 1.0f ) );
-				Body->CreateHull( Hull );
+				GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+				GroundBody->CreateHull( Ground );
+				}
+
+			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+			IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
+			if ( BoxBody )
+				{
+				BoxBody->SetPosition( VsVector3( 0.0f, 15.0f, 0.0f ) );
+				BoxBody->CreateHull( Box );
 				}
 			}
 	};

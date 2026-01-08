@@ -5,15 +5,13 @@
 //--------------------------------------------------------------------------------------------------
 #include "camera.h"
 
-// ImGUI
-#include <imgui.h>
-#include <imgui_internal.h>
-
 // OpenGL
 #include <glad.h>
 #include <glfw3.h>
 
-
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
 
 
 //--------------------------------------------------------------------------------------------------

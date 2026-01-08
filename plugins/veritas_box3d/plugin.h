@@ -261,6 +261,7 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual ~VsBox3dPlugin() override;
 
 		// Module
+		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 

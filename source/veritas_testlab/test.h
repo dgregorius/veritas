@@ -14,6 +14,8 @@
 #include <veritas/veritas.h>
 
 #include <veritas_renderer/camera.h>
+#include <veritas_renderer/geometry.h>
+#include <veritas_renderer/instancedmesh.h>
 #include <veritas_renderer/rendertarget.h>
 #include <veritas_renderer/shader.h>
 #include <veritas_renderer/vertex.h>
@@ -32,8 +34,8 @@ class VsTest
 
 		// Lifetime management
 		virtual void Create( VsCamera* Camera ) = 0;
-		virtual void Update( double Time, float Timestep );
-		virtual void Render( double Time, float Timestep );
+		virtual void Update( double Time, float ElapsedTime );
+		virtual void Render( double Time, float ElapsedTime );
 		virtual void Destroy();
 
 	protected:

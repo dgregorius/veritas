@@ -5,13 +5,17 @@
 //--------------------------------------------------------------------------------------------------
 #include "testlab.h"
 
-// ImGUI
-#include <imgui.h>
-#include <imgui_internal.h>
+// Windows
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 // OpenGL
 #include <glad.h>
 #include <glfw3.h>
+
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
 
 // CRT's memory leak detection
 #if defined( DEBUG ) || defined( _DEBUG )
@@ -120,9 +124,30 @@ void VsTestlab::Startup()
 			std::string Filename = Entry.path().filename().string();
 			if ( Filename.rfind( "veritas_", 0 ) == 0 )
 				{
-				if ( VsModule* Module = vsLoadModule( Entry.path() ) )
+				fs::path ModulePath = Entry.path();
+				SetDllDirectoryW( ModulePath.parent_path().c_str() );
+				HMODULE hModule = LoadLibraryW( ModulePath.c_str() );
+				SetDllDirectory( NULL );
+
+				if ( !hModule )
 					{
-					mModules.push_back( Module );
+					continue;
+					}
+
+				VsCreatePluginFunc vsCreatePlugin = (VsCreatePluginFunc)GetProcAddress( hModule, "vsCreatePlugin" );
+				if ( !vsCreatePlugin )
+					{
+					FreeLibrary( hModule );
+					continue;
+					}
+				
+				if ( IVsPlugin* Plugin = vsCreatePlugin() )
+					{
+					mPlugins.emplace_back( Plugin, [ = ]( IVsPlugin* Plugin)
+						{
+						Plugin->Release();
+						FreeLibrary( hModule );
+						} );
 					}
 				}
 			}
@@ -141,10 +166,11 @@ void VsTestlab::Startup()
 		return CategoryCompare < 0;
 		} );
 
-	mTests.reserve( mModules.size() );
-	for ( VsModule* Module : mModules )
+	mTests.reserve( mPlugins.size() );
+	for ( VsPluginPtr& Plugin : mPlugins )
 		{
-		VsTest* Test = TestEntries[ mTestIndex ].Creator( vsGetPlugin( Module ) );
+		VsCreator vsCreatePlugin = TestEntries[ mTestIndex ].Creator;
+		VsTest* Test = vsCreatePlugin( Plugin.get() );
 		Test->Create( mCamera );
 
 		mTests.push_back( Test );
@@ -162,7 +188,7 @@ void VsTestlab::BeginFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::UpdateFrame()
 	{
-	
+	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Update( 0.0f, 1.0f / 60.0f ); } );
 	}
 
 
@@ -212,13 +238,7 @@ void VsTestlab::Shutdown()
 		}
 
 	// Terminate plugin framework
-	while ( !mModules.empty() )
-		{
-		VsModule* Module = mModules.back();
-		mModules.pop_back();
-
-		vsFreeModule( Module );
-		}
+	mPlugins.clear();
 
 	// Terminate renderer
 	delete mRenderTarget;
