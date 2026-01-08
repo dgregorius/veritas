@@ -31,6 +31,10 @@ class VsPhysXWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
@@ -51,6 +55,7 @@ class VsPhysXWorld : public IVsWorld
 
 	private:
 		VsPhysXPlugin* mPlugin = nullptr;
+		VsColor mColor = { 1.0f, 0.83f, 0.61f, 1.0f };
 	};
 
 

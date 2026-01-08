@@ -126,7 +126,7 @@ int VsBox3dHull::GetEdgeCount() const
 
 
 //--------------------------------------------------------------------------------------------------
-const VsVector3* VsBox3dHull::GetEdges() const
+const VsVector3* VsBox3dHull::GetEdgePositions() const
 	{
 	return mEdges.data();
 	}
@@ -169,6 +169,20 @@ VsShapeType VsBox3dHullShape::GetType() const
 IVsBody* VsBox3dHullShape::GetBody() const
 	{
 	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsBox3dHullShape::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dHullShape::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
 	}
 
 
@@ -291,6 +305,20 @@ VsShapeType VsBox3dMeshShape::GetType() const
 IVsBody* VsBox3dMeshShape::GetBody() const
 	{
 	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsBox3dMeshShape::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dMeshShape::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
 	}
 
 
@@ -563,6 +591,49 @@ void VsBox3dWorld::RemoveListener( IVsWorldListener* Listener )
 
 
 //--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
+	}
+
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsBox3dWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 VsVector3 VsBox3dWorld::GetGravity() const
 	{
 	b3Vec3 Gravity = b3World_GetGravity( mNative );
@@ -636,34 +707,6 @@ void VsBox3dWorld::Step( float Timestep )
 b3WorldId VsBox3dWorld::GetNative() const
 	{
 	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyAdded( IVsBody* Body )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyBodyRemoved( IVsBody* Body )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
-	{
-	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 

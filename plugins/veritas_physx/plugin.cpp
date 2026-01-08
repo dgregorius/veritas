@@ -34,6 +34,20 @@ IVsPlugin* VsPhysXWorld::GetPlugin() const
 
 
 //--------------------------------------------------------------------------------------------------
+VsColor VsPhysXWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 	{
 

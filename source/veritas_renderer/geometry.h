@@ -24,13 +24,16 @@ class VsGeometry
 	{
 	public:
 		// Construction / Destruction
-		 VsGeometry( const std::vector< int >& Indices, const std::vector< VsMeshVertex >& Vertices );
+		explicit VsGeometry( const std::vector< VsEdgeVertex >& Vertices );
+		explicit VsGeometry( const std::vector< VsMeshVertex >& Vertices );
+		VsGeometry( const std::vector< int >& Indices, const std::vector< VsMeshVertex >& Vertices );
 		~VsGeometry();
 
 		// Rendering
 		void Render( int InstanceCount );
 
 	private:
+		uint32_t mType = 0;
 		int mElementCount = 0;
 		uint32_t mElementBuffer = 0;
 		int mVertexCount = 0;
@@ -39,6 +42,7 @@ class VsGeometry
 
 
 // Physics -> Graphics bridge
-VsGeometry* vsCreateGeometry( IVsShape* Shape );
+VsGeometry* vsCreateMeshGeometry( IVsShape* Shape );
+VsGeometry* vsCreateEdgeGeometry( IVsShape* Shape );
 
 

@@ -31,6 +31,10 @@ class VsJoltWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
@@ -51,6 +55,7 @@ class VsJoltWorld : public IVsWorld
 
 	private:
 		VsJoltPlugin* mPlugin = nullptr;
+		VsColor mColor = { 0.5f, 0.9f, 0.8f, 1.00f };
 	};
 
 

@@ -41,6 +41,24 @@ void vsLoadFormats()
 		VS_ASSERT( glGetError() == GL_NO_ERROR );
 		VsMeshVertex::Format = VAO;
 		}
+
+	VS_ASSERT( !VsEdgeVertex::Format );
+		{
+		uint32_t VAO = 0;
+		glCreateVertexArrays( 1, &VAO );
+		VS_ASSERT( VAO );
+
+		glEnableVertexArrayAttrib( VAO, 0 );
+		glVertexArrayAttribFormat( VAO, 0, 3, GL_FLOAT, GL_FALSE, offsetof( VsEdgeVertex, Position ) );
+		glVertexArrayAttribBinding( VAO, 0, 0 );
+
+		glEnableVertexArrayAttrib( VAO, 1 );
+		glVertexArrayAttribFormat( VAO, 1, 4, GL_UNSIGNED_BYTE, GL_TRUE, offsetof( VsEdgeVertex, Color ) );
+		glVertexArrayAttribBinding( VAO, 1, 0 );
+
+		VS_ASSERT( glGetError() == GL_NO_ERROR );
+		VsEdgeVertex::Format = VAO;
+		}
 	}
 
 
@@ -48,6 +66,10 @@ void vsLoadFormats()
 void vsUnloadFormats()
 	{
 	// Free vertex formats
+	VS_ASSERT( VsEdgeVertex::Format );
+	glDeleteVertexArrays( 1, &VsEdgeVertex::Format );
+	VsEdgeVertex::Format = 0;
+
 	VS_ASSERT( VsMeshVertex::Format );
 	glDeleteVertexArrays( 1, &VsMeshVertex::Format );
 	VsMeshVertex::Format = 0;

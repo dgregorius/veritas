@@ -59,7 +59,7 @@ class VsBox3dHull : public IVsHull
 		virtual const VsVector3* GetVertexNormals() const override;
 
 		virtual int GetEdgeCount() const override;
-		virtual const VsVector3* GetEdges() const override;
+		virtual const VsVector3* GetEdgePositions() const override;
 
 		// Native Box3d type
 		b3Hull* GetNative() const;
@@ -85,6 +85,8 @@ class VsBox3dHullShape : public IVsHullShape
 		// IVsShape
 		virtual VsShapeType GetType() const override;
 		virtual IVsBody* GetBody() const override;
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
 
 		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
@@ -94,6 +96,7 @@ class VsBox3dHullShape : public IVsHullShape
 
 	private:
 		VsBox3dBody* mBody = nullptr;
+		VsColor mColor = VS_COLOR_TRANSPARENT;
 		const VsBox3dHull* mHull = nullptr;
 		b3ShapeId mNative = {};
 	};
@@ -137,6 +140,8 @@ class VsBox3dMeshShape : public IVsMeshShape
 		// IVsShape
 		virtual VsShapeType GetType() const override;
 		virtual IVsBody* GetBody() const override;
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
 
 		// IVsMeshShape
 		virtual const IVsMesh* GetMesh() const override;
@@ -146,6 +151,7 @@ class VsBox3dMeshShape : public IVsMeshShape
 
 	private:
 		VsBox3dBody* mBody = nullptr;
+		VsColor mColor = VS_COLOR_TRANSPARENT;
 		const VsBox3dMesh* mMesh = nullptr;
 		b3ShapeId mNative = {};
 	};
@@ -207,9 +213,18 @@ class VsBox3dWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
+
+		void NotifyBodyAdded( IVsBody* Body );
+		void NotifyBodyRemoved( IVsBody* Body );
+		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
+		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
 
 		// Gravity
 		virtual VsVector3 GetGravity() const override;
@@ -228,11 +243,6 @@ class VsBox3dWorld : public IVsWorld
 		// Native 
 		b3WorldId GetNative() const;
 
-		void NotifyBodyAdded( IVsBody* Body );
-		void NotifyBodyRemoved( IVsBody* Body );
-		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
-		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
-
 	private:
 		static void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext );
 		void* EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext );
@@ -240,8 +250,10 @@ class VsBox3dWorld : public IVsWorld
 		void FinishTask( void* Task );
 
 		VsBox3dPlugin* mPlugin = nullptr;
+		VsColor mColor = { 0.41f, 0.55f, 1.0f, 1.0f };
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsBox3dBody* > mBodies;
+		
 
 		int mTaskCount = 0;
 		enum { MaxTasks = 32 };

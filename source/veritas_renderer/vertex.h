@@ -40,6 +40,20 @@ struct VsMeshVertex
 	static inline uint32_t Format = 0;
 	};
 
+
+
+//--------------------------------------------------------------------------------------------------
+// VsEdgeVertex
+//--------------------------------------------------------------------------------------------------
+struct VsEdgeVertex
+	{
+	glm::vec3 Position;
+	glm::uint32 Color;
+
+	static inline uint32_t Format = 0;
+	};
+
+
 // Format library
 void vsLoadFormats();
 void vsUnloadFormats();

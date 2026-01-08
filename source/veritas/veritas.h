@@ -38,6 +38,20 @@ struct IVsPlugin;
 
 
 //--------------------------------------------------------------------------------------------------
+// VsColor
+//--------------------------------------------------------------------------------------------------
+struct VsColor
+	{
+	float R, G, B, A;
+	};
+
+bool operator==( const VsColor& Lhs, const VsColor& Rhs );
+bool operator!=( const VsColor& Lhs, const VsColor& Rhs );
+
+static inline constexpr VsColor VS_COLOR_TRANSPARENT = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+
+//--------------------------------------------------------------------------------------------------
 // VsVector3
 //--------------------------------------------------------------------------------------------------
 struct VsVector3
@@ -99,6 +113,10 @@ struct IVsShape
 	// Body
 	virtual IVsBody* GetBody() const = 0;
 
+	// Color
+	virtual VsColor GetColor() const = 0;
+	virtual void SetColor( const VsColor& Color ) = 0;
+
 	protected:
 		friend struct IVsBody;
 		virtual ~IVsShape() = default;
@@ -141,7 +159,7 @@ struct IVsHull
 	virtual const VsVector3* GetVertexPositions() const = 0;
 	virtual const VsVector3* GetVertexNormals() const = 0;
 	virtual int GetEdgeCount() const = 0;
-	virtual const VsVector3* GetEdges() const = 0;
+	virtual const VsVector3* GetEdgePositions() const = 0;
 
 	protected:
 		virtual ~IVsHull() = default;
@@ -252,6 +270,9 @@ struct IVsWorldListener
 struct IVsWorld
 	{
 	virtual IVsPlugin* GetPlugin() const = 0;
+
+	virtual VsColor GetColor() const = 0;
+	virtual void SetColor( const VsColor& Color ) = 0;
 
 	virtual void AddListener( IVsWorldListener* Listener ) = 0;
 	virtual void RemoveListener( IVsWorldListener* Listener ) = 0;

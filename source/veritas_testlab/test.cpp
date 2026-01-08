@@ -15,7 +15,7 @@ VsTest::VsTest( IVsPlugin* Plugin )
 	mPlugin = Plugin;
 
 	mWorld = Plugin->CreateWorld();
-	mWorldRenderer = new VsWorldRenderer;
+	mWorldRenderer = new VsWorldRenderer( mWorld );
 	mWorld->AddListener( mWorldRenderer );
 	}
 

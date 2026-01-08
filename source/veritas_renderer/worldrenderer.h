@@ -31,6 +31,11 @@
 class VsWorldRenderer : public IVsWorldListener
 	{
 	public:
+		// Construction / Destruction
+		explicit VsWorldRenderer( IVsWorld* World );
+		~VsWorldRenderer();
+
+		// Rendering
 		void DrawFrame();
 		
 	private:
@@ -50,6 +55,7 @@ class VsWorldRenderer : public IVsWorldListener
 		void OnMeshAdded( IVsShape* Shape );
 		void OnMeshRemoved( IVsShape* Shape );
 
+		IVsWorld* mWorld = nullptr;
 		std::unordered_map< const IVsHull*, VsInstancedMesh* > mHullMap;
 		std::unordered_map< VsInstancedMesh*, std::vector< IVsHullShape* > > mHullInstances;
 	};

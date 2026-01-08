@@ -34,6 +34,20 @@ IVsPlugin* VsJoltWorld::GetPlugin() const
 
 
 //--------------------------------------------------------------------------------------------------
+VsColor VsJoltWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsJoltWorld::AddListener( IVsWorldListener* Listener )
 	{
 

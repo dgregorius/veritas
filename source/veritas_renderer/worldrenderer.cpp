@@ -27,6 +27,21 @@ static inline glm::mat4 vsAsMat4( const VsVector3& Position, const VsQuaternion&
 //--------------------------------------------------------------------------------------------------
 // VsWorldRenderer
 //--------------------------------------------------------------------------------------------------
+VsWorldRenderer::VsWorldRenderer( IVsWorld* World )
+	{
+	VS_ASSERT( World );
+	mWorld = World;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsWorldRenderer::~VsWorldRenderer()
+	{
+	// DIRK_TODO: ...
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 void VsWorldRenderer::DrawFrame()
 	{
 	// Render instances
@@ -46,10 +61,13 @@ void VsWorldRenderer::DrawFrame()
 		for ( size_t ShapeIndex = 0; ShapeIndex < ShapeCount; ++ShapeIndex )
 			{
 			IVsShape* Shape = HullShapes[ ShapeIndex ];
+			
+			VsColor ShapeColor = Shape->GetColor();
+			VsColor Color = ShapeColor != VS_COLOR_TRANSPARENT ? ShapeColor : mWorld->GetColor();
 
 			IVsBody* Body = Shape->GetBody();
 			InstanceData[ ShapeIndex ].Transform = vsAsMat4( Body->GetPosition(), Body->GetOrientation() );
-			InstanceData[ ShapeIndex ].Color = { 0.8f, 0.36f, 0.36f, 1.0f };
+			InstanceData[ ShapeIndex ].Color = { Color.R, Color.G, Color.B, Color.A };
 			}
 
 		InstancedHull->Upload( InstanceData );
@@ -149,7 +167,7 @@ void VsWorldRenderer::OnHullAdded( IVsShape* Shape )
 	const IVsHull* Hull = HullShape->GetHull();
 	if ( !mHullMap.contains( Hull ) )
 		{
-		VsGeometry* Geometry = vsCreateGeometry( HullShape );
+		VsGeometry* Geometry = vsCreateMeshGeometry( HullShape );
 		VsInstancedMesh* InstancedMesh = new VsInstancedMesh( Geometry );
 		mHullMap[ Hull ] = InstancedMesh;
 		}

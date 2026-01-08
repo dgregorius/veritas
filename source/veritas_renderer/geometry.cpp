@@ -13,23 +13,50 @@
 //--------------------------------------------------------------------------------------------------
 // VsGeometry
 //--------------------------------------------------------------------------------------------------
-VsGeometry::VsGeometry( const std::vector< int >& Indices, const std::vector< VsMeshVertex >& Vertices )
+VsGeometry::VsGeometry( const std::vector< VsEdgeVertex >& Vertices )
 	{
-	// Elements
-	if ( !Indices.empty() )
-		{
-		mElementCount = static_cast< int >( Indices.size() );
-		glCreateBuffers( 1, &mElementBuffer );
-		glNamedBufferStorage( mElementBuffer, mElementCount * sizeof( int ), Indices.data(), GL_DYNAMIC_STORAGE_BIT );
-		}
+	// Type
+	mType = GL_LINES;
 
 	// Vertices
-	if ( !Vertices.empty() )
-		{
-		mVertexCount = static_cast< int >( Vertices.size() );
-		glCreateBuffers( 1, &mVertexBuffer );
-		glNamedBufferStorage( mVertexBuffer, mVertexCount * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
-		}
+	VS_ASSERT( !Vertices.empty() );
+	mVertexCount = static_cast< int >( Vertices.size() );
+	glCreateBuffers( 1, &mVertexBuffer );
+	glNamedBufferStorage( mVertexBuffer, mVertexCount * sizeof( VsEdgeVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsGeometry::VsGeometry( const std::vector< VsMeshVertex >& Vertices )
+	{
+	// Type
+	mType = GL_TRIANGLES;
+
+	// Vertices
+	VS_ASSERT( !Vertices.empty() );
+	mVertexCount = static_cast< int >( Vertices.size() );
+	glCreateBuffers( 1, &mVertexBuffer );
+	glNamedBufferStorage( mVertexBuffer, mVertexCount * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsGeometry::VsGeometry( const std::vector< int >& Indices, const std::vector< VsMeshVertex >& Vertices )
+	{
+	// Type
+	mType = GL_TRIANGLES;
+
+	// Elements
+	VS_ASSERT( !Indices.empty() );
+	mElementCount = static_cast< int >( Indices.size() );
+	glCreateBuffers( 1, &mElementBuffer );
+	glNamedBufferStorage( mElementBuffer, mElementCount * sizeof( int ), Indices.data(), GL_DYNAMIC_STORAGE_BIT );
+
+	// Vertices
+	VS_ASSERT( !Vertices.empty() );
+	mVertexCount = static_cast< int >( Vertices.size() );
+	glCreateBuffers( 1, &mVertexBuffer );
+	glNamedBufferStorage( mVertexBuffer, mVertexCount * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
 	}
 
 
@@ -51,11 +78,11 @@ void VsGeometry::Render( int InstanceCount )
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mElementBuffer );
 		if ( mElementCount && mElementBuffer )
 			{
-			glDrawElementsInstanced( GL_TRIANGLES, mElementCount, GL_UNSIGNED_INT, NULL, InstanceCount );
+			glDrawElementsInstanced( mType, mElementCount, GL_UNSIGNED_INT, NULL, InstanceCount );
 			}
 		else
 			{
-			glDrawArraysInstanced( GL_TRIANGLES, 0, mVertexCount, InstanceCount );
+			glDrawArraysInstanced( mType, 0, mVertexCount, InstanceCount );
 			}
 		}
 	}
@@ -80,7 +107,7 @@ static VsGeometry* vsOnCreateHull( IVsShape* Shape )
 	{
 	VS_ASSERT( Shape );
 	VS_ASSERT( Shape->GetType() == VS_HULL_SHAPE );
-	IVsHullShape* HullShape = static_cast<IVsHullShape*>( Shape );
+	IVsHullShape* HullShape = static_cast< IVsHullShape* >( Shape );
 
 	const IVsHull* Hull = HullShape->GetHull();
 	VS_ASSERT( Hull );
@@ -98,7 +125,7 @@ static VsGeometry* vsOnCreateHull( IVsShape* Shape )
 		Vertices[ VertexIndex ] = { { P.X, P.Y, P.Z }, { N.X, N.Y, N.Z } };
 		}
 
-	return new VsGeometry( {}, Vertices );
+	return new VsGeometry( Vertices );
 	}
 
 
@@ -110,7 +137,7 @@ static VsGeometry* vsOnCreateMesh( IVsShape* Shape )
 
 
 //--------------------------------------------------------------------------------------------------
-VsGeometry* vsCreateGeometry( IVsShape* Shape )
+VsGeometry* vsCreateMeshGeometry( IVsShape* Shape )
 	{
 	typedef VsGeometry* ( *VsGeometryCreator )( IVsShape* );
 	static const VsGeometryCreator Creator[] =
@@ -125,4 +152,29 @@ VsGeometry* vsCreateGeometry( IVsShape* Shape )
 	return Creator[ Type ]( Shape );
 	}
 
+
+
+//--------------------------------------------------------------------------------------------------
+VsGeometry* vsCreateEdgeGeometry( IVsShape* Shape )
+	{
+	VS_ASSERT( Shape );
+	VS_ASSERT( Shape->GetType() == VS_HULL_SHAPE );
+	IVsHullShape* HullShape = static_cast< IVsHullShape* >( Shape );
+
+	const IVsHull* Hull = HullShape->GetHull();
+	VS_ASSERT( Hull );
+
+	int EdgeCount = Hull->GetEdgeCount();
+	const VsVector3* EdgePositions = Hull->GetEdgePositions();
+
+	std::vector< VsEdgeVertex > Vertices( EdgeCount );
+	for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; ++EdgeIndex )
+		{
+		VsVector3 P = EdgePositions[ EdgeIndex ];
+	
+		Vertices[ EdgeIndex ] = { { P.X, P.Y, P.Z }, 0xFF000000 };
+		}
+
+	return new VsGeometry( Vertices );
+	}
 
