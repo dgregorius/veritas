@@ -40,6 +40,6 @@ struct VsMeshVertex
 	static inline uint32_t Format = 0;
 	};
 
-
-void vsLoadVertexLibrary();
-void vsUnloadVertexLibrary();
+// Format library
+void vsLoadFormats();
+void vsUnloadFormats();

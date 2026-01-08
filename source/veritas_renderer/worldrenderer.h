@@ -14,7 +14,6 @@
 #include "geometry.h"
 #include "instancedmesh.h"
 #include "shader.h"
-#include "shaderlibrary.h"
 #include "vertex.h"
 
 // Veritas

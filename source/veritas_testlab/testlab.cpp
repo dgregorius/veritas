@@ -105,9 +105,9 @@ int VsTestlab::Run()
 void VsTestlab::Startup()
 	{
 	// Initialize renderer
-	vsLoadShaderLibrary();
-	vsLoadVertexLibrary();
-
+	vsLoadFormats();
+	vsLoadShaders();
+	
 	mCameraBuffer = VsCamera::CreateBuffer();
 	mCamera = new VsCamera;
 
@@ -232,15 +232,15 @@ void VsTestlab::Shutdown()
 	VsCamera::DestroyBuffer( mCameraBuffer );
 	mCameraBuffer = 0;
 
-	vsUnloadShaderLibrary();
-	vsUnloadVertexLibrary();
+	vsUnloadShaders();
+	vsUnloadFormats();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderBackground()
 	{
-	VsShader* BackgroundShader = VsShaderLibrary::BackgroundShader;
+	VsShader* BackgroundShader = VsShader::GradientShader;
 	BackgroundShader->Use();
 
 	glBindVertexArray( VsEmptyVertex::Format );
@@ -257,7 +257,7 @@ void VsTestlab::RenderBackground()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderGrid()
 	{
-	VsShader* GridShader = VsShaderLibrary::GridShader;
+	VsShader* GridShader = VsShader::GridShader;
 	GridShader->Use();
 
 	glBindVertexArray( VsEmptyVertex::Format );

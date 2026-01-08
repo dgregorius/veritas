@@ -125,8 +125,9 @@ workspace "veritas"
 		project "veritas_renderer"
 			kind "StaticLib"
 			location "build/source/veritas_renderer/"
-			files { "source/veritas_renderer/**" }
+			files { "source/veritas_renderer/**", "bin/shaders/**" }
 			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include", "externals/imgui" }
+			vpaths { ["*"] = "source/veritas_renderer/**", ["shaders/*"] = "bin/shaders/**" }
 
 		-- Add Veritas TestLab
 		project "veritas_testlab"

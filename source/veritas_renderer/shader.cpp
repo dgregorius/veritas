@@ -9,11 +9,15 @@
 #include <glad.h>
 #include <glfw3.h>
 
+// STD
+#include <fstream>
+#include <sstream>
+
 
 //--------------------------------------------------------------------------------------------------
 // Local utilities
 //--------------------------------------------------------------------------------------------------
-static uint32_t vsLoadShader( uint32_t Type, const char* Source )
+static uint32_t vsLoadShaderFromSource( uint32_t Type, const char* Source )
 	{
 	VS_ASSERT( Source && *Source );
 	uint32_t Shader = glCreateShader( Type );
@@ -37,12 +41,65 @@ static uint32_t vsLoadShader( uint32_t Type, const char* Source )
 
 
 //--------------------------------------------------------------------------------------------------
+static uint32_t vsLoadShaderFromFile( uint32_t Type, const fs::path& Path )
+	{
+	std::ifstream File( Path, std::ios::in | std::ios::binary );
+	if ( !File )
+		{
+		return 0;
+		}
+
+	File.seekg( 0, std::ios::end );
+	size_t Length = File.tellg();
+	File.seekg( 0, std::ios::beg );
+	char* Source = static_cast<char*>( alloca( Length + 1 ) );
+	if ( !Source )
+		{
+		return 0;
+		}
+
+	File.read( Source, Length );
+	Source[ Length ] = '\0';
+
+	return vsLoadShaderFromSource( Type, Source );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsShader
 //--------------------------------------------------------------------------------------------------
 VsShader::VsShader( const char* VertexShaderSource, const char* FragmentShaderSource )
 	{
-	uint32_t VertexShader = vsLoadShader( GL_VERTEX_SHADER, VertexShaderSource );
-	uint32_t FragmentShader = vsLoadShader( GL_FRAGMENT_SHADER, FragmentShaderSource );
+	uint32_t VertexShader = vsLoadShaderFromSource( GL_VERTEX_SHADER, VertexShaderSource );
+	uint32_t FragmentShader = vsLoadShaderFromSource( GL_FRAGMENT_SHADER, FragmentShaderSource );
+
+	mProgram = glCreateProgram();
+	glAttachShader( mProgram, VertexShader );
+	glAttachShader( mProgram, FragmentShader );
+	glLinkProgram( mProgram );
+
+	int Success = 0;
+	glGetProgramiv( mProgram, GL_LINK_STATUS, &Success );
+	VS_ASSERT( Success );
+	if ( !Success )
+		{
+		GLchar InfoLog[ 512 ];
+		glGetProgramInfoLog( mProgram, 512, NULL, InfoLog );
+		glDeleteProgram( mProgram );
+		mProgram = 0;
+		}
+
+	glDetachShader( mProgram, FragmentShader );
+	glDetachShader( mProgram, VertexShader );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsShader::VsShader( const fs::path& VertexShaderPath, const fs::path& FragmentShaderPath )
+	{
+	uint32_t VertexShader = vsLoadShaderFromFile( GL_VERTEX_SHADER, VertexShaderPath );
+	uint32_t FragmentShader = vsLoadShaderFromFile( GL_FRAGMENT_SHADER, FragmentShaderPath );
 
 	mProgram = glCreateProgram();
 	glAttachShader( mProgram, VertexShader );
@@ -213,4 +270,35 @@ void VsShader::SetUniformArray( const char* Name, int Count, const glm::mat4* Va
 	{
 	GLint Location = glGetUniformLocation( mProgram, Name );
 	glUniformMatrix4fv( Location, Count, GL_FALSE, reinterpret_cast< const GLfloat* >( Values ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsShaderLibrary
+//--------------------------------------------------------------------------------------------------
+void vsLoadShaders()
+	{
+	VS_ASSERT( !VsShader::GradientShader );
+	VsShader::GradientShader = new VsShader( fs::path( "shaders/gradient.vs" ), fs::path( "shaders/gradient.fs" ) );
+	VS_ASSERT( !VsShader::GridShader );
+	VsShader::GridShader = new VsShader( fs::path( "shaders/grid.vs" ), fs::path( "shaders/grid.fs" ) );
+	VS_ASSERT( !VsShader::MeshShader );
+	VsShader::MeshShader = new VsShader( fs::path( "shaders/mesh.vs" ), fs::path( "shaders/mesh.fs" ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void vsUnloadShaders()
+	{
+	VS_ASSERT( VsShader::MeshShader );
+	delete VsShader::MeshShader;
+	VsShader::MeshShader = nullptr;
+
+	VS_ASSERT( VsShader::GridShader );
+	delete VsShader::GridShader;
+	VsShader::GridShader = nullptr;
+
+	VS_ASSERT( VsShader::GradientShader );
+	delete VsShader::GradientShader;
+	VsShader::GradientShader = nullptr;
 	}

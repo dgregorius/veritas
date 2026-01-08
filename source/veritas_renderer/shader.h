@@ -28,6 +28,7 @@ class VsShader
 	public:
 		// Construction / Destruction
 		VsShader( const char* VertexShaderSource, const char* FragmentShaderSource );
+		VsShader( const fs::path& VertexShaderPath, const fs::path& FragmentShaderPath );
 		~VsShader();
 
 		// Binding
@@ -53,6 +54,15 @@ class VsShader
 		void SetUniformArray( const char* Name, int Count, const glm::mat3* Values );
 		void SetUniformArray( const char* Name, int Count, const glm::mat4* Values );
 
+		// Shader library
+		static inline VsShader* GradientShader = nullptr;
+		static inline VsShader* GridShader = nullptr;
+		static inline VsShader* MeshShader = nullptr;
+
 	private:
 		uint32_t mProgram = 0;
 	};
+
+// Shader library
+void vsLoadShaders(); 
+void vsUnloadShaders();

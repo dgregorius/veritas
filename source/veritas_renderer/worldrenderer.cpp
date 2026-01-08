@@ -34,7 +34,7 @@ void VsWorldRenderer::DrawFrame()
 	glEnable( GL_DEPTH_TEST );
 	glBindVertexArray( VsMeshVertex::Format );
 
-	VsShader* MeshShader = VsShaderLibrary::MeshShader;
+	VsShader* MeshShader = VsShader::MeshShader;
 	MeshShader->Use();
 	
 	for ( const auto& [ InstancedHull, HullShapes ] : mHullInstances )

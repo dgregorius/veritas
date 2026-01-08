@@ -13,7 +13,7 @@
 //--------------------------------------------------------------------------------------------------
 // Vertex library
 //--------------------------------------------------------------------------------------------------
-void vsLoadVertexLibrary()
+void vsLoadFormats()
 	{
 	// Create vertex formats
 	VS_ASSERT( !VsEmptyVertex::Format );
@@ -45,7 +45,7 @@ void vsLoadVertexLibrary()
 
 
 //--------------------------------------------------------------------------------------------------
-void vsUnloadVertexLibrary()
+void vsUnloadFormats()
 	{
 	// Free vertex formats
 	VS_ASSERT( VsMeshVertex::Format );
