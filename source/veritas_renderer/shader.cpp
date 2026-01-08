@@ -284,12 +284,18 @@ void vsLoadShaders()
 	VsShader::GridShader = new VsShader( fs::path( "shaders/grid.vs" ), fs::path( "shaders/grid.fs" ) );
 	VS_ASSERT( !VsShader::MeshShader );
 	VsShader::MeshShader = new VsShader( fs::path( "shaders/mesh.vs" ), fs::path( "shaders/mesh.fs" ) );
+	VS_ASSERT( !VsShader::EdgeShader );
+	VsShader::EdgeShader = new VsShader( fs::path( "shaders/edge.vs" ), fs::path( "shaders/edge.fs" ) );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void vsUnloadShaders()
 	{
+	VS_ASSERT( VsShader::EdgeShader );
+	delete VsShader::EdgeShader;
+	VsShader::EdgeShader = nullptr;
+
 	VS_ASSERT( VsShader::MeshShader );
 	delete VsShader::MeshShader;
 	VsShader::MeshShader = nullptr;
