@@ -26,6 +26,10 @@
 class VsCamera
 	{
 	public:
+		// Comstruction / Destruction
+		VsCamera();
+		~VsCamera();
+
 		// View
 		float GetYaw() const;
 		void SetYaw( float Yaw );
@@ -58,11 +62,6 @@ class VsCamera
 
 		// Control
 		void Update();
-
-		// Synchronization
-		static uint32_t CreateBuffer();
-		static void DestroyBuffer( uint32_t UBO );
-		void Upload( uint32_t UBO ) const;
 		
 	private:
 		struct GPUData
@@ -71,6 +70,8 @@ class VsCamera
 			glm::mat4 ProjectionMatrix;
 			glm::vec4 Position;
 			};
+
+		uint32_t mUBO = 0;
 
 		float mYaw = 45.0f;
 		float mPitch = -25.0f;

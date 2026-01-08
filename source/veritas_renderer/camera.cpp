@@ -14,8 +14,27 @@
 #include <glfw3.h>
 
 
+
+
 //--------------------------------------------------------------------------------------------------
 // VsCamera
+//--------------------------------------------------------------------------------------------------
+VsCamera::VsCamera()
+	{
+	glCreateBuffers( 1, &mUBO );
+	glNamedBufferStorage( mUBO, sizeof( GPUData ), nullptr, GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsCamera::~VsCamera()
+	{
+	glDeleteBuffers( 1, &mUBO );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	}
+
+
 //--------------------------------------------------------------------------------------------------
 float VsCamera::GetYaw() const
 	{
@@ -254,40 +273,15 @@ void VsCamera::Update()
 		mRadius -= IO.MouseWheel * ScrollSpeed;
 		mRadius = glm::max( mRadius, 0.03f );
 		}
-	}
 
-
-//--------------------------------------------------------------------------------------------------
-uint32_t VsCamera::CreateBuffer()
-	{
-	uint32_t UBO = 0;
-	glCreateBuffers( 1, &UBO );
-	glNamedBufferStorage( UBO, sizeof( GPUData ), nullptr, GL_DYNAMIC_STORAGE_BIT );
-	glBindBufferBase( GL_UNIFORM_BUFFER, 0, UBO );
-	VS_ASSERT( glGetError() == GL_NO_ERROR );
-
-	return UBO;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsCamera::DestroyBuffer( uint32_t UBO )
-	{
-	glDeleteBuffers( 1, &UBO );
-	VS_ASSERT( glGetError() == GL_NO_ERROR );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsCamera::Upload( uint32_t UBO ) const
-	{
+	// Sync new camera state
 	GPUData DataBlock;
 	DataBlock.ViewMatrix = GetViewMatrix();
 	DataBlock.ProjectionMatrix = GetProjectionMatrix();
 	DataBlock.Position = { GetPosition(), 1.0f };
 
-	glNamedBufferSubData( UBO, 0, sizeof( GPUData ), &DataBlock );
+	glNamedBufferSubData( mUBO, 0, sizeof( GPUData ), &DataBlock );
+	glBindBufferBase( GL_UNIFORM_BUFFER, 0, mUBO );
 	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
-
 

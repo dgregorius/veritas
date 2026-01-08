@@ -34,23 +34,22 @@ class VsTestlab
 
 	private:
 		// Viewport
-		void RenderBackground();
+		void RenderGradient();
 		void RenderGrid();
 		void RenderTests();
 
 		// UI
 		void BeginDockspace();
-		void RenderInspector();
-		void RenderOutliner();
-		void RenderProfiler();
-		void RenderViewport();
+		void DrawInspector();
+		void DrawOutliner();
+		void DrawProfiler();
+		void DrawViewport();
 		void EndDockspace();
 		void Status();
 
 		GLFWwindow* mWindow = nullptr;
 
 		VsCamera* mCamera = nullptr;
-		uint32_t mCameraBuffer = 0;
 		VsRenderTarget* mRenderTarget = nullptr;
 
 		std::vector< VsModule* > mModules;

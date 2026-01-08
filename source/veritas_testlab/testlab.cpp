@@ -108,9 +108,7 @@ void VsTestlab::Startup()
 	vsLoadFormats();
 	vsLoadShaders();
 	
-	mCameraBuffer = VsCamera::CreateBuffer();
 	mCamera = new VsCamera;
-
 	mRenderTarget = new VsRenderTarget;
 
 	// Initialize plugin framework
@@ -172,15 +170,14 @@ void VsTestlab::UpdateFrame()
 void VsTestlab::RenderFrame()
 	{
 	mCamera->Update();
-	mCamera->Upload( mCameraBuffer );
 
-	// DIRK_TODO: Lighting...
+	// DIRK_TODO: Lighting (environment)...
 
 	mRenderTarget->Bind();
 	mRenderTarget->Clear();
 
-	RenderBackground();
-	//RenderGrid();
+	RenderGradient();
+	RenderGrid();
 	RenderTests();
 
 	mRenderTarget->Unbind();
@@ -191,10 +188,10 @@ void VsTestlab::RenderFrame()
 void VsTestlab::EndFrame()
 	{
 	BeginDockspace();
-		RenderInspector();
-		RenderOutliner();
-		RenderProfiler();
-		RenderViewport();
+		DrawInspector();
+		DrawOutliner();
+		DrawProfiler();
+		DrawViewport();
 	EndDockspace();
 	Status();
 	}
@@ -229,8 +226,6 @@ void VsTestlab::Shutdown()
 	
 	delete mCamera;
 	mCamera = nullptr;
-	VsCamera::DestroyBuffer( mCameraBuffer );
-	mCameraBuffer = 0;
 
 	vsUnloadShaders();
 	vsUnloadFormats();
@@ -238,7 +233,7 @@ void VsTestlab::Shutdown()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTestlab::RenderBackground()
+void VsTestlab::RenderGradient()
 	{
 	VsShader* BackgroundShader = VsShader::GradientShader;
 	BackgroundShader->Use();
@@ -336,7 +331,7 @@ void VsTestlab::BeginDockspace()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTestlab::RenderInspector()
+void VsTestlab::DrawInspector()
 	{
 	float Scale = ImGui::GetWindowDpiScale();
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
@@ -357,7 +352,7 @@ void VsTestlab::RenderInspector()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTestlab::RenderOutliner()
+void VsTestlab::DrawOutliner()
 	{
 	float Scale = ImGui::GetWindowDpiScale();
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
@@ -378,7 +373,7 @@ void VsTestlab::RenderOutliner()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTestlab::RenderProfiler()
+void VsTestlab::DrawProfiler()
 	{
 	float Scale = ImGui::GetWindowDpiScale();
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
@@ -399,7 +394,7 @@ void VsTestlab::RenderProfiler()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTestlab::RenderViewport()
+void VsTestlab::DrawViewport()
 	{
 	float Scale = ImGui::GetWindowDpiScale();
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
