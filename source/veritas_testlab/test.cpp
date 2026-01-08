@@ -23,10 +23,8 @@ VsTest::VsTest( IVsPlugin* Plugin )
 //--------------------------------------------------------------------------------------------------
 VsTest::~VsTest()
 	{
-	mWorld->RemoveListener( mWorldRenderer );
-	delete mWorldRenderer;
-
 	mPlugin->DestroyWorld( mWorld );
+	delete mWorldRenderer;
 	}
 
 

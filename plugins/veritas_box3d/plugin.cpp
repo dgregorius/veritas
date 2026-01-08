@@ -329,8 +329,8 @@ VsBox3dBody::~VsBox3dBody()
 	while ( !mShapes.empty() )
 		{
 		IVsShape* Shape = mShapes.back();
+		mWorld->NotifyShapeRemoved( this, Shape );
 		mShapes.pop_back();
-
 		DeleteShape( Shape );
 		}
 
@@ -449,7 +449,6 @@ void VsBox3dBody::DestroyShape( IVsShape* Shape )
 
 	mWorld->NotifyShapeRemoved( this, Shape );
 	std::erase( mShapes, Shape );
-
 	DeleteShape( Shape );
 	}
 
@@ -506,8 +505,8 @@ VsBox3dWorld::~VsBox3dWorld()
 	while ( !mBodies.empty() )
 		{
 		VsBox3dBody* Body = mBodies.back();
+		NotifyBodyRemoved( Body );
 		mBodies.pop_back();
-
 		delete Body;
 		}
 

@@ -118,7 +118,6 @@ class VsBox3dMesh : public IVsMesh
 		b3MeshData* GetNative() const;
 
 	private:
-		
 		std::vector< VsVector3 > mVertexPositions;
 		std::vector< VsVector3 > mVertexNormals;
 		b3MeshData* mNative = nullptr;

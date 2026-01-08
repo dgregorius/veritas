@@ -49,7 +49,7 @@ void VsWorldRenderer::DrawFrame()
 
 			IVsBody* Body = Shape->GetBody();
 			InstanceData[ ShapeIndex ].Transform = vsAsMat4( Body->GetPosition(), Body->GetOrientation() );
-			InstanceData[ ShapeIndex ].Color = { 0.8f, 0.0f, 0.0f, 1.0f };
+			InstanceData[ ShapeIndex ].Color = { 0.8f, 0.36f, 0.36f, 1.0f };
 			}
 
 		InstancedHull->Upload( InstanceData );

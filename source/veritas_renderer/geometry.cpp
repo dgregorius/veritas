@@ -26,7 +26,7 @@ VsGeometry::VsGeometry( const std::vector< int >& Indices, const std::vector< Vs
 	// Vertices
 	if ( !Vertices.empty() )
 		{
-		mVertexCount = static_cast<int>( Vertices.size() );
+		mVertexCount = static_cast< int >( Vertices.size() );
 		glCreateBuffers( 1, &mVertexBuffer );
 		glNamedBufferStorage( mVertexBuffer, mVertexCount * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
 		}
