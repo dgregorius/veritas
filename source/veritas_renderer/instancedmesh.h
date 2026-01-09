@@ -47,7 +47,9 @@ class VsInstancedMesh
 
 		// Rendering
 		void Upload( const std::vector< VsInstanceData >& InstanceData );
-		void Render();
+		
+		void RenderFaces();
+		void RenderEdges();
 
 	private:
 		VsGeometry* mGeometry = nullptr;

@@ -113,7 +113,7 @@ void VsTestlab::Startup()
 	vsLoadShaders();
 	
 	mCamera = new VsCamera;
-	mRenderTarget = new VsRenderTarget;
+	mRenderTarget = new VsRenderTarget( 4 );
 
 	// Initialize plugin framework
 	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )

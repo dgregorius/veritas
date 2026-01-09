@@ -60,8 +60,16 @@ void VsInstancedMesh::Upload( const std::vector< VsInstanceData >& InstanceData 
 
 
 //--------------------------------------------------------------------------------------------------
-void VsInstancedMesh::Render()
+void VsInstancedMesh::RenderFaces()
 	{
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, mInstanceBuffer );
-	mGeometry->Render( mInstanceSize );
+	mGeometry->RenderFaces( mInstanceSize );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsInstancedMesh::RenderEdges()
+	{
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, mInstanceBuffer );
+	mGeometry->RenderEdges( mInstanceSize );
 	}

@@ -45,7 +45,6 @@ class VsWorldRenderer : public IVsWorldListener
 		virtual void OnShapeAdded( IVsBody* Body, IVsShape* Shape ) override;
 		virtual void OnShapeRemoved( IVsBody* Body, IVsShape* Shape ) override;
 
-		// Render bridge
 		void OnSphereAdded( IVsShape* Shape );
 		void OnSphereRemoved( IVsShape* Shape );
 		void OnCapsuleAdded( IVsShape* Shape );

@@ -67,23 +67,25 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 			while ( Edge1 != Edge3 );
 			}
 
-		int EdgeCount = Hull->edgeCount;
-		
+		int EdgeCount = Hull->edgeCount / 2;
 		if ( EdgeCount > 0 && HullEdges )
 			{
-			mEdges.resize( EdgeCount );
-			for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; EdgeIndex += 2 )
+			mEdges.resize( 2 * EdgeCount );
+			for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; EdgeIndex++ )
 				{
-				const b3HullHalfEdge* Edge = HullEdges + EdgeIndex;
-				const b3HullHalfEdge* Twin = HullEdges + Edge->twin;
+				int EdgeOffset = 2 * EdgeIndex + 0;
+				const b3HullHalfEdge* Edge = HullEdges + EdgeOffset;
+				int TwinOffset = 2 * EdgeIndex + 1;
+				const b3HullHalfEdge* Twin = HullEdges + TwinOffset;
+				VS_ASSERT( Edge->twin == TwinOffset );
+				VS_ASSERT( Twin->twin == EdgeOffset );
 
 				int VertexIndex1 = Edge->origin;
 				b3Vec3 Vertex1 = HullVertices[ VertexIndex1 ];
+				mEdges[ EdgeOffset ] = VsVector3 { Vertex1.x, Vertex1.y, Vertex1.z };
 				int VertexIndex2 = Twin->origin;
 				b3Vec3 Vertex2 = HullVertices[ VertexIndex2 ];
-
-				mEdges[ EdgeIndex + 0 ] = { Vertex1.x, Vertex1.y, Vertex1.z };
-				mEdges[ EdgeIndex + 1 ] = { Vertex2.x, Vertex2.y, Vertex2.z };
+				mEdges[ TwinOffset ] = VsVector3 { Vertex2.x, Vertex2.y, Vertex2.z };
 				}
 			}
 		}

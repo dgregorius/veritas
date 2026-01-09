@@ -44,7 +44,7 @@ VsWorldRenderer::~VsWorldRenderer()
 //--------------------------------------------------------------------------------------------------
 void VsWorldRenderer::DrawFrame()
 	{
-	// Render instances
+	// Render mesh instances
 	glEnable( GL_CULL_FACE );
 	glEnable( GL_DEPTH_TEST );
 	glBindVertexArray( VsMeshVertex::Format );
@@ -71,7 +71,27 @@ void VsWorldRenderer::DrawFrame()
 			}
 
 		InstancedHull->Upload( InstanceData );
-		InstancedHull->Render();
+		InstancedHull->RenderFaces();
+		}
+
+	glBindVertexArray( GL_NONE );
+	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_CULL_FACE );
+
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+
+
+	// Render edge instances
+	glEnable( GL_CULL_FACE );
+	glEnable( GL_DEPTH_TEST );
+	glBindVertexArray( VsEdgeVertex::Format );
+
+	VsShader* EdgeShader = VsShader::EdgeShader;
+	EdgeShader->Use();
+
+	for ( const auto& [ InstancedHull, _ ] : mHullInstances )
+		{
+		InstancedHull->RenderEdges();
 		}
 
 	glBindVertexArray( GL_NONE );
