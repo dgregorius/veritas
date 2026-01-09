@@ -431,7 +431,7 @@ void VsTestlab::DrawViewport()
 
 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
 		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
-
+		
 		ImGui::EndChild();
 		ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
