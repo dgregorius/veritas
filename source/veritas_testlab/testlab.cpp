@@ -427,7 +427,7 @@ void VsTestlab::DrawViewport()
 		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
 		ImVec2 WindowSize = ImGui::GetContentRegionAvail();
 		mCamera->SetAspectRatio( WindowSize.x / ImMax( 1.0f, WindowSize.y ) );
-		mRenderTarget->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
+		mRenderTarget->Resize( static_cast< int >( WindowSize.x ), static_cast< int >( WindowSize.y ) );
 
 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
 		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
