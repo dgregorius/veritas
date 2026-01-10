@@ -67,7 +67,7 @@ class VsBox3dHull : public IVsHull
 	private:
 		std::vector< VsVector3 > mVertexPositions;
 		std::vector< VsVector3 > mVertexNormals;
-		std::vector< VsVector3 > mEdges;
+		std::vector< VsVector3 > mEdgePositions;
 		b3Hull* mNative = nullptr;
 	};
 
@@ -254,7 +254,6 @@ class VsBox3dWorld : public IVsWorld
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsBox3dBody* > mBodies;
 		
-
 		int mTaskCount = 0;
 		enum { MaxTasks = 32 };
 		VsBox3dTask mTaskList[ MaxTasks ];

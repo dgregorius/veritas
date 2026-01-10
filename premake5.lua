@@ -14,7 +14,7 @@ workspace "veritas"
 	vectorextensions "AVX2"
 	warnings "Extra"
 	systemversion( "latest" )
-	defines { "_SCL_SECURE_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_SILENCE_CXX20_IS_POD_DEPRECATION_WARNING" }
+	defines { "_CRT_SECURE_NO_WARNINGS", "_ITERATOR_DEBUG_LEVEL=0", "_SCL_SECURE_NO_WARNINGS", "_SILENCE_CXX20_IS_POD_DEPRECATION_WARNING" }
 	flags { "NoManifest", "MultiProcessorCompile" }
 	characterset ( "MBCS" )
 	editandcontinue "Off"
@@ -94,9 +94,15 @@ workspace "veritas"
 			kind "SharedLib"
 			location "build/plugins/veritas_jolt"
 			files { "plugins/veritas_jolt/**" }
+			defines { "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", "JPH_DEBUG_RENDERER", "JPH_PROFILE_ENABLED", "JPH_OBJECT_STREAM" }
 			includedirs { "source", "externals/jolt/include" }
 			libdirs { "externals/jolt/lib" }
-			links { "jolt", "veritas" }	
+			links { "veritas" }	
+			filter "configurations:Debug"
+				links { "joltd" }
+			filter "configurations:Release"
+				links { "jolt" }
+   			filter {}
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_jolt.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/jolt" }
 

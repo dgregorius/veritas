@@ -21,8 +21,11 @@ class VsBasicScene1 : public VsTest
 			if ( GroundBody )
 				{
 				GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
-				IVsShape* GroundShape = GroundBody->CreateHull( Ground );
-				GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+				if ( IVsShape* GroundShape = GroundBody->CreateHull( Ground ) )
+					{
+					GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+					}
+				
 				}
 
 			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );

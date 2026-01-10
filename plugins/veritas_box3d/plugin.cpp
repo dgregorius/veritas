@@ -70,7 +70,7 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 		int EdgeCount = Hull->edgeCount / 2;
 		if ( EdgeCount > 0 && HullEdges )
 			{
-			mEdges.resize( 2 * EdgeCount );
+			mEdgePositions.resize( 2 * EdgeCount );
 			for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; EdgeIndex++ )
 				{
 				int EdgeOffset = 2 * EdgeIndex + 0;
@@ -82,10 +82,10 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 
 				int VertexIndex1 = Edge->origin;
 				b3Vec3 Vertex1 = HullVertices[ VertexIndex1 ];
-				mEdges[ EdgeOffset ] = VsVector3 { Vertex1.x, Vertex1.y, Vertex1.z };
+				mEdgePositions[ EdgeOffset ] = VsVector3 { Vertex1.x, Vertex1.y, Vertex1.z };
 				int VertexIndex2 = Twin->origin;
 				b3Vec3 Vertex2 = HullVertices[ VertexIndex2 ];
-				mEdges[ TwinOffset ] = VsVector3 { Vertex2.x, Vertex2.y, Vertex2.z };
+				mEdgePositions[ TwinOffset ] = VsVector3 { Vertex2.x, Vertex2.y, Vertex2.z };
 				}
 			}
 		}
@@ -123,14 +123,14 @@ const VsVector3* VsBox3dHull::GetVertexNormals() const
 //--------------------------------------------------------------------------------------------------
 int VsBox3dHull::GetEdgeCount() const
 	{
-	return static_cast< int >( mEdges.size() / 2 );
+	return static_cast< int >( mEdgePositions.size() / 2 );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const VsVector3* VsBox3dHull::GetEdgePositions() const
 	{
-	return mEdges.data();
+	return mEdgePositions.data();
 	}
 
 
@@ -379,7 +379,6 @@ IVsWorld* VsBox3dBody::GetWorld() const
 VsBodyType VsBox3dBody::GetType() const
 	{
 	b3BodyType Type = b3Body_GetType( mNative );
-
 	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
 	return TypeMap[ Type ];
 	}
@@ -618,7 +617,6 @@ void VsBox3dWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
-
 
 
 //--------------------------------------------------------------------------------------------------
