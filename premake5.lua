@@ -114,6 +114,11 @@ workspace "veritas"
 			includedirs { "source", "externals/physx/include" }
 			libdirs { "externals/physx/lib" }
 			links { "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64", "veritas" }	
+			filter "configurations:Debug"
+				links { "physxextensions_static_64d" }
+			filter "configurations:Release"
+				links { "physxextensions_static_64" }
+   			filter {}
 
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_physx.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/physx" }
 

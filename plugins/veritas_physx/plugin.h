@@ -13,6 +13,11 @@
 
 #include <veritas/veritas.h>
 
+// PhysX
+#include <PxPhysicsAPI.h>
+#include <Extensions/PxDefaultAllocator.h>
+using namespace physx;
+
 // Forward declarations
 class VsPhysXWorld;
 class VsPhysXPlugin;
@@ -102,4 +107,10 @@ class VsPhysXPlugin : public IVsPlugin
 		std::vector< IVsHull* > mHulls;
 		std::vector< IVsMesh* > mMeshes;
 		std::vector< IVsWorld* > mWorlds;
+
+		PxDefaultAllocator mAllocator;
+		PxDefaultErrorCallback mErrorCallback;
+		PxFoundation* mFoundation = nullptr;
+		PxPhysics* mPhysics = nullptr;
+		PxDefaultCpuDispatcher* mDispatcher = nullptr;
 	};
