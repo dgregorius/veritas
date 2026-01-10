@@ -48,9 +48,9 @@ void VsRenderTarget::Bind()
 		return;
 		}
 
+	glEnable( GL_MULTISAMPLE );
 	glBindFramebuffer( GL_FRAMEBUFFER, mMSFramebuffer );
 	glViewport( 0, 0, mWidth, mHeight );
-	glEnable( GL_MULTISAMPLE );
 	}
 
 

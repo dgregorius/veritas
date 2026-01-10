@@ -120,14 +120,19 @@ void VsPhysXWorld::Step( float Timestep )
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::VsPhysXPlugin()
 	{
-
+	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
+	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
+	bool Success = PxInitExtensions( *mPhysics, NULL );
+	VS_ASSERT( Success );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::~VsPhysXPlugin()
 	{
-	
+	PxCloseExtensions();
+	PX_RELEASE( mPhysics );
+	PX_RELEASE( mFoundation );
 	}
 
 //--------------------------------------------------------------------------------------------------

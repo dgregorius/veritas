@@ -197,15 +197,11 @@ void VsTestlab::RenderFrame()
 	{
 	mCamera->Update();
 
-	// DIRK_TODO: Lighting (environment)...
-
 	mRenderTarget->Bind();
-	mRenderTarget->Clear();
-
-	RenderGradient();
-	RenderGrid();
-	RenderTests();
-
+ 	mRenderTarget->Clear();
+		RenderGradient();
+		RenderGrid();
+		RenderTests();
 	mRenderTarget->Unbind();
 	}
 
