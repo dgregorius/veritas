@@ -34,7 +34,7 @@
 using namespace JPH;
 
 // STL includes
-#include <cstdarg>
+#include <algorithm>
 #include <thread>
 
 // Forward 
@@ -305,8 +305,6 @@ class VsJoltWorld : public IVsWorld
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsJoltBody* > mBodies;
 
-		TempAllocatorImpl* mTempAllocator = nullptr;
-		JobSystemThreadPool* mThreadPool = nullptr;
 		VsLayerInterface mBroadphaseLayerInterface;
 		VsObjectVsBroadPhaseLayerFilter mObjectVsBroadphaseLayerFilter;
 		VsObjectLayerPairFilter mObjectVsObjectLayerFilter;
@@ -353,8 +351,15 @@ class VsJoltPlugin : public IVsPlugin
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
+		// Shared
+		TempAllocatorImpl* GetTempAllocator() const;
+		JobSystemThreadPool* GetThreadPool() const;
+
 	private:
 		std::vector< IVsHull* > mHulls;
 		std::vector< IVsMesh* > mMeshes;
 		std::vector< IVsWorld* > mWorlds;
+
+		TempAllocatorImpl* mTempAllocator = nullptr;
+		JobSystemThreadPool* mThreadPool = nullptr;
 	};

@@ -18,7 +18,18 @@
 #include <Extensions/PxDefaultAllocator.h>
 using namespace physx;
 
-// Forward declarations
+// STL includes
+#include <algorithm>
+#include <thread>
+
+// Forward 
+class VsPhysXSphereShape;
+class VsPhysXCapsuleShape;
+class VsPhysXHull;
+class VsPhysXHullShape;
+class VsPhysXMesh;
+class VsPhysXMeshShape;
+class VsPhysXBody;
 class VsPhysXWorld;
 class VsPhysXPlugin;
 
@@ -44,6 +55,11 @@ class VsPhysXWorld : public IVsWorld
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
 
+		void NotifyBodyAdded( IVsBody* Body );
+		void NotifyBodyRemoved( IVsBody* Body );
+		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
+		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
 		// Gravity
 		virtual VsVector3 GetGravity() const override;
 		virtual void SetGravity( const VsVector3& Gravity ) override;
@@ -61,6 +77,10 @@ class VsPhysXWorld : public IVsWorld
 	private:
 		VsPhysXPlugin* mPlugin = nullptr;
 		VsColor mColor = { 1.0f, 0.83f, 0.61f, 1.0f };
+		std::vector< IVsWorldListener* > mListeners;
+		std::vector< VsPhysXBody* > mBodies;
+
+		PxScene* mNative = nullptr;
 	};
 
 
@@ -102,6 +122,11 @@ class VsPhysXPlugin : public IVsPlugin
 		virtual int GetWorldCount() const override;
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
+
+		// Shared
+		PxFoundation* GetFoundation() const;
+		PxPhysics* GetPhysics() const;
+		PxCpuDispatcher* GetDispatcher() const;
 
 	private:
 		std::vector< IVsHull* > mHulls;

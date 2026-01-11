@@ -5,6 +5,10 @@
 //--------------------------------------------------------------------------------------------------
 #include "plugin.h"
 
+// Windows
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 
 //--------------------------------------------------------------------------------------------------
@@ -13,14 +17,24 @@
 VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
+	PxPhysics* Physics = Plugin->GetPhysics();
+	PxCpuDispatcher* Dispatcher = Plugin->GetDispatcher();
 
+	PxSceneDesc SceneDesc( Physics->getTolerancesScale() );
+	SceneDesc.gravity = PxVec3( 0.0f, -10.0f, 0.0f );
+	SceneDesc.cpuDispatcher = Dispatcher;
+	SceneDesc.filterShader = PxDefaultSimulationFilterShader;
+	VS_ASSERT( SceneDesc.isValid() );
+	
+	mNative = Physics->createScene( SceneDesc );
+	VS_ASSERT( mNative );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsPhysXWorld::~VsPhysXWorld()
 	{
-
+	PX_RELEASE( mNative );
 	}
 
 
@@ -48,28 +62,83 @@ void VsPhysXWorld::SetColor( const VsColor& Color )
 //--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 	{
+	// Add 
+	if ( !Listener )
+		{
+		return;
+		}
 
+	if ( std::find( mListeners.begin(), mListeners.end(), Listener ) != mListeners.end() )
+		{
+		return;
+		}
+	mListeners.push_back( Listener );
+
+	// Sync
+// 	for ( VsPhysXBody* Body : mBodies )
+		{
+// 		Listener->OnBodyAdded( Body );
+// 		for ( int ShapeIndex = 0; ShapeIndex < Body->GetShapeCount(); ++ShapeIndex )
+// 			{
+// 			IVsShape* Shape = Body->GetShape( ShapeIndex );
+// 			Listener->OnShapeAdded( Body, Shape );
+// 			}
+		}
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::RemoveListener( IVsWorldListener* Listener )
 	{
+	if ( !Listener )
+		{
+		return;
+		}
 
+	std::erase( mListeners, Listener );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::NotifyBodyAdded( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::NotifyBodyRemoved( IVsBody* Body )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
+	{
+	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsVector3 VsPhysXWorld::GetGravity() const
 	{
-	return { 0.0f, -10.0f, 0.0f };
+	PxVec3 Gravity = mNative->getGravity();
+	return { Gravity.x, Gravity.y, Gravity.z };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::SetGravity( const VsVector3& Gravity )
 	{
-
+	mNative->setGravity( PxVec3( Gravity.X, Gravity.Y, Gravity.Z ) );
 	}
 
 
@@ -90,28 +159,30 @@ void VsPhysXWorld::DestroyBody( IVsBody* Body )
 //--------------------------------------------------------------------------------------------------
 int VsPhysXWorld::GetBodyCount() const
 	{
-	return 0;
+	return static_cast< int >( mBodies.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 IVsBody* VsPhysXWorld::GetBody( int BodyIndex )
 	{
-	return nullptr;
+	return nullptr; // ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? mBodies[ BodyIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 const IVsBody* VsPhysXWorld::GetBody( int BodyIndex ) const
 	{
-	return nullptr;
+	return  nullptr; // ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? mBodies[ BodyIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::Step( float Timestep )
 	{
-
+	// DIRK_TODO: Pass scratch buffer...
+	mNative->simulate( Timestep );
+	mNative->fetchResults( true );
 	}
 
 
@@ -120,16 +191,23 @@ void VsPhysXWorld::Step( float Timestep )
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::VsPhysXPlugin()
 	{
+	fs::path ModulePath = fs::current_path() / "plugins/physx";
+	SetDllDirectoryW( ModulePath.c_str() );
+
 	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
 	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
 	bool Success = PxInitExtensions( *mPhysics, NULL );
 	VS_ASSERT( Success );
+	mDispatcher = PxDefaultCpuDispatcherCreate( std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
+
+	SetDllDirectory( NULL );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::~VsPhysXPlugin()
 	{
+	PX_RELEASE( mDispatcher );
 	PxCloseExtensions();
 	PX_RELEASE( mPhysics );
 	PX_RELEASE( mFoundation );
@@ -267,6 +345,27 @@ IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex )
 const IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+physx::PxFoundation* VsPhysXPlugin::GetFoundation() const
+	{
+	return mFoundation;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+physx::PxPhysics* VsPhysXPlugin::GetPhysics() const
+	{
+	return mPhysics;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+physx::PxCpuDispatcher* VsPhysXPlugin::GetDispatcher() const
+	{
+	return mDispatcher;
 	}
 
 

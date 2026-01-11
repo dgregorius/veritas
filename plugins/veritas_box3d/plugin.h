@@ -300,7 +300,7 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
-		// Scheduler
+		// Shared
 		enki::TaskScheduler& GetTaskScheduler();
 		const enki::TaskScheduler& GetTaskScheduler() const;
 

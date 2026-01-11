@@ -113,7 +113,7 @@ void VsTestlab::Startup()
 	vsLoadShaders();
 	
 	mCamera = new VsCamera;
-	mRenderTarget = new VsRenderTarget( 4 );
+	mRenderTarget = new VsRenderTarget;
 
 	// Initialize plugin framework
 	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
@@ -125,10 +125,7 @@ void VsTestlab::Startup()
 			if ( Filename.rfind( "veritas_", 0 ) == 0 )
 				{
 				fs::path ModulePath = Entry.path();
-				SetDllDirectoryW( ModulePath.parent_path().c_str() );
 				HMODULE hModule = LoadLibraryW( ModulePath.c_str() );
-				SetDllDirectory( NULL );
-
 				if ( !hModule )
 					{
 					continue;

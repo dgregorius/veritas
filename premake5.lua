@@ -148,6 +148,7 @@ workspace "veritas"
 			includedirs { "source", "externals/glad", "externals/glfw3/include", "externals/glm/include", "externals/imgui" }
 			libdirs { "externals/glfw3/lib" }
 			links { "glad", "glfw3", "imgui", "veritas", "veritas_renderer" }	
+			dependson { "veritas_box3d", "veritas_jolt", "veritas_physx" }
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_testlab.exe %{_MAIN_SCRIPT_DIR}/bin" }
 			debugcommand ( "bin/veritas_testlab.exe" )

@@ -420,8 +420,6 @@ BodyID VsJoltBody::GetNative() const
 VsJoltWorld::VsJoltWorld( VsJoltPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
-	mTempAllocator = new TempAllocatorImpl( 64 * 1024 * 1024 );
-	mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1 );
 	mNative.Init( cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, mBroadphaseLayerInterface, mObjectVsBroadphaseLayerFilter, mObjectVsObjectLayerFilter );
 	}
 
@@ -429,8 +427,7 @@ VsJoltWorld::VsJoltWorld( VsJoltPlugin* Plugin )
 //--------------------------------------------------------------------------------------------------
 VsJoltWorld::~VsJoltWorld()
 	{
-	delete mThreadPool;
-	delete mTempAllocator;
+	
 	}
 
 
@@ -587,7 +584,7 @@ const IVsBody* VsJoltWorld::GetBody( int BodyIndex ) const
 //--------------------------------------------------------------------------------------------------
 void VsJoltWorld::Step( float Timestep )
 	{
-	mNative.Update( Timestep, 1, mTempAllocator, mThreadPool );
+	mNative.Update( Timestep, 1, mPlugin->GetTempAllocator(), mPlugin->GetThreadPool() );
 	}
 
 
@@ -607,13 +604,17 @@ VsJoltPlugin::VsJoltPlugin()
 	RegisterDefaultAllocator();
 	Factory::sInstance = new Factory();
 	RegisterTypes();
+
+	mTempAllocator = new TempAllocatorImpl( 64 * 1024 * 1024 );
+	mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 VsJoltPlugin::~VsJoltPlugin()
 	{
-	
+	delete mThreadPool;
+	delete mTempAllocator;
 	}
 
 
@@ -773,6 +774,20 @@ IVsWorld* VsJoltPlugin::GetWorld( int WorldIndex )
 const IVsWorld* VsJoltPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+JPH::TempAllocatorImpl* VsJoltPlugin::GetTempAllocator() const
+	{
+	return mTempAllocator;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+JPH::JobSystemThreadPool* VsJoltPlugin::GetThreadPool() const
+	{
+	return mThreadPool;
 	}
 
 

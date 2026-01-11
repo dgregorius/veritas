@@ -516,11 +516,9 @@ b3BodyId VsBox3dBody::GetNative() const
 VsBox3dWorld::VsBox3dWorld( VsBox3dPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
-	enki::TaskScheduler& TaskScheduler = Plugin->GetTaskScheduler();
-
 	b3WorldDef WorldDef = b3DefaultWorldDef();
 	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
-	WorldDef.workerCount = TaskScheduler.GetNumTaskThreads();
+	WorldDef.workerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
 	WorldDef.enqueueTask = EnqueueTask;
 	WorldDef.finishTask = FinishTask;
 	WorldDef.userTaskContext = this;
