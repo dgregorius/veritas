@@ -35,6 +35,47 @@ class VsPhysXPlugin;
 
 
 //--------------------------------------------------------------------------------------------------
+// VsPhysXBody
+//--------------------------------------------------------------------------------------------------
+class VsPhysXBody : public IVsBody
+	{
+	public:
+		// Construction / Destruction
+		explicit VsPhysXBody( VsPhysXWorld* World, VsBodyType Type );
+		virtual ~VsPhysXBody() override;
+
+		// World
+		virtual IVsWorld* GetWorld() const override;
+
+		// Type
+		virtual VsBodyType GetType() const override;
+
+		// Transform
+		virtual VsVector3 GetPosition() const override;
+		virtual void SetPosition( const VsVector3& Position ) override;
+		virtual VsQuaternion GetOrientation() const override;
+		virtual void SetOrientation( const VsQuaternion& Orientation ) override;
+
+		// Shapes
+		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
+		virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) override;
+		virtual IVsHullShape* CreateHull( const IVsHull* Hull ) override;
+		virtual IVsMeshShape* CreateMesh( const IVsMesh* Mesh ) override;
+		virtual void DestroyShape( IVsShape* Shape ) override;
+
+		virtual int GetShapeCount() const override;
+		virtual IVsShape* GetShape( int ShapeIndex ) override;
+		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
+
+
+	private:
+		VsPhysXWorld* mWorld = nullptr;
+		std::vector< IVsShape* > mShapes;
+		PxRigidActor* mNative = nullptr;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXWorld
 //--------------------------------------------------------------------------------------------------
 class VsPhysXWorld : public IVsWorld
@@ -73,6 +114,9 @@ class VsPhysXWorld : public IVsWorld
 
 		// Simulation
 		virtual void Step( float Timestep ) override;
+
+		// Native 
+		PxScene* GetNative() const;
 
 	private:
 		VsPhysXPlugin* mPlugin = nullptr;
