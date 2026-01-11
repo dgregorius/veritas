@@ -1,9 +1,9 @@
 //--------------------------------------------------------------------------------------------------
-// plugin.cpp	
+// physxplugin.cpp	
 //
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
-#include "plugin.h"
+#include "physxplugin.h"
 
 // Windows
 #define NOMINMAX

@@ -1,9 +1,9 @@
 //--------------------------------------------------------------------------------------------------
-// plugin.cpp	
+// joltplugin.cpp	
 //
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
-#include "plugin.h"
+#include "joltplugin.h"
 
 // STL includes
 #include <cstdarg>
