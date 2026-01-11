@@ -42,16 +42,19 @@ struct VsJoltEdge
 	uint Index2;
 	};
 
+
+//--------------------------------------------------------------------------------------------------
 static inline bool operator<( VsJoltEdge Lhs, VsJoltEdge Rhs )
 	{
 	return ( Lhs.Index1 == Rhs.Index1 ? Lhs.Index2 < Rhs.Index2 : Lhs.Index1 < Rhs.Index1 );
 	}
 
+
+//--------------------------------------------------------------------------------------------------
 static inline bool operator==( VsJoltEdge Lhs, VsJoltEdge Rhs )
 	{
 	return Lhs.Index1 == Rhs.Index1 && Lhs.Index2 == Rhs.Index2;
 	}
-
 
 
 //--------------------------------------------------------------------------------------------------
@@ -118,7 +121,6 @@ VsJoltHull::VsJoltHull( ShapeRefC Hull )
 
 	std::sort( Edges.begin(), Edges.end() );
 	Edges.resize( std::unique( Edges.begin(), Edges.end() ) - Edges.begin() );
-
 	for ( VsJoltEdge Edge : Edges )
 		{
 		Vec3 Vertex1 = HullShape->GetPoint( Edge.Index1 );
@@ -706,7 +708,8 @@ IVsMesh* VsJoltPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices
 //--------------------------------------------------------------------------------------------------
 void VsJoltPlugin::DestroyMesh( IVsMesh* Mesh )
 	{
-
+	// DIRK_TODO: ...
+	VS_ASSERT( 0 );
 	}
 
 
@@ -715,7 +718,6 @@ int VsJoltPlugin::GetMeshCount() const
 	{
 	return static_cast< int >( mMeshes.size() );
 	}
-
 
 
 //--------------------------------------------------------------------------------------------------

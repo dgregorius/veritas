@@ -35,6 +35,65 @@ class VsPhysXPlugin;
 
 
 //--------------------------------------------------------------------------------------------------
+// VsPhysXHull
+//--------------------------------------------------------------------------------------------------
+class VsPhysXHull : public IVsHull
+	{
+	public:
+		// Construction / Destruction
+		explicit VsPhysXHull( PxConvexMesh* ConvexMesh );
+		virtual ~VsPhysXHull() override;
+
+		// IVsHull
+		virtual int GetVertexCount() const override;
+		virtual const VsVector3* GetVertexPositions() const override;
+		virtual const VsVector3* GetVertexNormals() const override;
+
+		virtual int GetEdgeCount() const override;
+		virtual const VsVector3* GetEdgePositions() const override;
+
+		// PhysX Box3d type
+		PxConvexMesh* GetNative() const;
+
+	private:
+		std::vector< VsVector3 > mVertexPositions;
+		std::vector< VsVector3 > mVertexNormals;
+		std::vector< VsVector3 > mEdgePositions;
+		PxConvexMesh* mNative = nullptr;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+// VsPhysXHullShape
+//--------------------------------------------------------------------------------------------------
+class VsPhysXHullShape : public IVsHullShape
+	{
+	public:
+		// Construction / Destruction
+		explicit VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull );
+		virtual ~VsPhysXHullShape();
+
+		// IVsShape
+		virtual VsShapeType GetType() const override;
+		virtual IVsBody* GetBody() const override;
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
+		// IVsHullShape
+		virtual const IVsHull* GetHull() const override;
+
+		// PhysX
+		PxShape* GetNative() const;
+
+	private:
+		VsPhysXBody* mBody = nullptr;
+		VsColor mColor = VS_COLOR_TRANSPARENT;
+		const VsPhysXHull* mHull = nullptr;
+		PxShape* mNative = nullptr;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXBody
 //--------------------------------------------------------------------------------------------------
 class VsPhysXBody : public IVsBody
@@ -67,6 +126,8 @@ class VsPhysXBody : public IVsBody
 		virtual IVsShape* GetShape( int ShapeIndex ) override;
 		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
 
+		// PhysX
+		PxRigidActor* GetNative() const;
 
 	private:
 		VsPhysXWorld* mWorld = nullptr;
@@ -115,12 +176,12 @@ class VsPhysXWorld : public IVsWorld
 		// Simulation
 		virtual void Step( float Timestep ) override;
 
-		// Native 
+		// PhysX 
 		PxScene* GetNative() const;
 
 	private:
 		VsPhysXPlugin* mPlugin = nullptr;
-		VsColor mColor = { 1.0f, 0.83f, 0.61f, 1.0f };
+		VsColor mColor = { 0.9f, 0.8f, 0.5f, 1.00f };
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsPhysXBody* > mBodies;
 
@@ -171,6 +232,7 @@ class VsPhysXPlugin : public IVsPlugin
 		PxFoundation* GetFoundation() const;
 		PxPhysics* GetPhysics() const;
 		PxCpuDispatcher* GetDispatcher() const;
+		PxMaterial* GetDefaultMaterial() const;
 
 	private:
 		std::vector< IVsHull* > mHulls;
@@ -182,4 +244,5 @@ class VsPhysXPlugin : public IVsPlugin
 		PxFoundation* mFoundation = nullptr;
 		PxPhysics* mPhysics = nullptr;
 		PxDefaultCpuDispatcher* mDispatcher = nullptr;
+		PxMaterial* mDefaultMaterial = nullptr;
 	};

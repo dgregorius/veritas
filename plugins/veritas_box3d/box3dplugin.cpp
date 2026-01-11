@@ -20,7 +20,7 @@ void VsBox3dTask::ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerInd
 //--------------------------------------------------------------------------------------------------
 VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 	{
-	B3_ASSERT( Hull );
+	VS_ASSERT( Hull );
 	mNative = Hull;
 
 	int FaceCount = Hull->faceCount;
@@ -207,7 +207,7 @@ b3ShapeId VsBox3dHullShape::GetNative() const
 //--------------------------------------------------------------------------------------------------
 VsBox3dMesh::VsBox3dMesh( b3MeshData* Mesh )
 	{
-	B3_ASSERT( Mesh );
+	VS_ASSERT( Mesh );
 	mNative = Mesh;
 
 	int TriangleCount = 3 * Mesh->triangleCount;
@@ -420,7 +420,7 @@ void VsBox3dBody::SetOrientation( const VsQuaternion& Orientation )
 IVsSphereShape* VsBox3dBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...
-	B3_ASSERT( 0 );
+	VS_ASSERT( 0 );
 
 	return nullptr;
 	}
@@ -430,7 +430,7 @@ IVsSphereShape* VsBox3dBody::CreateSphere( const VsVector3& Center, float Radius
 IVsCapsuleShape* VsBox3dBody::CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius )
 	{
 	// DIRK_TODO: ...
-	B3_ASSERT( 0 );
+	VS_ASSERT( 0 );
 
 	return nullptr;
 	}
@@ -733,7 +733,7 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 		}
 
 	// This is not fatal but the MaxTasks should be increased
-	B3_ASSERT( false );
+	VS_ASSERT( false );
 	TaskCallback( 0, ItemCount, 0, TaskContext );
 
 	return nullptr;

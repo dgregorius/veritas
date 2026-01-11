@@ -125,9 +125,15 @@ void VsTestlab::Startup()
 			if ( Filename.rfind( "veritas_", 0 ) == 0 )
 				{
 				fs::path ModulePath = Entry.path();
+				SetDllDirectoryW( ModulePath.parent_path().c_str() );
 				HMODULE hModule = LoadLibraryW( ModulePath.c_str() );
+				SetDllDirectoryW( NULL );
+
 				if ( !hModule )
 					{
+					DWORD error = GetLastError();
+					printf( "LoadLibrary failed with error code: %d\n", error );
+
 					continue;
 					}
 

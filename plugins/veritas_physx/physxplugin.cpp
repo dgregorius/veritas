@@ -12,6 +12,230 @@
 
 
 //--------------------------------------------------------------------------------------------------
+// VsPhysXEdge
+//--------------------------------------------------------------------------------------------------
+struct VsPhysXEdge
+	{
+	int Index1;
+	int Index2;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
+static inline bool operator<( VsPhysXEdge Lhs, VsPhysXEdge Rhs )
+	{
+	return ( Lhs.Index1 == Rhs.Index1 ? Lhs.Index2 < Rhs.Index2 : Lhs.Index1 < Rhs.Index1 );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+static inline bool operator==( VsPhysXEdge Lhs, VsPhysXEdge Rhs )
+	{
+	return Lhs.Index1 == Rhs.Index1 && Lhs.Index2 == Rhs.Index2;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsPhysXHull
+//--------------------------------------------------------------------------------------------------
+VsPhysXHull::VsPhysXHull( PxConvexMesh* ConvexMesh )
+	{
+	VS_ASSERT( ConvexMesh );
+	mNative = ConvexMesh;
+
+	int PolygonCount = ConvexMesh->getNbPolygons();
+	const PxU8* IndexBuffer = ConvexMesh->getIndexBuffer();
+	const PxVec3* VertexBuffer = ConvexMesh->getVertices();
+	for ( int PolygonIndex = 0; PolygonIndex < PolygonCount; ++PolygonIndex )
+		{
+		PxHullPolygon Polygon;
+		ConvexMesh->getPolygonData( PolygonIndex, Polygon );
+		
+		int IndexCount = Polygon.mNbVerts;
+		const PxU8* Indices = IndexBuffer + Polygon.mIndexBase;
+		PxVec3 FaceNormal( Polygon.mPlane[ 0 ], Polygon.mPlane[ 1 ], Polygon.mPlane[ 2 ] );
+
+		int PivotIndex = Indices[ 0 ];
+		PxVec3 Pivot = VertexBuffer[ PivotIndex ];
+		for ( int Index = 1; Index < IndexCount - 1; ++Index )
+			{
+			mVertexPositions.push_back( VsVector3( Pivot.x, Pivot.y, Pivot.z ) );
+			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+
+			int VertexIndex1 = Indices[ Index + 0 ];
+			PxVec3 Vertex1 = VertexBuffer[ VertexIndex1 ];
+			mVertexPositions.push_back( VsVector3( Vertex1.x, Vertex1.y, Vertex1.z ) );
+			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+
+			int VertexIndex2 = Indices[ Index + 1 ];
+			PxVec3 Vertex2 = VertexBuffer[ VertexIndex2 ];
+			mVertexPositions.push_back( VsVector3( Vertex2.x, Vertex2.y, Vertex2.z ) );
+			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+			}
+		}
+
+	// Extract (unique) edges
+	std::vector< VsPhysXEdge > Edges;
+	for ( int FaceIndex = 0; FaceIndex < PolygonCount; ++FaceIndex )
+		{
+		for ( int PolygonIndex = 0; PolygonIndex < PolygonCount; ++PolygonIndex )
+			{
+			PxHullPolygon Polygon;
+			ConvexMesh->getPolygonData( PolygonIndex, Polygon );
+
+			int IndexCount = Polygon.mNbVerts;
+			const PxU8* Indices = IndexBuffer + Polygon.mIndexBase;
+
+			int VertexIndex1 = Indices[ IndexCount - 1 ];
+			for ( int Index = 0; Index < IndexCount; ++Index )
+				{
+				int VertexIndex2 = Indices[ Index ];
+
+				VsPhysXEdge Edge;
+				Edge.Index1 = std::min( VertexIndex1, VertexIndex2 );
+				Edge.Index2 = std::max( VertexIndex1, VertexIndex2 );
+				Edges.push_back( Edge );
+
+				VertexIndex1 = VertexIndex2;
+				}
+			}
+		}
+
+	std::sort( Edges.begin(), Edges.end() );
+	Edges.resize( std::unique( Edges.begin(), Edges.end() ) - Edges.begin() );
+	for ( VsPhysXEdge Edge : Edges )
+		{
+		PxVec3 Vertex1 = VertexBuffer[ Edge.Index1 ];
+		mEdgePositions.push_back( VsVector3( Vertex1.x, Vertex1.y, Vertex1.z ) );
+		PxVec3 Vertex2 = VertexBuffer[ Edge.Index2 ];
+		mEdgePositions.push_back( VsVector3( Vertex2.x, Vertex2.y, Vertex2.z ) );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsPhysXHull::~VsPhysXHull()
+	{
+	VS_ASSERT( mNative->getReferenceCount() == 1 );
+	PX_RELEASE( mNative );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsPhysXHull::GetVertexCount() const
+	{
+	return static_cast<int>( mVertexPositions.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsPhysXHull::GetVertexPositions() const
+	{
+	return mVertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsPhysXHull::GetVertexNormals() const
+	{
+	return mVertexNormals.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsPhysXHull::GetEdgeCount() const
+	{
+	return static_cast<int>( mEdgePositions.size() / 2 );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsPhysXHull::GetEdgePositions() const
+	{
+	return mEdgePositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+PxConvexMesh* VsPhysXHull::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsPhysXHullShape
+//--------------------------------------------------------------------------------------------------
+VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
+	: mBody( Body )
+	, mHull( Hull )
+	{
+	VsPhysXWorld* World = static_cast< VsPhysXWorld* >( Body->GetWorld() );
+	VsPhysXPlugin* Plugin = static_cast< VsPhysXPlugin* >( World->GetPlugin() );
+
+	PxRigidActor* RigidActor = Body->GetNative();
+	mNative = PxRigidActorExt::createExclusiveShape( *RigidActor, PxConvexMeshGeometry( Hull->GetNative() ), *Plugin->GetDefaultMaterial() );
+	if ( RigidActor->getType() == PxActorType::eRIGID_DYNAMIC )
+		{
+		PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( RigidActor );
+		if ( !( RigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC ) )
+			{
+			PxRigidBodyExt::updateMassAndInertia( *RigidDynamic, 1000.0f );
+			}
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsPhysXHullShape::~VsPhysXHullShape()
+	{
+	PX_RELEASE( mNative );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsShapeType VsPhysXHullShape::GetType() const
+	{
+	return VS_HULL_SHAPE;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsBody* VsPhysXHullShape::GetBody() const
+	{
+	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsPhysXHullShape::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXHullShape::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsHull* VsPhysXHullShape::GetHull() const
+	{
+	return mHull;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+physx::PxShape* VsPhysXHullShape::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXBody
 //--------------------------------------------------------------------------------------------------
 VsPhysXBody::VsPhysXBody( VsPhysXWorld* World, VsBodyType Type )
@@ -136,7 +360,11 @@ IVsHullShape* VsPhysXBody::CreateHull( const IVsHull* Hull )
 		return nullptr;
 		}
 
-	return nullptr;
+	VsPhysXHullShape* Shape = new VsPhysXHullShape( this, static_cast< const VsPhysXHull* >( Hull ) );
+	mShapes.push_back( Shape );
+	mWorld->NotifyShapeAdded( this, Shape );
+
+	return Shape;
 	}
 
 
@@ -188,6 +416,13 @@ const IVsShape* VsPhysXBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+PxRigidActor* VsPhysXBody::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXWorld
 //--------------------------------------------------------------------------------------------------
 VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
@@ -210,6 +445,14 @@ VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
 //--------------------------------------------------------------------------------------------------
 VsPhysXWorld::~VsPhysXWorld()
 	{
+	while ( !mBodies.empty() )
+		{
+		VsPhysXBody* Body = mBodies.back();
+		NotifyBodyRemoved( Body );
+		mBodies.pop_back();
+		delete Body;
+		}
+
 	PX_RELEASE( mNative );
 	}
 
@@ -251,14 +494,14 @@ void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 	mListeners.push_back( Listener );
 
 	// Sync
-// 	for ( VsPhysXBody* Body : mBodies )
+	for ( VsPhysXBody* Body : mBodies )
 		{
-// 		Listener->OnBodyAdded( Body );
-// 		for ( int ShapeIndex = 0; ShapeIndex < Body->GetShapeCount(); ++ShapeIndex )
-// 			{
-// 			IVsShape* Shape = Body->GetShape( ShapeIndex );
-// 			Listener->OnShapeAdded( Body, Shape );
-// 			}
+		Listener->OnBodyAdded( Body );
+		for ( int ShapeIndex = 0; ShapeIndex < Body->GetShapeCount(); ++ShapeIndex )
+			{
+			IVsShape* Shape = Body->GetShape( ShapeIndex );
+			Listener->OnShapeAdded( Body, Shape );
+			}
 		}
 	}
 
@@ -321,14 +564,25 @@ void VsPhysXWorld::SetGravity( const VsVector3& Gravity )
 //--------------------------------------------------------------------------------------------------
 IVsBody* VsPhysXWorld::CreateBody( VsBodyType Type )
 	{
-	return nullptr;
+	VsPhysXBody* Body = new VsPhysXBody( this, Type );
+	mBodies.push_back( Body );
+	NotifyBodyAdded( Body );
+
+	return Body;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsPhysXWorld::DestroyBody( IVsBody* Body )
 	{
+	if ( !Body )
+		{
+		return;
+		}
 
+	NotifyBodyRemoved( Body );
+	std::erase( mBodies, Body );
+	delete static_cast< VsPhysXBody* >( Body );
 	}
 
 
@@ -382,6 +636,7 @@ VsPhysXPlugin::VsPhysXPlugin()
 	bool Success = PxInitExtensions( *mPhysics, NULL );
 	VS_ASSERT( Success );
 	mDispatcher = PxDefaultCpuDispatcherCreate( std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
+	mDefaultMaterial = mPhysics->createMaterial( 0.6f, 0.6f, 0.0f );
 
 	SetDllDirectory( NULL );
 	}
@@ -390,6 +645,7 @@ VsPhysXPlugin::VsPhysXPlugin()
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::~VsPhysXPlugin()
 	{
+	PX_RELEASE( mDefaultMaterial );
 	PX_RELEASE( mDispatcher );
 	PxCloseExtensions();
 	PX_RELEASE( mPhysics );
@@ -420,6 +676,22 @@ const char* VsPhysXPlugin::GetVersion() const
 //--------------------------------------------------------------------------------------------------
 IVsHull* VsPhysXPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 	{
+	// Create params without cooking interface
+	PxTolerancesScale ToleranceScale;
+	PxCookingParams CookingParams( ToleranceScale );
+
+	PxConvexMeshDesc ConvexMeshDesc;
+	ConvexMeshDesc.points.count = VertexCount;
+	ConvexMeshDesc.points.stride = sizeof( VsVector3 );
+	ConvexMeshDesc.points.data = Vertices;
+	ConvexMeshDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
+
+	if ( PxConvexMesh* ConvexMesh = PxCreateConvexMesh( CookingParams, ConvexMeshDesc, mPhysics->getPhysicsInsertionCallback() ) )
+		{
+		mHulls.push_back( new VsPhysXHull( ConvexMesh ) );
+		return mHulls.back();
+		}
+
 	return nullptr;
 	}
 
@@ -427,7 +699,13 @@ IVsHull* VsPhysXPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 //--------------------------------------------------------------------------------------------------
 void VsPhysXPlugin::DestroyHull( IVsHull* Hull )
 	{
+	if ( !Hull )
+		{
+		return;
+		}
 
+	std::erase( mHulls, Hull );
+	delete static_cast< VsPhysXHull* >( Hull );
 	}
 
 
@@ -462,7 +740,8 @@ IVsMesh* VsPhysXPlugin::CreateMesh( int TriangleCount, const int* TriangleIndice
 //--------------------------------------------------------------------------------------------------
 void VsPhysXPlugin::DestroyMesh( IVsMesh* Mesh )
 	{
-
+	// DIRK_TODO: ...
+	VS_ASSERT( 0 );
 	}
 
 
@@ -549,6 +828,13 @@ physx::PxPhysics* VsPhysXPlugin::GetPhysics() const
 physx::PxCpuDispatcher* VsPhysXPlugin::GetDispatcher() const
 	{
 	return mDispatcher;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+physx::PxMaterial* VsPhysXPlugin::GetDefaultMaterial() const
+	{
+	return mDefaultMaterial;
 	}
 
 
