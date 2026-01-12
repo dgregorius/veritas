@@ -374,13 +374,19 @@ void VsTestlab::BeginDockspace()
 			ImGui::DockBuilderSplitNode( DockTopCenterID, ImGuiDir_Left, 0.85f, &DockLeftTopCenterID, &DockRightTopCenterID );
 
 			ImGui::DockBuilderDockWindow( "Inspector", DockRightTopCenterID );
+			for ( const VsPluginPtr& Plugin : mPlugins )
+				{
+				ImGui::DockBuilderDockWindow( Plugin->GetName(), DockRightTopCenterID );
+				}
+
 			ImGui::DockBuilderDockWindow( "Outliner", DockLeftID );
 			ImGui::DockBuilderDockWindow( "Profiler", DockBottomCenterID );
 			ImGui::DockBuilderDockWindow( "Viewport", DockLeftTopCenterID );
+
 			ImGui::DockBuilderFinish( DockspaceID );
 			}
 
-		ImGuiDockNodeFlags NodeFlags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoTabBar;
+		ImGuiDockNodeFlags NodeFlags = ImGuiDockNodeFlags_NoWindowMenuButton;
 		ImGui::DockSpace( DockspaceID, ImVec2( 0.0f, 0.0f ), NodeFlags );
 		}
 	}
@@ -398,11 +404,32 @@ void VsTestlab::DrawInspector()
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
 
+		ImGui::Text( "Ready..." );
+
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar( 2 );
 		}
 	ImGui::End();
+
+	for ( const VsPluginPtr& Plugin : mPlugins )
+		{
+		if ( ImGui::Begin( Plugin->GetName() ) )
+			{
+			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+			ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+
+			ImGui::Text( Plugin->GetName() );
+
+			ImGui::EndChild();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar( 2 );
+			}
+		ImGui::End();
+		}
+
 	ImGui::PopStyleVar();
 	}
 

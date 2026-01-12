@@ -36,9 +36,9 @@ class VsBox3dPlugin;
 class VsBox3dTask : public enki::ITaskSet
 	{
 	public:
-		VsBox3dTask() { printf( "Create Task\n" ); }
-		virtual ~VsBox3dTask() { printf( "Destroy Task\n" ); }
-
+		VsBox3dTask() = default;
+		virtual ~VsBox3dTask() override = default;
+		
 		virtual void ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex ) override;
 
 		b3TaskCallback* TaskCallback = nullptr;
