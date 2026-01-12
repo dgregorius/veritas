@@ -11,6 +11,8 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include <stdint.h>
+
 
 //--------------------------------------------------------------------------------------------------
 // VsClock
@@ -22,8 +24,8 @@ class VsClock
 		static void Stop();
 		static void Advance();
 
-		static double GetFrequency();
-		static void SetFrequency( double Frequency );
+		static float GetFrequency();
+		static void SetFrequency( float Frequency );
 
 		static void Pause();
 		static void Unpause();
@@ -36,6 +38,14 @@ class VsClock
 	private:
 		static inline double mTime = 0.0f;
 		static inline float mElapsedTime = 0.0f;
-		static inline double mFrequency = 60.0f;
+		static inline float mFrequency = 60.0f;
 		static inline bool mPaused = true;
 	};
+
+
+//--------------------------------------------------------------------------------------------------
+// Timer
+//--------------------------------------------------------------------------------------------------
+uint64_t vsGetTicks();
+double vsTicksToMilliSeconds( uint64_t Ticks );
+double vsTicksToSeconds( uint64_t Ticks );

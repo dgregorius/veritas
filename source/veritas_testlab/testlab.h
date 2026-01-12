@@ -13,6 +13,12 @@
 
 #include "test.h"
 
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <implot.h>
+#include <implot_internal.h>
+
 struct GLFWwindow;
 
 
@@ -60,5 +66,8 @@ class VsTestlab
 		using VsPluginPtr = std::unique_ptr< IVsPlugin, std::function< void ( IVsPlugin* ) > >;
 		std::vector< VsPluginPtr > mPlugins;
 		std::vector< VsTest* > mTests;
+		
+		float mTime = 0.0f;
+		std::vector< ImScrollingBuffer > mSamples;
 		bool mSingleStep = false;
 	};

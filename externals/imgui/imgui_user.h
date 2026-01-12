@@ -25,12 +25,18 @@ struct ImScrollingBuffer
 	int Offset;
 	ImVector<ImVec2> Data;
 
-	ImScrollingBuffer( int max_size = 4000 )
+	ImScrollingBuffer( int max_size = 4096 )
 		{
 		MaxSize = max_size;
 		Offset = 0;
 		Data.reserve( MaxSize );
 		}
+
+	bool Empty() const
+		{
+		return Data.empty();
+		}
+
 	void AddPoint( float x, float y )
 		{
 		if ( Data.size() < MaxSize )
@@ -41,6 +47,7 @@ struct ImScrollingBuffer
 			Offset = ( Offset + 1 ) % MaxSize;
 			}
 		}
+
 	void Erase()
 		{
 		if ( Data.size() > 0 )

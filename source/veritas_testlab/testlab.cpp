@@ -14,10 +14,6 @@
 #include <glad.h>
 #include <glfw3.h>
 
-// ImGUI
-#include <imgui.h>
-#include <imgui_internal.h>
-
 // CRT's memory leak detection
 #if defined( DEBUG ) || defined( _DEBUG )
 #  include <crtdbg.h>
@@ -172,6 +168,7 @@ void VsTestlab::Startup()
 	// DIRK_TODO: Find initial test index (e.g. pass in cmdline)
 	int TestIndex = 0;
 	mTests.resize( mPlugins.size() );
+	mSamples.resize( mPlugins.size() );
 	CreateTests( TestIndex );
 	}
 
@@ -193,7 +190,19 @@ void VsTestlab::UpdateFrame()
 		}
 	mSingleStep = false;
 
-	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Update( 0.0f, 1.0f / 60.0f ); } );
+	mTime += VsClock::GetElapsedTime();
+	float Timestep = 1.0f / VsClock::GetFrequency();
+	for ( size_t TestIndex = 0; TestIndex < mTests.size(); ++TestIndex )
+		{
+		VsTest* Test = mTests[ TestIndex ];
+
+		uint64_t Ticks1 = vsGetTicks();
+		Test->Update( 0.0f, Timestep );
+		uint64_t Ticks2 = vsGetTicks();
+
+		float DeltaTime = static_cast< float >( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
+		mSamples[ TestIndex ].AddPoint( mTime, DeltaTime );
+		}
 	}
 
 
@@ -506,6 +515,38 @@ void VsTestlab::DrawProfiler()
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
 
+		const float History = 30.0f;
+		if ( ImPlot::BeginPlot( "##Scrolling", ImVec2( -1, -1 ) ) )
+			{
+			ImPlot::SetupAxes( "Time [s]", "Samples [ms]", ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_AutoFit );
+			ImPlot::SetupAxisLimits( ImAxis_X1, mTime - History, mTime, ImGuiCond_Always );
+
+			ImPlot::PushStyleVar( ImPlotStyleVar_FillAlpha, 0.2f );
+			for ( size_t PluginIndex = 0; PluginIndex < mPlugins.size(); ++PluginIndex )
+				{
+				const VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
+				const ImScrollingBuffer& Samples = mSamples[ PluginIndex ];
+				if ( !Samples.Empty() )
+					{
+					ImPlot::PlotShaded( Plugin->GetName(), &Samples.Data[ 0 ].x, &Samples.Data[ 0 ].y, Samples.Data.size(), 0.0f, 0, Samples.Offset, 2 * sizeof( float ) );
+					}
+				}
+
+			ImPlot::PopStyleVar();
+
+			for ( size_t PluginIndex = 0; PluginIndex < mPlugins.size(); ++PluginIndex )
+				{
+				const VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
+				const ImScrollingBuffer& Samples = mSamples[ PluginIndex ];
+				if ( !Samples.Empty() )
+					{
+					ImPlot::PlotLine( Plugin->GetName(), &Samples.Data[ 0 ].x, &Samples.Data[ 0 ].y, Samples.Data.size(), 0, Samples.Offset, 2 * sizeof( float ) );
+					}
+				}
+
+			ImPlot::EndPlot();
+			}
+
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar( 2 );
@@ -570,9 +611,11 @@ void VsTestlab::Status()
 void VsTestlab::CreateTests( int TestIndex )
 	{
 	mTestIndex = TestIndex;
+	mTime = 0.0;
 
 	int PluginCount = static_cast< int >( mPlugins.size() );
 	VS_ASSERT( mTests.size() == PluginCount );
+	VS_ASSERT( mSamples.size() == PluginCount );
 
 	for ( int PluginIndex = 0; PluginIndex < PluginCount; ++PluginIndex )
 		{
@@ -583,6 +626,7 @@ void VsTestlab::CreateTests( int TestIndex )
 		Test->Create( mCamera );
 
 		mTests[ PluginIndex ] = Test;
+		mSamples[ PluginIndex ].Erase();
 		}
 	}
 

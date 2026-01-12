@@ -5,22 +5,13 @@
 //--------------------------------------------------------------------------------------------------
 #include "clock.h"
 
-// Windows
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 // OpenGL
 #include <glad.h>
 #include <glfw3.h>
 
-
-//--------------------------------------------------------------------------------------------------
-// Local utilities
-//--------------------------------------------------------------------------------------------------
-static inline void rkYield()
-	{
-	SwitchToThread();
-	}
+// STD
+#include <chrono>
+#include <thread>
 
 
 //--------------------------------------------------------------------------------------------------
@@ -54,9 +45,10 @@ void VsClock::Advance()
 		double TargetTime = mTime + 1.0 / mFrequency;
 		while ( Time < TargetTime )
 			{
-			rkYield();
+			std::this_thread::yield();
 			Time = glfwGetTime();
 			}
+
 		mElapsedTime = static_cast< float >( Time - mTime );
 		mTime = Time;
 		}
@@ -64,14 +56,14 @@ void VsClock::Advance()
 
 
 //--------------------------------------------------------------------------------------------------
-double VsClock::GetFrequency()
+float VsClock::GetFrequency()
 	{
 	return mFrequency;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsClock::SetFrequency( double Frequency )
+void VsClock::SetFrequency( float Frequency )
 	{
 	mFrequency = Frequency;
 	}
@@ -116,4 +108,37 @@ double VsClock::GetTime()
 float VsClock::GetElapsedTime()
 	{
 	return !mPaused ? mElapsedTime : 0.0f;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// Timer
+//--------------------------------------------------------------------------------------------------
+uint64_t vsGetTicks()
+	{
+	using VSClock = std::chrono::high_resolution_clock;
+	return VSClock::now().time_since_epoch().count();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+double vsTicksToMilliSeconds( uint64_t Ticks )
+	{
+	using VSClock = std::chrono::high_resolution_clock;
+	static const uint64_t Frequency = VSClock::period::den / VSClock::period::num;
+
+	// 1. Separate whole seconds (Integer math)
+	uint64_t WholeSeconds = Ticks / Frequency;
+
+	// 2. Separate remaining ticks (Integer math)
+	uint64_t RemainderTicks = Ticks % Frequency;
+
+	// 3. Combine them into milliseconds
+	return ( WholeSeconds * 1000.0 ) + ( RemainderTicks * 1000.0 / (double)Frequency );
+	}
+
+//--------------------------------------------------------------------------------------------------
+double vsTicksToSeconds( uint64_t Ticks )
+	{
+	return vsTicksToMilliSeconds( Ticks ) / 1000.0;
 	}
