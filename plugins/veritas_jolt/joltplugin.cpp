@@ -253,6 +253,43 @@ const IVsHull* VsJoltHullShape::GetHull() const
 
 
 //--------------------------------------------------------------------------------------------------
+// VsJoltMesh
+//--------------------------------------------------------------------------------------------------
+VsJoltMesh::VsJoltMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsJoltMesh::~VsJoltMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsJoltMesh::GetVertexCount() const
+	{
+	return static_cast< int >( mVertexPositions.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsJoltMesh::GetVertexPositions() const
+	{
+	return mVertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsJoltMesh::GetVertexNormals() const
+	{
+	return mVertexNormals.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsJoltBody
 //--------------------------------------------------------------------------------------------------
 VsJoltBody::VsJoltBody( VsJoltWorld* World, VsBodyType Type )
@@ -284,7 +321,18 @@ VsJoltBody::VsJoltBody( VsJoltWorld* World, VsBodyType Type )
 //--------------------------------------------------------------------------------------------------
 VsJoltBody::~VsJoltBody()
 	{
+	while ( !mShapes.empty() )
+		{
+		IVsShape* Shape = mShapes.back();
+		mWorld->NotifyShapeRemoved( this, Shape );
+		mShapes.pop_back();
+		DeleteShape( Shape );
+		}
 
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	BodyInterface.RemoveBody( mNative );
+	BodyInterface.DestroyBody( mNative );
 	}
 
 
@@ -384,7 +432,14 @@ IVsMeshShape* VsJoltBody::CreateMesh( const IVsMesh* Mesh )
 //--------------------------------------------------------------------------------------------------
 void VsJoltBody::DestroyShape( IVsShape* Shape )
 	{
+	if ( !Shape )
+		{
+		return;
+		}
 
+	mWorld->NotifyShapeRemoved( this, Shape );
+	std::erase( mShapes, Shape );
+	DeleteShape( Shape );
 	}
 
 
@@ -429,7 +484,13 @@ VsJoltWorld::VsJoltWorld( VsJoltPlugin* Plugin )
 //--------------------------------------------------------------------------------------------------
 VsJoltWorld::~VsJoltWorld()
 	{
-	
+	while ( !mBodies.empty() )
+		{
+		VsJoltBody* Body = mBodies.back();
+		NotifyBodyRemoved( Body );
+		mBodies.pop_back();
+		delete Body;
+		}
 	}
 
 
@@ -615,8 +676,33 @@ VsJoltPlugin::VsJoltPlugin()
 //--------------------------------------------------------------------------------------------------
 VsJoltPlugin::~VsJoltPlugin()
 	{
+	while ( !mWorlds.empty() )
+		{
+		VsJoltWorld* World = mWorlds.back();
+		mWorlds.pop_back();
+		delete World;
+		}
+
+	while ( !mMeshes.empty() )
+		{
+		VsJoltMesh* Mesh = mMeshes.back();
+		mMeshes.pop_back();
+		delete Mesh;
+		}
+
+	while ( !mHulls.empty() )
+		{
+		VsJoltHull* Hull = mHulls.back();
+		mHulls.pop_back();
+		delete Hull;
+		}
+
 	delete mThreadPool;
 	delete mTempAllocator;
+
+	UnregisterTypes();
+	delete Factory::sInstance;
+	Factory::sInstance = nullptr;
 	}
 
 

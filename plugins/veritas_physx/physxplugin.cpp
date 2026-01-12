@@ -229,9 +229,46 @@ const IVsHull* VsPhysXHullShape::GetHull() const
 
 
 //--------------------------------------------------------------------------------------------------
-physx::PxShape* VsPhysXHullShape::GetNative() const
+PxShape* VsPhysXHullShape::GetNative() const
 	{
 	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsPhysXMesh
+//--------------------------------------------------------------------------------------------------
+VsPhysXMesh::VsPhysXMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsPhysXMesh::~VsPhysXMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsPhysXMesh::GetVertexCount() const
+	{
+	return static_cast< int >( mVertexPositions.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsPhysXMesh::GetVertexPositions() const
+	{
+	return mVertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsPhysXMesh::GetVertexNormals() const
+	{
+	return mVertexNormals.data();
 	}
 
 
@@ -645,6 +682,27 @@ VsPhysXPlugin::VsPhysXPlugin()
 //--------------------------------------------------------------------------------------------------
 VsPhysXPlugin::~VsPhysXPlugin()
 	{
+	while ( !mWorlds.empty() )
+		{
+		VsPhysXWorld* World = mWorlds.back();
+		mWorlds.pop_back();
+		delete World;
+		}
+
+	while ( !mMeshes.empty() )
+		{
+		VsPhysXMesh* Mesh = mMeshes.back();
+		mMeshes.pop_back();
+		delete Mesh;
+		}
+
+	while ( !mHulls.empty() )
+		{
+		VsPhysXHull* Hull = mHulls.back();
+		mHulls.pop_back();
+		delete Hull;
+		}
+
 	PX_RELEASE( mDefaultMaterial );
 	PX_RELEASE( mDispatcher );
 	PxCloseExtensions();

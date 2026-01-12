@@ -213,6 +213,27 @@ class VsJoltHullShape : public IVsHullShape
 
 
 //--------------------------------------------------------------------------------------------------
+// VsJoltMesh
+//--------------------------------------------------------------------------------------------------
+class VsJoltMesh : public IVsMesh
+	{
+	public:
+		// Construction / Destruction
+		explicit VsJoltMesh();
+		virtual ~VsJoltMesh() override;
+
+		// IVsMesh
+		virtual int GetVertexCount() const override;
+		virtual const VsVector3* GetVertexPositions() const override;
+		virtual const VsVector3* GetVertexNormals() const override;
+
+	private:
+		std::vector< VsVector3 > mVertexPositions;
+		std::vector< VsVector3 > mVertexNormals;	
+	};
+
+
+//--------------------------------------------------------------------------------------------------
 // VsJoltBody
 //--------------------------------------------------------------------------------------------------
 class VsJoltBody : public IVsBody
@@ -356,9 +377,9 @@ class VsJoltPlugin : public IVsPlugin
 		JobSystemThreadPool* GetThreadPool() const;
 
 	private:
-		std::vector< IVsHull* > mHulls;
-		std::vector< IVsMesh* > mMeshes;
-		std::vector< IVsWorld* > mWorlds;
+		std::vector< VsJoltHull* > mHulls;
+		std::vector< VsJoltMesh* > mMeshes;
+		std::vector< VsJoltWorld* > mWorlds;
 
 		TempAllocatorImpl* mTempAllocator = nullptr;
 		JobSystemThreadPool* mThreadPool = nullptr;

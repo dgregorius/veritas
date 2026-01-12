@@ -777,7 +777,6 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		{
 		VsBox3dWorld* World = mWorlds.back();
 		mWorlds.pop_back();
-
 		delete World;
 		}
 
@@ -785,7 +784,6 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		{
 		VsBox3dMesh* Mesh = mMeshes.back();
 		mMeshes.pop_back();
-
 		delete Mesh;
 		}
 
@@ -793,7 +791,6 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		{
 		VsBox3dHull* Hull = mHulls.back();
 		mHulls.pop_back();
-
 		delete Hull;
 		}
 	}

@@ -94,6 +94,27 @@ class VsPhysXHullShape : public IVsHullShape
 
 
 //--------------------------------------------------------------------------------------------------
+// VsPhysXMesh
+//--------------------------------------------------------------------------------------------------
+class VsPhysXMesh : public IVsMesh
+	{
+	public:
+		// Construction / Destruction
+		explicit VsPhysXMesh();
+		virtual ~VsPhysXMesh() override;
+
+		// IVsMesh
+		virtual int GetVertexCount() const override;
+		virtual const VsVector3* GetVertexPositions() const override;
+		virtual const VsVector3* GetVertexNormals() const override;
+
+	private:
+		std::vector< VsVector3 > mVertexPositions;
+		std::vector< VsVector3 > mVertexNormals;
+	};
+
+
+//--------------------------------------------------------------------------------------------------
 // VsPhysXBody
 //--------------------------------------------------------------------------------------------------
 class VsPhysXBody : public IVsBody
@@ -235,9 +256,9 @@ class VsPhysXPlugin : public IVsPlugin
 		PxMaterial* GetDefaultMaterial() const;
 
 	private:
-		std::vector< IVsHull* > mHulls;
-		std::vector< IVsMesh* > mMeshes;
-		std::vector< IVsWorld* > mWorlds;
+		std::vector< VsPhysXHull* > mHulls;
+		std::vector< VsPhysXMesh* > mMeshes;
+		std::vector< VsPhysXWorld* > mWorlds;
 
 		PxDefaultAllocator mAllocator;
 		PxDefaultErrorCallback mErrorCallback;
