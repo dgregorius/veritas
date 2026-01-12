@@ -4,6 +4,7 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "testlab.h"
+#include "clock.h"
 
 // Windows
 #define WIN32_LEAN_AND_MEAN
@@ -77,23 +78,26 @@ int VsTestlab::Run()
 
 	// Simulation loop
 	ImGui::Startup( mWindow );
-	{
-	Startup();
-	while ( !glfwWindowShouldClose( mWindow ) )
 		{
-		ImGui::BeginFrame( mWindow );
+		Startup();
+		VsClock::Start();
+		while ( !glfwWindowShouldClose( mWindow ) )
 			{
-			BeginFrame();
-			UpdateFrame();
-			RenderFrame();
-			EndFrame();
-			}
-		ImGui::EndFrame( mWindow );
+			ImGui::BeginFrame( mWindow );
+				{
+				BeginFrame();
+				UpdateFrame();
+				RenderFrame();
+				EndFrame();
+				}
+			ImGui::EndFrame( mWindow );
+			VsClock::Advance();
 
-		glfwPollEvents();
+			glfwPollEvents();
+			}
+		VsClock::Stop();
+		Shutdown();
 		}
-	Shutdown();
-	}
 	ImGui::Shutdown( mWindow );
 
 	// Terminate GLFW
@@ -165,7 +169,7 @@ void VsTestlab::Startup()
 		return CategoryCompare < 0;
 		} );
 
-	// DIRK_TODO: Find initial index...
+	// DIRK_TODO: Find initial test index (e.g. pass in cmdline)
 	int TestIndex = 0;
 	mTests.resize( mPlugins.size() );
 	CreateTests( TestIndex );
@@ -182,6 +186,13 @@ void VsTestlab::BeginFrame()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::UpdateFrame()
 	{
+	// Simulate test scene
+	if ( VsClock::IsPaused() && !mSingleStep )
+		{
+		return;
+		}
+	mSingleStep = false;
+
 	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { Test->Update( 0.0f, 1.0f / 60.0f ); } );
 	}
 
@@ -210,6 +221,32 @@ void VsTestlab::EndFrame()
 		DrawViewport();
 	EndDockspace();
 	Status();
+
+	// DIRK_TODO: Check IMGUI shortcut API
+	if ( ImGui::IsKeyPressed( ImGuiKey_P ) )
+		{
+		bool Paused = VsClock::IsPaused();
+		VsClock::SetPaused( !Paused );
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_R ) )
+		{
+		DestroyTests();
+		CreateTests( mTestIndex );
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_Space ) )
+		{
+		if ( VsClock::IsPaused() )
+			{
+			mSingleStep = true;
+			}
+		}
+
+	if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+		{
+		glfwSetWindowShouldClose( mWindow, true );
+		}
 	}
 
 
@@ -433,7 +470,8 @@ void VsTestlab::DrawOutliner()
 		// Test management
 		if ( ImGui::Button( "Pause", ImVec2( -1, 0 ) ) )
 			{
-		
+			bool Paused = VsClock::IsPaused();
+			VsClock::SetPaused( !Paused );
 			}
 
 		if ( ImGui::Button( "Restart", ImVec2( -1, 0 ) ) )

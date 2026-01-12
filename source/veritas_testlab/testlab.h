@@ -60,4 +60,5 @@ class VsTestlab
 		using VsPluginPtr = std::unique_ptr< IVsPlugin, std::function< void ( IVsPlugin* ) > >;
 		std::vector< VsPluginPtr > mPlugins;
 		std::vector< VsTest* > mTests;
+		bool mSingleStep = false;
 	};
