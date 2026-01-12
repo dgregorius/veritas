@@ -5,6 +5,12 @@
 //--------------------------------------------------------------------------------------------------
 #include "joltplugin.h"
 
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <implot.h>
+#include <implot_internal.h>
+
 // STL includes
 #include <cstdarg>
 #include <iostream>
@@ -661,12 +667,17 @@ PhysicsSystem& VsJoltWorld::GetNative()
 //--------------------------------------------------------------------------------------------------
 // VsJoltPlugin
 //--------------------------------------------------------------------------------------------------
-VsJoltPlugin::VsJoltPlugin()
+VsJoltPlugin::VsJoltPlugin( ImGuiContext* Context )
 	{
+	VS_ASSERT( Context );
+	ImGui::SetCurrentContext( Context );
+
 	Trace = TraceImpl;
 	RegisterDefaultAllocator();
 	Factory::sInstance = new Factory();
 	RegisterTypes();
+
+	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", JPH_VERSION_MAJOR, JPH_VERSION_MINOR, JPH_VERSION_PATCH );
 
 	mTempAllocator = new TempAllocatorImpl( 64 * 1024 * 1024 );
 	mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
@@ -703,6 +714,8 @@ VsJoltPlugin::~VsJoltPlugin()
 	UnregisterTypes();
 	delete Factory::sInstance;
 	Factory::sInstance = nullptr;
+
+	ImGui::SetCurrentContext( NULL );
 	}
 
 
@@ -723,7 +736,28 @@ const char* VsJoltPlugin::GetName() const
 //--------------------------------------------------------------------------------------------------
 const char* VsJoltPlugin::GetVersion() const
 	{
-	return "5.2.0";
+	return mVersion;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsJoltPlugin::IsEnabled() const
+	{
+	return mEnabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltPlugin::SetEnabled( bool Enabled )
+	{
+	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltPlugin::OnInspectorGUI()
+	{
+	ImGui::Text( "Jolt %s", mVersion );
 	}
 
 

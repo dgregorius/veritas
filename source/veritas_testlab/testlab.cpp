@@ -140,7 +140,8 @@ void VsTestlab::Startup()
 					continue;
 					}
 				
-				if ( IVsPlugin* Plugin = vsCreatePlugin() )
+				ImGuiContext* Context = ImGui::GetCurrentContext();
+				if ( IVsPlugin* Plugin = vsCreatePlugin( Context ) )
 					{
 					mPlugins.emplace_back( Plugin, [ = ]( IVsPlugin* Plugin)
 						{
@@ -373,7 +374,7 @@ void VsTestlab::BeginDockspace()
 			ImGuiID DockLeftTopCenterID, DockRightTopCenterID;
 			ImGui::DockBuilderSplitNode( DockTopCenterID, ImGuiDir_Left, 0.85f, &DockLeftTopCenterID, &DockRightTopCenterID );
 
-			ImGui::DockBuilderDockWindow( "Inspector", DockRightTopCenterID );
+			ImGui::DockBuilderDockWindow( "Common", DockRightTopCenterID );
 			for ( const VsPluginPtr& Plugin : mPlugins )
 				{
 				ImGui::DockBuilderDockWindow( Plugin->GetName(), DockRightTopCenterID );
@@ -397,14 +398,21 @@ void VsTestlab::DrawInspector()
 	{
 	float Scale = ImGui::GetWindowDpiScale();
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
-	if ( ImGui::Begin( "Inspector" ) )
+	if ( ImGui::Begin( "Common" ) )
 		{
 		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
 		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
 
-		ImGui::Text( "Ready..." );
+		for ( const VsPluginPtr& Plugin : mPlugins )
+			{
+			bool Enabled = Plugin->IsEnabled();
+			if ( ImGui::Checkbox( Plugin->GetName(), &Enabled ) )
+				{
+				Plugin->SetEnabled( Enabled );
+				}
+			}
 
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
@@ -414,20 +422,23 @@ void VsTestlab::DrawInspector()
 
 	for ( const VsPluginPtr& Plugin : mPlugins )
 		{
-		if ( ImGui::Begin( Plugin->GetName() ) )
+		if ( Plugin->IsEnabled() )
 			{
-			ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
-			ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-			ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+			if ( ImGui::Begin( Plugin->GetName(), NULL, ImGuiWindowFlags_NoFocusOnAppearing ) )
+				{
+				ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
+				ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
+				ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
 
-			ImGui::Text( Plugin->GetName() );
+				Plugin->OnInspectorGUI();
 
-			ImGui::EndChild();
-			ImGui::PopStyleColor();
-			ImGui::PopStyleVar( 2 );
+				ImGui::EndChild();
+				ImGui::PopStyleColor();
+				ImGui::PopStyleVar( 2 );
+				}
+			ImGui::End();
 			}
-		ImGui::End();
 		}
 
 	ImGui::PopStyleVar();

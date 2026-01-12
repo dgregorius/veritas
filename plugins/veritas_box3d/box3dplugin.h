@@ -15,6 +15,8 @@
 
 // Box3D
 #include <box3d/box3d.h>
+
+// EnkiTS
 #include <taskscheduler.h>
 
 // Forward
@@ -273,13 +275,18 @@ class VsBox3dPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		VsBox3dPlugin();
+		explicit VsBox3dPlugin( ImGuiContext* Context );
 		virtual ~VsBox3dPlugin() override;
 
 		// Module
 		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
+
+		virtual bool IsEnabled() const override;
+		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual void OnInspectorGUI() override;
 
 		// Hulls
 		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
@@ -306,6 +313,8 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
 	private:
+		char mVersion[ 64 ];
+		bool mEnabled = true;
 		std::vector< VsBox3dHull* > mHulls;
 		std::vector< VsBox3dMesh* > mMeshes;
 		std::vector< VsBox3dWorld* > mWorlds;

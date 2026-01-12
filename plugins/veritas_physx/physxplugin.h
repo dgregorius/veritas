@@ -217,13 +217,18 @@ class VsPhysXPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		VsPhysXPlugin();
+		explicit VsPhysXPlugin( ImGuiContext* Context );
 		virtual ~VsPhysXPlugin() override;
 
 		// Module
 		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
+
+		virtual bool IsEnabled() const override;
+		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual void OnInspectorGUI() override;
 
 		// Hulls
 		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
@@ -256,6 +261,8 @@ class VsPhysXPlugin : public IVsPlugin
 		PxMaterial* GetDefaultMaterial() const;
 
 	private:
+		char mVersion[ 64 ];
+		bool mEnabled = true;
 		std::vector< VsPhysXHull* > mHulls;
 		std::vector< VsPhysXMesh* > mMeshes;
 		std::vector< VsPhysXWorld* > mWorlds;

@@ -5,6 +5,12 @@
 //--------------------------------------------------------------------------------------------------
 #include "box3dplugin.h"
 
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <implot.h>
+#include <implot_internal.h>
+
 
 //--------------------------------------------------------------------------------------------------
 // VsBox3dTask
@@ -764,9 +770,13 @@ void VsBox3dWorld::FinishTask( void* Task )
 //--------------------------------------------------------------------------------------------------
 // VsBox3dPlugin
 //--------------------------------------------------------------------------------------------------
-VsBox3dPlugin::VsBox3dPlugin()
+VsBox3dPlugin::VsBox3dPlugin( ImGuiContext* Context )
 	{
-	
+	VS_ASSERT( Context );
+	ImGui::SetCurrentContext( Context );
+
+	b3Version Version = b3GetVersion();
+	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", Version.major, Version.minor, Version.revision );
 	}
 
 
@@ -793,6 +803,8 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		mHulls.pop_back();
 		delete Hull;
 		}
+
+	ImGui::SetCurrentContext( NULL );
 	}
 
 
@@ -813,7 +825,28 @@ const char* VsBox3dPlugin::GetName() const
 //--------------------------------------------------------------------------------------------------
 const char* VsBox3dPlugin::GetVersion() const
 	{
-	return "0.1.1";
+	return mVersion;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsBox3dPlugin::IsEnabled() const
+	{
+	return mEnabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dPlugin::SetEnabled( bool Enabled )
+	{
+	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dPlugin::OnInspectorGUI()
+	{
+	ImGui::Text( "Box3D %s", mVersion );
 	}
 
 

@@ -78,9 +78,9 @@ workspace "veritas"
 			kind "SharedLib"
 			location "build/plugins/veritas_box3d"
 			files { "plugins/veritas_box3d/**" }
-			includedirs { "source", "externals/box3d/include", "externals/enkits" }
+			includedirs { "source", "externals/box3d/include", "externals/enkits", "externals/imgui" }
 			libdirs { "externals/box3d/lib" }
-			links { "enkits", "veritas" }
+			links { "veritas", "imgui", "enkits" }
 			filter "configurations:Debug"
 				links { "box3dd" }
 			filter "configurations:Release"
@@ -95,9 +95,9 @@ workspace "veritas"
 			location "build/plugins/veritas_jolt"
 			files { "plugins/veritas_jolt/**" }
 			defines { "JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", "JPH_DEBUG_RENDERER", "JPH_PROFILE_ENABLED", "JPH_OBJECT_STREAM" }
-			includedirs { "source", "externals/jolt/include" }
+			includedirs { "source", "externals/jolt/include", "externals/imgui" }
 			libdirs { "externals/jolt/lib" }
-			links { "veritas" }	
+			links { "veritas", "imgui" }	
 			filter "configurations:Debug"
 				links { "joltd" }
 			filter "configurations:Release"
@@ -111,9 +111,9 @@ workspace "veritas"
 			kind "SharedLib"
 			location "build/plugins/veritas_physx"
 			files { "plugins/veritas_physx/**" }
-			includedirs { "source", "externals/physx/include" }
+			includedirs { "source", "externals/physx/include", "externals/imgui" }
 			libdirs { "externals/physx/lib" }
-			links { "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64", "veritas" }	
+			links { "veritas", "imgui", "physx_64", "physxcommon_64", "physxcooking_64", "physxfoundation_64" }	
 			filter "configurations:Debug"
 				links { "physxextensions_static_64d", "physxpvdsdk_static_64d" }
 			filter "configurations:Release"

@@ -24,6 +24,8 @@ struct IVsBody;
 struct IVsWorld;
 struct IVsPlugin;
 
+struct ImGuiContext;
+
 
 //--------------------------------------------------------------------------------------------------
 // VS_ASSERT
@@ -271,11 +273,11 @@ struct IVsWorld
 	{
 	virtual IVsPlugin* GetPlugin() const = 0;
 
-	virtual VsColor GetColor() const = 0;
-	virtual void SetColor( const VsColor& Color ) = 0;
-
 	virtual void AddListener( IVsWorldListener* Listener ) = 0;
 	virtual void RemoveListener( IVsWorldListener* Listener ) = 0;
+
+	virtual VsColor GetColor() const = 0;
+	virtual void SetColor( const VsColor& Color ) = 0;
 
 	virtual VsVector3 GetGravity() const = 0;
 	virtual void SetGravity( const VsVector3& Gravity ) = 0;
@@ -302,6 +304,11 @@ struct IVsPlugin
 	virtual void Release() = 0;
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
+
+	virtual bool IsEnabled() const = 0;
+	virtual void SetEnabled( bool Enabled ) = 0;
+
+	virtual void OnInspectorGUI() = 0;
 	
 	// Hull
 	IVsHull* CreateBox( VsVector3 Extent );
@@ -332,12 +339,12 @@ struct IVsPlugin
 // Plugin export
 extern "C"
 	{
-	typedef IVsPlugin* ( *VsCreatePluginFunc )( );
+	typedef IVsPlugin* ( *VsCreatePluginFunc )( ImGuiContext* );
 	}
 
 #define VS_EXPORT_PLUGIN(PluginClass)							\
 extern "C" __declspec(dllexport)								\
-IVsPlugin* vsCreatePlugin()										\
+IVsPlugin* vsCreatePlugin( ImGuiContext* Context  )				\
 	{															\
-    return new PluginClass;										\
+    return new PluginClass( Context );							\
 	}

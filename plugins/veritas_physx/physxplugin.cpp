@@ -5,6 +5,12 @@
 //--------------------------------------------------------------------------------------------------
 #include "physxplugin.h"
 
+// ImGUI
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <implot.h>
+#include <implot_internal.h>
+
 // Windows
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -663,10 +669,15 @@ physx::PxScene* VsPhysXWorld::GetNative() const
 //--------------------------------------------------------------------------------------------------
 // VsPhysXPlugin
 //--------------------------------------------------------------------------------------------------
-VsPhysXPlugin::VsPhysXPlugin()
+VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context )
 	{
+	VS_ASSERT( Context );
+	ImGui::SetCurrentContext( Context );
+
 	fs::path ModulePath = fs::current_path() / "plugins/physx";
 	SetDllDirectoryW( ModulePath.c_str() );
+
+	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", PX_PHYSICS_VERSION_MAJOR, PX_PHYSICS_VERSION_MINOR, PX_PHYSICS_VERSION_BUGFIX );
 
 	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
 	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
@@ -708,6 +719,8 @@ VsPhysXPlugin::~VsPhysXPlugin()
 	PxCloseExtensions();
 	PX_RELEASE( mPhysics );
 	PX_RELEASE( mFoundation );
+
+	ImGui::SetCurrentContext( NULL );
 	}
 
 //--------------------------------------------------------------------------------------------------
@@ -727,7 +740,28 @@ const char* VsPhysXPlugin::GetName() const
 //--------------------------------------------------------------------------------------------------
 const char* VsPhysXPlugin::GetVersion() const
 	{
-	return "5.6.1";
+	return mVersion;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsPhysXPlugin::IsEnabled() const
+	{
+	return mEnabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXPlugin::SetEnabled( bool Enabled )
+	{
+	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXPlugin::OnInspectorGUI()
+	{
+	ImGui::Text( "PhysX %s", mVersion );
 	}
 
 

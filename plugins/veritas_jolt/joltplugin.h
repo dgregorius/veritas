@@ -340,13 +340,18 @@ class VsJoltPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		VsJoltPlugin();
+		explicit VsJoltPlugin( ImGuiContext* Context );
 		virtual ~VsJoltPlugin() override;
 
 		// Module
 		virtual void Release() override;
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
+
+		virtual bool IsEnabled() const override;
+		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual void OnInspectorGUI() override;
 
 		// Hulls
 		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;
@@ -377,6 +382,8 @@ class VsJoltPlugin : public IVsPlugin
 		JobSystemThreadPool* GetThreadPool() const;
 
 	private:
+		char mVersion[ 64 ];
+		bool mEnabled = true;
 		std::vector< VsJoltHull* > mHulls;
 		std::vector< VsJoltMesh* > mMeshes;
 		std::vector< VsJoltWorld* > mWorlds;
