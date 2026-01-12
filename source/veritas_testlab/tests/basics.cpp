@@ -86,12 +86,12 @@ class VsBasicScene3 : public VsTest
 				for ( int Column = 0; Column < 12 - Row; ++Column )
 					{
 					IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
-					BoxBody->SetPosition( VsVector3( -12.0f + 2.0f * Column + Row, 1.5f + 2.5f * Row, 0.0f ) );
-					BoxBody->AddHull( mBox );
+					BoxBody->SetPosition( VsVector3( -11.0f + 2.0f * Column + Row, 1.5f + 2.5f * Row, 0.0f ) );
+					BoxBody->CreateHull( Box );
 					}
 				}
 			}
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene2 - Small stack", VsBasicScene2 );
+VS_DEFINE_TEST( "Basics", "Scene3 - Small pyramid", VsBasicScene3 );

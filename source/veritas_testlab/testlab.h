@@ -47,13 +47,17 @@ class VsTestlab
 		void EndDockspace();
 		void Status();
 
+		// Tests
+		void CreateTests( int TestIndex );
+		void DestroyTests();
+
 		GLFWwindow* mWindow = nullptr;
 
 		VsCamera* mCamera = nullptr;
 		VsRenderTarget* mRenderTarget = nullptr;
 
+		int mTestIndex = -1;
 		using VsPluginPtr = std::unique_ptr< IVsPlugin, std::function< void ( IVsPlugin* ) > >;
 		std::vector< VsPluginPtr > mPlugins;
 		std::vector< VsTest* > mTests;
-		int mTestIndex = 0;
 	};

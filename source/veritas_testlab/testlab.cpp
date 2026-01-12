@@ -82,12 +82,12 @@ int VsTestlab::Run()
 	while ( !glfwWindowShouldClose( mWindow ) )
 		{
 		ImGui::BeginFrame( mWindow );
-		{
-		BeginFrame();
-		UpdateFrame();
-		RenderFrame();
-		EndFrame();
-		}
+			{
+			BeginFrame();
+			UpdateFrame();
+			RenderFrame();
+			EndFrame();
+			}
 		ImGui::EndFrame( mWindow );
 
 		glfwPollEvents();
@@ -128,12 +128,8 @@ void VsTestlab::Startup()
 				SetDllDirectoryW( ModulePath.parent_path().c_str() );
 				HMODULE hModule = LoadLibraryW( ModulePath.c_str() );
 				SetDllDirectoryW( NULL );
-
 				if ( !hModule )
 					{
-					DWORD error = GetLastError();
-					printf( "LoadLibrary failed with error code: %d\n", error );
-
 					continue;
 					}
 
@@ -169,15 +165,10 @@ void VsTestlab::Startup()
 		return CategoryCompare < 0;
 		} );
 
-	mTests.reserve( mPlugins.size() );
-	for ( VsPluginPtr& Plugin : mPlugins )
-		{
-		VsCreator vsCreatePlugin = TestEntries[ mTestIndex ].Creator;
-		VsTest* Test = vsCreatePlugin( Plugin.get() );
-		Test->Create( mCamera );
-
-		mTests.push_back( Test );
-		}
+	// DIRK_TODO: Find initial index...
+	int TestIndex = 0;
+	mTests.resize( mPlugins.size() );
+	CreateTests( TestIndex );
 	}
 
 
@@ -382,6 +373,80 @@ void VsTestlab::DrawOutliner()
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
 
+		// Test selections
+		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+		for ( int TestIndex = 0; TestIndex < static_cast< int >( TestEntries.size() ); ++TestIndex )
+			{
+			// New category
+			const char* Category = TestEntries[ TestIndex ].Category;
+			if ( strcmp( TestEntries[ mTestIndex ].Category, Category ) == 0 )
+				{
+				// Assure the parent of the initial test selection is always open
+				ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+				}
+
+			ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+			bool CategoryOpen = ImGui::TreeNodeEx( Category, CategoryFlags );
+
+			while ( true )
+				{
+				if ( CategoryOpen )
+					{
+					bool Selected = ( TestIndex == mTestIndex );
+					ImGuiTreeNodeFlags TestFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+					if ( Selected )
+						{
+						TestFlags |= ImGuiTreeNodeFlags_Selected;
+						}
+
+					if ( ImGui::TreeNodeEx( TestEntries[ TestIndex ].Name, TestFlags ) )
+						{
+						if ( ImGui::IsItemClicked() )
+							{
+							DestroyTests();
+							CreateTests( TestIndex );
+							}
+
+						ImGui::TreePop();
+						}
+					}
+
+				const char* NextCategory = TestIndex + 1 < TestEntries.size() ? TestEntries[ TestIndex + 1 ].Category : "";
+				if ( strcmp( NextCategory, Category ) != 0 )
+					{
+					break;
+					}
+
+				TestIndex++;
+				}
+
+			if ( CategoryOpen )
+				{
+				ImGui::TreePop();
+				}
+			}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		// Test management
+		if ( ImGui::Button( "Pause", ImVec2( -1, 0 ) ) )
+			{
+		
+			}
+
+		if ( ImGui::Button( "Restart", ImVec2( -1, 0 ) ) )
+			{
+			DestroyTests();
+			CreateTests( mTestIndex );
+			}
+
+		if ( ImGui::Button( "Quit", ImVec2( -1, 0 ) ) )
+			{
+			glfwSetWindowShouldClose( mWindow, GLFW_TRUE );
+			}
+
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar( 2 );
@@ -460,6 +525,34 @@ void VsTestlab::Status()
 			}
 		}
 	ImGui::End();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::CreateTests( int TestIndex )
+	{
+	mTestIndex = TestIndex;
+
+	int PluginCount = static_cast< int >( mPlugins.size() );
+	VS_ASSERT( mTests.size() == PluginCount );
+
+	for ( int PluginIndex = 0; PluginIndex < PluginCount; ++PluginIndex )
+		{
+		VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
+		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+		VsCreator vsCreatePlugin = TestEntries[ TestIndex ].Creator;
+		VsTest* Test = vsCreatePlugin( Plugin.get() );
+		Test->Create( mCamera );
+
+		mTests[ PluginIndex ] = Test;
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsTestlab::DestroyTests()
+	{
+	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { delete Test; } );
 	}
 
 

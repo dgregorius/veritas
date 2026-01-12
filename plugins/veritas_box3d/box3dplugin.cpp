@@ -516,6 +516,9 @@ b3BodyId VsBox3dBody::GetNative() const
 VsBox3dWorld::VsBox3dWorld( VsBox3dPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
+	int WorkerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
+	mTaskScheduler.Initialize( WorkerCount );
+
 	b3WorldDef WorldDef = b3DefaultWorldDef();
 	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
 	WorldDef.workerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
@@ -538,6 +541,7 @@ VsBox3dWorld::~VsBox3dWorld()
 		delete Body;
 		}
 
+	VS_ASSERT( mTaskCount == 0 );
 	b3DestroyWorld( mNative );
 	}
 
@@ -721,13 +725,12 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 	if ( mTaskCount < MaxTasks )
 		{
 		VsBox3dTask* Task = mTaskList + mTaskCount++;
-		Task->m_SetSize = ItemCount;
-		Task->m_MinRange = MinRange;
+		VS_ASSERT( Task->GetIsComplete() );
 		Task->TaskCallback = TaskCallback;
 		Task->TaskContext = TaskContext;
-
-		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
-		TaskScheduler.AddTaskSetToPipe( Task );
+		Task->m_SetSize = ItemCount;
+		Task->m_MinRange = MinRange;
+		mTaskScheduler.AddTaskSetToPipe( Task );
 
 		return Task;
 		}
@@ -743,7 +746,7 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 //--------------------------------------------------------------------------------------------------
 void VsBox3dWorld::FinishTask( void* Task, void* UserContext )
 	{
-	static VsBox3dWorld* World = static_cast<VsBox3dWorld*>( UserContext );
+	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
 	return World->FinishTask( Task );
 	}
 
@@ -753,8 +756,7 @@ void VsBox3dWorld::FinishTask( void* Task )
 	{
 	if ( Task )
 		{
-		enki::TaskScheduler& TaskScheduler = mPlugin->GetTaskScheduler();
-		TaskScheduler.WaitforTask( static_cast<VsBox3dTask*>( Task ) );
+		mTaskScheduler.WaitforTask( static_cast< VsBox3dTask* >( Task ) );
 		}
 	}
 
@@ -764,8 +766,7 @@ void VsBox3dWorld::FinishTask( void* Task )
 //--------------------------------------------------------------------------------------------------
 VsBox3dPlugin::VsBox3dPlugin()
 	{
-	int WorkerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
-	mTaskScheduler.Initialize( WorkerCount );
+	
 	}
 
 
@@ -960,20 +961,6 @@ IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex )
 const IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler()
-	{
-	return mTaskScheduler;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const enki::TaskScheduler& VsBox3dPlugin::GetTaskScheduler() const
-	{
-	return mTaskScheduler;
 	}
 
 

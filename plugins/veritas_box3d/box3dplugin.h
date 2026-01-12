@@ -36,6 +36,9 @@ class VsBox3dPlugin;
 class VsBox3dTask : public enki::ITaskSet
 	{
 	public:
+		VsBox3dTask() { printf( "Create Task\n" ); }
+		virtual ~VsBox3dTask() { printf( "Destroy Task\n" ); }
+
 		virtual void ExecuteRange( enki::TaskSetPartition Range, uint32_t WorkerIndex ) override;
 
 		b3TaskCallback* TaskCallback = nullptr;
@@ -257,6 +260,8 @@ class VsBox3dWorld : public IVsWorld
 		int mTaskCount = 0;
 		enum { MaxTasks = 32 };
 		VsBox3dTask mTaskList[ MaxTasks ];
+		enki::TaskScheduler mTaskScheduler;
+
 		b3WorldId mNative = {};
 	};
 
@@ -300,14 +305,8 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
-		// Shared
-		enki::TaskScheduler& GetTaskScheduler();
-		const enki::TaskScheduler& GetTaskScheduler() const;
-
 	private:
 		std::vector< VsBox3dHull* > mHulls;
 		std::vector< VsBox3dMesh* > mMeshes;
 		std::vector< VsBox3dWorld* > mWorlds;
-
-		enki::TaskScheduler mTaskScheduler;
 	};
