@@ -549,6 +549,8 @@ VsBox3dWorld::~VsBox3dWorld()
 
 	VS_ASSERT( mTaskCount == 0 );
 	b3DestroyWorld( mNative );
+
+	mTaskScheduler.WaitforAllAndShutdown();
 	}
 
 
