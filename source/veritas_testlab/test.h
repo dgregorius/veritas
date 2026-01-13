@@ -55,6 +55,8 @@ struct VsTestEntry
 	{
 	const char* Category = nullptr;
 	const char* Name = nullptr;
+	VsOrbit Orbit;
+
 	VsCreator Creator = nullptr;
 	};
 
@@ -70,7 +72,7 @@ VsTest* vsCreateTest( IVsPlugin* Plugin )
 	return new T( Plugin );
 	}
 
-int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator );
+int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, VsCreator Creator );
 
-#define VS_DEFINE_TEST( Category, Name, Type ) \
-static const int s##Type = vsRegisterTest( Category, Name, vsCreateTest< Type > )
+#define VS_DEFINE_TEST( Category, Name, Orbit, Type ) \
+static const int s##Type = vsRegisterTest( Category, Name, Orbit, vsCreateTest< Type > )

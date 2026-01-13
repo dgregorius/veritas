@@ -12,12 +12,25 @@
 #pragma once
 
 // Veritas
-#include <veritas//veritas.h>
+#include <veritas/veritas.h>
 
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+
+//--------------------------------------------------------------------------------------------------
+// VsOrbit
+//--------------------------------------------------------------------------------------------------
+struct VsOrbit
+	{
+	float Yaw = 45.0f;
+	float Pitch = -20.0f;
+	float Radius = 15.0f;
+
+	glm::vec3 Target = { 0, 0, 0 };
+	};
 
 
 //--------------------------------------------------------------------------------------------------
@@ -39,6 +52,8 @@ class VsCamera
 		void SetRadius( float Radius );
 		glm::vec3 GetTarget() const;
 		void SetTarget( const glm::vec3& Target );
+		VsOrbit GetOrbit() const;
+		void SetOrbit( const VsOrbit& Orbit );
 
 		glm::vec3 GetPosition() const;
 		glm::quat GetOrientation() const;

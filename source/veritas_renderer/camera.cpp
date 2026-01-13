@@ -91,6 +91,23 @@ void VsCamera::SetTarget( const glm::vec3& Target )
 
 
 //--------------------------------------------------------------------------------------------------
+VsOrbit VsCamera::GetOrbit() const
+	{
+	return { mYaw, mPitch, mRadius, mTarget };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::SetOrbit( const VsOrbit& Orbit )
+	{
+	SetYaw( Orbit.Yaw );
+	SetPitch( Orbit.Pitch );
+	SetRadius( Orbit.Radius );
+	SetTarget( Orbit.Target );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 glm::vec3 VsCamera::GetPosition() const
 	{
 	return mTarget - mRadius * GetForward();

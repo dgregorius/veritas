@@ -648,7 +648,8 @@ void VsTestlab::Status()
 		{
 		if ( ImGui::BeginMenuBar() )
 			{
-			ImGui::Text( "Ready..." );
+			VsOrbit Orbit = mCamera->GetOrbit();
+			ImGui::Text( "Yaw: %g, Pitch: %g, Radius %g, Target: (%g, %g, %g)", Orbit.Yaw, Orbit.Pitch, Orbit.Radius, Orbit.Target.x, Orbit.Target.y, Orbit.Target.z );
 			ImGui::EndMenuBar();
 			}
 		}
@@ -659,7 +660,13 @@ void VsTestlab::Status()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::CreateTests( int TestIndex )
 	{
-	mTestIndex = TestIndex;
+	const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+	if ( mTestIndex != TestIndex )
+		{
+		mTestIndex = TestIndex;
+		mCamera->SetOrbit( TestEntries[ TestIndex ].Orbit );
+		}
+	
 	mTime = 0.0;
 
 	int PluginCount = static_cast< int >( mPlugins.size() );
@@ -672,7 +679,6 @@ void VsTestlab::CreateTests( int TestIndex )
 		if ( Plugin->IsEnabled() )
 			{
 			VS_ASSERT( !mTests[ PluginIndex ] );
-			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 			VsCreator vsCreateTest = TestEntries[ TestIndex ].Creator;
 			VsTest* Test = vsCreateTest( Plugin.get() );
 			Test->Create( mCamera );

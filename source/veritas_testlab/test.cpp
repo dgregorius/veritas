@@ -62,10 +62,10 @@ std::vector< VsTestEntry >& vsGetTestEntries()
 //--------------------------------------------------------------------------------------------------
 // Test registry
 //--------------------------------------------------------------------------------------------------
-int vsRegisterTest( const char* Category, const char* Name, VsCreator Creator )
+int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, VsCreator Creator )
 	{
 	std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
-	TestEntries.push_back( { Category, Name, Creator } );
+	TestEntries.push_back( { Category, Name, Orbit, Creator } );
 	
 	return static_cast< int >( TestEntries.size() - 1 );
 	}
