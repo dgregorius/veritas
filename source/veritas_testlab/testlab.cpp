@@ -195,14 +195,15 @@ void VsTestlab::UpdateFrame()
 	float Timestep = 1.0f / VsClock::GetFrequency();
 	for ( size_t TestIndex = 0; TestIndex < mTests.size(); ++TestIndex )
 		{
-		VsTest* Test = mTests[ TestIndex ];
+		if ( VsTest* Test = mTests[ TestIndex ] )
+			{
+			uint64_t Ticks1 = vsGetTicks();
+			Test->Update( 0.0f, Timestep );
+			uint64_t Ticks2 = vsGetTicks();
 
-		uint64_t Ticks1 = vsGetTicks();
-		Test->Update( 0.0f, Timestep );
-		uint64_t Ticks2 = vsGetTicks();
-
-		float DeltaTime = static_cast< float >( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
-		mSamples[ TestIndex ].AddPoint( mTime, DeltaTime );
+			float DeltaTime = static_cast<float>( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
+			mSamples[ TestIndex ].AddPoint( mTime, DeltaTime );
+			}
 		}
 	}
 
@@ -270,8 +271,11 @@ void VsTestlab::Shutdown()
 		VsTest* Test = mTests.back();
 		mTests.pop_back();
 
-		Test->Destroy();
-		delete Test;
+		if ( Test )
+			{
+			Test->Destroy();
+			delete Test;
+			}
 		}
 
 	// Terminate plugin framework
@@ -336,7 +340,10 @@ void VsTestlab::RenderTests()
 
 	for ( VsTest* Test : mTests )
 		{
-		Test->Render( Time, ElapsedTime );
+		if ( Test )
+			{
+			Test->Render( Time, ElapsedTime );
+			}
 		}
 	}
 
@@ -410,7 +417,9 @@ void VsTestlab::DrawInspector()
 			bool Enabled = Plugin->IsEnabled();
 			if ( ImGui::Checkbox( Plugin->GetName(), &Enabled ) )
 				{
+				DestroyTests();
 				Plugin->SetEnabled( Enabled );
+				CreateTests( mTestIndex );
 				}
 			}
 
@@ -564,7 +573,7 @@ void VsTestlab::DrawProfiler()
 				{
 				const VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
 				const ImScrollingBuffer& Samples = mSamples[ PluginIndex ];
-				if ( !Samples.Empty() )
+				if ( Plugin->IsEnabled() && !Samples.Empty() )
 					{
 					ImPlot::PlotShaded( Plugin->GetName(), &Samples.Data[ 0 ].x, &Samples.Data[ 0 ].y, Samples.Data.size(), 0.0f, 0, Samples.Offset, 2 * sizeof( float ) );
 					}
@@ -576,7 +585,7 @@ void VsTestlab::DrawProfiler()
 				{
 				const VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
 				const ImScrollingBuffer& Samples = mSamples[ PluginIndex ];
-				if ( !Samples.Empty() )
+				if ( Plugin->IsEnabled() && !Samples.Empty() )
 					{
 					ImPlot::PlotLine( Plugin->GetName(), &Samples.Data[ 0 ].x, &Samples.Data[ 0 ].y, Samples.Data.size(), 0, Samples.Offset, 2 * sizeof( float ) );
 					}
@@ -658,13 +667,16 @@ void VsTestlab::CreateTests( int TestIndex )
 	for ( int PluginIndex = 0; PluginIndex < PluginCount; ++PluginIndex )
 		{
 		VsPluginPtr& Plugin = mPlugins[ PluginIndex ];
-		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
-		VsCreator vsCreatePlugin = TestEntries[ TestIndex ].Creator;
-		VsTest* Test = vsCreatePlugin( Plugin.get() );
-		Test->Create( mCamera );
+		if ( Plugin->IsEnabled() )
+			{
+			VS_ASSERT( !mTests[ PluginIndex ] );
+			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+			VsCreator vsCreateTest = TestEntries[ TestIndex ].Creator;
+			VsTest* Test = vsCreateTest( Plugin.get() );
+			Test->Create( mCamera );
 
-		mTests[ PluginIndex ] = Test;
-		mSamples[ PluginIndex ].Erase();
+			mTests[ PluginIndex ] = Test;
+			}
 		}
 	}
 
@@ -672,7 +684,19 @@ void VsTestlab::CreateTests( int TestIndex )
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DestroyTests()
 	{
-	std::for_each( mTests.begin(), mTests.end(), []( VsTest* Test ) { delete Test; } );
+	int PluginCount = static_cast< int >( mPlugins.size() );
+	for ( int PluginIndex = 0; PluginIndex < PluginCount; ++PluginIndex )
+		{
+		VsTest* Test = mTests[ PluginIndex ];
+		if ( Test )
+			{
+			Test->Destroy();
+			delete Test;
+			}
+
+		mTests[ PluginIndex ] = nullptr;
+		mSamples[ PluginIndex ].Erase();
+		}
 	}
 
 
