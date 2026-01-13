@@ -1,2 +1,2 @@
-- Add function to query test bounds to setup initial camera
+- Add a way to setup initial camera
 - Add more tests and shapes
