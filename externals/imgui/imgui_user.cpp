@@ -104,8 +104,6 @@ void EndFrame( GLFWwindow* Window )
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent( Window );
 		}
-
-	glfwSwapBuffers( Window );
 	}
 
 void Shutdown( GLFWwindow* )

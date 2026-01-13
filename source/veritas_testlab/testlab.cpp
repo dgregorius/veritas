@@ -87,9 +87,11 @@ int VsTestlab::Run()
 				EndFrame();
 				}
 			ImGui::EndFrame( mWindow );
-			VsClock::Advance();
-
+			
+			glfwSwapBuffers( mWindow );
 			glfwPollEvents();
+
+			VsClock::Advance();
 			}
 		VsClock::Stop();
 		Shutdown();
