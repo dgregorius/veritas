@@ -1,0 +1,94 @@
+// SPDX-FileCopyrightText: 2025 Erin Catto
+// SPDX-License-Identifier: MIT
+
+#pragma once
+
+#include "array.h"
+#include "table.h"
+
+#include "box3d/collision.h"
+#include "box3d/types.h"
+
+struct b3Shape;
+struct b3MovePair;
+struct b3MoveResult;
+struct b3ArenaAllocator;
+struct b3World;
+
+// Store the proxy type in the lower 2 bits of the proxy key. This leaves 30 bits for the id.
+#define B3_PROXY_TYPE( KEY ) ( (b3BodyType)( ( KEY ) & 3 ) )
+#define B3_PROXY_ID( KEY ) ( ( KEY ) >> 2 )
+#define B3_PROXY_KEY( ID, TYPE ) ( ( ( ID ) << 2 ) | ( TYPE ) )
+
+/// The broad-phase is used for computing pairs and performing volume queries and ray casts.
+/// This broad-phase does not persist pairs. Instead, this reports potentially new pairs.
+/// It is up to the client to consume the new pairs and to track subsequent overlap.
+typedef struct b3BroadPhase
+{
+	b3DynamicTree trees[b3_bodyTypeCount];
+
+	// The move set and array are used to track shapes that have moved significantly
+	// and need a pair query for new contacts. The array has a deterministic order.
+	// todo perhaps just a move set?
+	// todo implement a 32bit hash set for faster lookup
+	// todo moveSet can grow quite large on the first time step and remain large
+	b3HashSet moveSet;
+	b3Array<int> moveArray;
+
+	// These are the results from the pair query and are used to create new contacts
+	// in deterministic order.
+	// todo these could be in the step context
+	b3MoveResult* moveResults;
+	b3MovePair* movePairs;
+	int movePairCapacity;
+	b3AtomicInt movePairIndex;
+
+	// Tracks shape pairs that have a b3Contact
+	// todo pairSet can grow quite large on the first time step and remain large
+	b3HashSet pairSet;
+} b3BroadPhase;
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+void b3CreateBroadPhase( b3BroadPhase* bp, const b3Capacity* capacity );
+void b3DestroyBroadPhase( b3BroadPhase* bp );
+
+int b3BroadPhase_CreateProxy( b3BroadPhase* bp, b3BodyType proxyType, b3AABB aabb, uint64_t categoryBits, int shapeIndex,
+							  bool forcePairCreation );
+void b3BroadPhase_DestroyProxy( b3BroadPhase* bp, int proxyKey );
+
+void b3BroadPhase_MoveProxy( b3BroadPhase* bp, int proxyKey, b3AABB aabb );
+void b3BroadPhase_EnlargeProxy( b3BroadPhase* bp, int proxyKey, b3AABB aabb );
+
+void b3BroadPhase_RebuildTrees( b3BroadPhase* bp );
+
+int b3BroadPhase_GetShapeIndex( b3BroadPhase* bp, int proxyKey );
+
+void b3UpdateBroadPhasePairs( b3World* world );
+bool b3BroadPhase_TestOverlap( const b3BroadPhase* bp, int proxyKeyA, int proxyKeyB );
+
+void b3ValidateBroadphase( const b3BroadPhase* bp );
+void b3ValidateNoEnlarged( const b3BroadPhase* bp );
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+
+// This is what triggers new contact pairs to be created
+// Warning: this must be called in deterministic order
+inline void b3BufferMove( b3BroadPhase* bp, int queryProxy )
+{
+	// Adding 1 because 0 is the sentinel
+	bool alreadyAdded = b3AddKey( &bp->moveSet, queryProxy + 1 );
+	if ( alreadyAdded == false )
+	{
+		bp->moveArray.PushBack( queryProxy );
+	}
+}
+
+#endif

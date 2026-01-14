@@ -1,0 +1,129 @@
+// SPDX-FileCopyrightText: 2025 Erin Catto
+// SPDX-License-Identifier: MIT
+
+#include "box3d/types.h"
+
+#include "constants.h"
+#include "core.h"
+
+b3WorldDef b3DefaultWorldDef( void )
+{
+	b3WorldDef def = {};
+	def.gravity.x = 0.0f;
+	def.gravity.y = -10.0f;
+	def.hitEventThreshold = 1.0f * b3_lengthUnitsPerMeter;
+	def.restitutionThreshold = 1.0f * b3_lengthUnitsPerMeter;
+	def.contactSpeed = 3.0f * b3_lengthUnitsPerMeter;
+	def.contactHertz = 30.0f;
+	def.contactDampingRatio = 10.0f;
+
+	// 400 meters per second, faster than the speed of sound
+	def.maximumLinearSpeed = 400.0f * b3_lengthUnitsPerMeter;
+
+	def.enableSleep = true;
+	def.enableContinuous = true;
+	def.internalValue = B3_SECRET_COOKIE;
+	return def;
+}
+
+b3BodyDef b3DefaultBodyDef( void )
+{
+	b3BodyDef def = {};
+	def.type = b3_staticBody;
+	def.rotation = b3Quat_identity;
+	def.sleepThreshold = 0.05f * b3_lengthUnitsPerMeter;
+	def.gravityScale = 1.0f;
+	def.enableSleep = true;
+	def.isAwake = true;
+	def.isEnabled = true;
+	def.enableContinuousCollision = true;
+	def.internalValue = B3_SECRET_COOKIE;
+	return def;
+}
+
+b3Filter b3DefaultFilter( void )
+{
+	b3Filter filter = { B3_DEFAULT_CATEGORY_BITS, B3_DEFAULT_MASK_BITS, 0 };
+	return filter;
+}
+
+b3QueryFilter b3DefaultQueryFilter( void )
+{
+	b3QueryFilter filter = { B3_DEFAULT_CATEGORY_BITS, B3_DEFAULT_MASK_BITS };
+	return filter;
+}
+
+b3SurfaceMaterial b3DefaultSurfaceMaterial( void )
+{
+	b3SurfaceMaterial surfaceMaterial = {};
+	surfaceMaterial.friction = 0.6f;
+	return surfaceMaterial;
+}
+
+b3ShapeDef b3DefaultShapeDef( void )
+{
+	b3ShapeDef def = {};
+	def.baseMaterial = b3DefaultSurfaceMaterial();
+	// density of water
+	def.density = 1000.0f / (b3_lengthUnitsPerMeter * b3_lengthUnitsPerMeter * b3_lengthUnitsPerMeter);
+	def.filter = b3DefaultFilter();
+	def.updateBodyMass = true;
+	def.invokeContactCreation = true;
+	def.internalValue = B3_SECRET_COOKIE;
+	return def;
+}
+
+static bool b3EmptyDrawShape( void* userShape, b3Transform transform, b3HexColor color, void* context )
+{
+	B3_UNUSED( userShape, transform, color, context );
+	return false;
+}
+
+static void b3EmptyDrawSegment( b3Vec3 p1, b3Vec3 p2, b3HexColor color, void* context )
+{
+	B3_UNUSED( p1, p2, color, context );
+}
+
+static void b3EmptyDrawTransform( b3Transform transform, void* context )
+{
+	B3_UNUSED( transform, context );
+}
+
+static void b3EmptyDrawPoint( b3Vec3 p, float size, b3HexColor color, void* context )
+{
+	B3_UNUSED( p, size, color, context );
+}
+
+static void b3EmptyDrawBounds( b3AABB aabb, b3HexColor color, void* context )
+{
+	B3_UNUSED( aabb, color, context );
+}
+
+static void b3EmptyDrawBox( b3Vec3 extents, b3Transform transform, b3HexColor color, void* context )
+{
+	B3_UNUSED( extents, transform, color, context );
+}
+
+static void b3EmptyDrawString( b3Vec3 p, const char* s, b3HexColor color, void* context )
+{
+	B3_UNUSED( p, s, color, context );
+}
+
+b3DebugDraw b3DefaultDebugDraw()
+{
+	b3DebugDraw draw = {};
+
+	// These allow the user to skip some implementations and not hit null exceptions.
+	draw.DrawShapeFcn = b3EmptyDrawShape;
+	draw.DrawSegmentFcn = b3EmptyDrawSegment;
+	draw.DrawTransformFcn = b3EmptyDrawTransform;
+	draw.DrawPointFcn = b3EmptyDrawPoint;
+	draw.DrawBoundsFcn = b3EmptyDrawBounds;
+	draw.DrawBoxFcn = b3EmptyDrawBox;
+	draw.DrawStringFcn = b3EmptyDrawString;
+
+	draw.jointScale = 1.0f;
+	draw.forceScale = 1.0f;
+
+	return draw;
+}

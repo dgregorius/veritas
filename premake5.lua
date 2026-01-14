@@ -51,6 +51,14 @@ workspace "veritas"
 	-- Externals
 	group "externals"
 
+		-- Add Box3d 
+			project "box3d"
+			location "build/externals/box3d"
+			kind "StaticLib"
+			files { "externals/box3d/include/**", "externals/box3d/src/**" }	
+			includedirs { "externals/box3d/include" }
+			cdialect "C17"  
+			
 		-- Add EnkiTS 
 			project "enkits"
 			location "build/externals/enkits"
@@ -79,13 +87,7 @@ workspace "veritas"
 			location "build/plugins/veritas_box3d"
 			files { "plugins/veritas_box3d/**" }
 			includedirs { "source", "externals/box3d/include", "externals/enkits", "externals/imgui" }
-			libdirs { "externals/box3d/lib" }
-			links { "veritas", "imgui", "enkits" }
-			filter "configurations:Debug"
-				links { "box3dd" }
-			filter "configurations:Release"
-				links { "box3d" }
-   			filter {}
+			links { "veritas", "box3d", "imgui", "enkits" }
 			
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_box3d.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/box3d" }
 			
