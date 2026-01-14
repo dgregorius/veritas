@@ -560,9 +560,8 @@ void VsTestlab::DrawProfiler()
 	if ( ImGui::Begin( "Profiler" ) )
 		{
 		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
+		ImGui::BeginChild( "##Child" );
 
 		const float History = 30.0f;
 		if ( ImPlot::BeginPlot( "##Scrolling", ImVec2( -1, -1 ) ) )
@@ -598,7 +597,7 @@ void VsTestlab::DrawProfiler()
 
 		ImGui::EndChild();
 		ImGui::PopStyleColor();
-		ImGui::PopStyleVar( 2 );
+		ImGui::PopStyleVar();
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();
