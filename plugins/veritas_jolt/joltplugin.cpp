@@ -16,10 +16,10 @@
 #include <iostream>
 #include <thread>
 
-static inline constexpr uint cMaxBodies = 1024;
+static inline constexpr uint cMaxBodies = 65536;
+static inline constexpr uint cMaxBodyPairs = 65536;
+static inline constexpr uint cMaxContactConstraints = 65536;
 static inline constexpr uint cNumBodyMutexes = 0;
-static inline constexpr uint cMaxBodyPairs = 1024;
-static inline constexpr uint cMaxContactConstraints = 1024;
 
 
 //--------------------------------------------------------------------------------------------------

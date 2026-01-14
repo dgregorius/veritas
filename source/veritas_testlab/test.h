@@ -21,6 +21,12 @@
 #include <veritas_renderer/vertex.h>
 #include <veritas_renderer/worldrenderer.h>
 
+#if defined( DEBUG ) || defined( _DEBUG )
+#define VS_DEBUG_TEST 1
+#else
+#define VS_DEBUG_TEST 0
+#endif
+
 
 //--------------------------------------------------------------------------------------------------
 // VsTest
@@ -30,7 +36,7 @@ class VsTest
 	public:
 		// Construction / Destruction
 		explicit VsTest( IVsPlugin* Plugin );
-		virtual ~VsTest();
+		virtual ~VsTest() = default;
 
 		// Lifetime management
 		virtual void Create( VsCamera* Camera ) = 0;

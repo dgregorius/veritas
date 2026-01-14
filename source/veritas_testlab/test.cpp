@@ -21,14 +21,6 @@ VsTest::VsTest( IVsPlugin* Plugin )
 
 
 //--------------------------------------------------------------------------------------------------
-VsTest::~VsTest()
-	{
-	mPlugin->DestroyWorld( mWorld );
-	delete mWorldRenderer;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 void VsTest::Update( double Time, float ElapsedTime )
 	{
 	mWorld->Step( ElapsedTime );
@@ -45,7 +37,8 @@ void VsTest::Render( double Time, float ElapsedTime )
 //--------------------------------------------------------------------------------------------------
 void VsTest::Destroy()
 	{
-
+	mPlugin->DestroyWorld( mWorld );
+	delete mWorldRenderer;
 	}
 
 

@@ -547,9 +547,10 @@ VsBox3dWorld::~VsBox3dWorld()
 		delete Body;
 		}
 
-	VS_ASSERT( mTaskCount == 0 );
+	VS_ASSERT( b3World_GetAwakeBodyCount( mNative ) == 0 );
 	b3DestroyWorld( mNative );
 
+	VS_ASSERT( mTaskCount == 0 );
 	mTaskScheduler.WaitforAllAndShutdown();
 	}
 
@@ -733,11 +734,11 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 	if ( mTaskCount < MaxTasks )
 		{
 		VsBox3dTask* Task = mTaskList + mTaskCount++;
-		VS_ASSERT( Task->GetIsComplete() );
 		Task->TaskCallback = TaskCallback;
 		Task->TaskContext = TaskContext;
 		Task->m_SetSize = ItemCount;
 		Task->m_MinRange = MinRange;
+
 		mTaskScheduler.AddTaskSetToPipe( Task );
 
 		return Task;
