@@ -1,4 +1,11 @@
 
+-- Custom options
+newoption 
+{
+   trigger     = "asan",
+   description = "Enable Address Sanitizer (ASAN) for debugging"
+}
+
 -- Create Veritas solution
 workspace "veritas"
 
@@ -31,10 +38,12 @@ workspace "veritas"
 	filter "configurations:debug"
 		objdir "%{prj.location}/obj/debug"
 		targetdir "%{prj.location}/out/debug"
-		--sanitize { "Address" }
 		defines { "DEBUG" }
 		symbols "On"	
 
+	filter { "configurations:Debug", "options:asan" }
+    	sanitize { "Address" }
+      		
 	filter "configurations:instrumented"
 		objdir "%{prj.location}/obj/instrumented"
 		targetdir "%{prj.location}/out/instrumented"
