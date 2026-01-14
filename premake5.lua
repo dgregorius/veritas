@@ -147,6 +147,16 @@ workspace "veritas"
         
 			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_physx.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/physx" }
 
+		-- Add Veritas Ragnarok
+		project "veritas_ragnarok"
+			kind "SharedLib"
+			location "build/plugins/veritas_ragnarok"
+			files { "plugins/veritas_ragnarok/**" }
+			includedirs { "source", "externals", "externals/imgui", "externals/qhull", "externals/simd", "externals/taskflow", "externals/verstable" }
+			links { "veritas", "imgui", "qhull", "ragnarok" }
+			
+			postbuildcommands { "{COPY} %{cfg.targetdir}/veritas_ragnarok.dll %{_MAIN_SCRIPT_DIR}/bin/plugins/ragnarok" }
+
 	-- Source
 	group "source"
 

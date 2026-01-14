@@ -77,7 +77,7 @@ VsBox3dHull::VsBox3dHull( b3Hull* Hull )
 		if ( EdgeCount > 0 && HullEdges )
 			{
 			mEdgePositions.resize( 2 * EdgeCount );
-			for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; EdgeIndex++ )
+			for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; ++EdgeIndex )
 				{
 				int EdgeOffset = 2 * EdgeIndex + 0;
 				const b3HullHalfEdge* Edge = HullEdges + EdgeOffset;

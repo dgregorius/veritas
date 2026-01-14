@@ -1,9 +1,9 @@
 //--------------------------------------------------------------------------------------------------
-// physxplugin.cpp	
+// ragnarokplugin.cpp	
 //
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
-#include "physxplugin.h"
+#include "ragnarokplugin.h"
 
 // ImGUI
 #include <imgui.h>
@@ -11,302 +11,229 @@
 #include <implot.h>
 #include <implot_internal.h>
 
-// Windows
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 
 //--------------------------------------------------------------------------------------------------
-// VsPhysXEdge
+// VsRagnarokHull
 //--------------------------------------------------------------------------------------------------
-struct VsPhysXEdge
+VsRagnarokHull::VsRagnarokHull( RkHull* Hull )
 	{
-	int Index1;
-	int Index2;
-	};
+	VS_ASSERT( Hull );
+	mNative = Hull;
 
-
-//--------------------------------------------------------------------------------------------------
-static inline bool operator<( VsPhysXEdge Lhs, VsPhysXEdge Rhs )
-	{
-	return ( Lhs.Index1 == Rhs.Index1 ? Lhs.Index2 < Rhs.Index2 : Lhs.Index1 < Rhs.Index1 );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-static inline bool operator==( VsPhysXEdge Lhs, VsPhysXEdge Rhs )
-	{
-	return Lhs.Index1 == Rhs.Index1 && Lhs.Index2 == Rhs.Index2;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-// VsPhysXHull
-//--------------------------------------------------------------------------------------------------
-VsPhysXHull::VsPhysXHull( PxConvexMesh* ConvexMesh )
-	{
-	VS_ASSERT( ConvexMesh );
-	mNative = ConvexMesh;
-
-	int PolygonCount = ConvexMesh->getNbPolygons();
-	const PxU8* IndexBuffer = ConvexMesh->getIndexBuffer();
-	const PxVec3* VertexBuffer = ConvexMesh->getVertices();
-	for ( int PolygonIndex = 0; PolygonIndex < PolygonCount; ++PolygonIndex )
+	// Vertices
+	for ( int FaceIndex = 0; FaceIndex < Hull->FaceCount; ++FaceIndex )
 		{
-		PxHullPolygon Polygon;
-		ConvexMesh->getPolygonData( PolygonIndex, Polygon );
-		
-		int IndexCount = Polygon.mNbVerts;
-		const PxU8* Indices = IndexBuffer + Polygon.mIndexBase;
-		PxVec3 FaceNormal( Polygon.mPlane[ 0 ], Polygon.mPlane[ 1 ], Polygon.mPlane[ 2 ] );
+		const RkFace* Face = Hull->GetFace( FaceIndex );
+		const RkPlane3 FacePlane = Hull->GetPlane( FaceIndex );
+		const RkVector3 FaceNormal = FacePlane.Normal;
 
-		int PivotIndex = Indices[ 0 ];
-		PxVec3 Pivot = VertexBuffer[ PivotIndex ];
-		for ( int Index = 1; Index < IndexCount - 1; ++Index )
+		const RkHalfEdge* Edge1 = Hull->GetEdge( Face->Edge );
+		const RkHalfEdge* Edge2 = Hull->GetEdge( Edge1->Next );
+		const RkHalfEdge* Edge3 = Hull->GetEdge( Edge2->Next );
+		RK_ASSERT( Edge1 != Edge3 );
+
+		do
 			{
-			mVertexPositions.push_back( VsVector3( Pivot.x, Pivot.y, Pivot.z ) );
-			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+			int VertexIndex1 = Edge1->Origin;
+			RkVector3 Vertex1 = Hull->GetPosition( VertexIndex1 );
+			mVertexPositions.push_back( { Vertex1.X, Vertex1.Y, Vertex1.Z } );
+			mVertexNormals.push_back( { FaceNormal.X, FaceNormal.Y, FaceNormal.Z } );
 
-			int VertexIndex1 = Indices[ Index + 0 ];
-			PxVec3 Vertex1 = VertexBuffer[ VertexIndex1 ];
-			mVertexPositions.push_back( VsVector3( Vertex1.x, Vertex1.y, Vertex1.z ) );
-			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+			int VertexIndex2 = Edge2->Origin;
+			RkVector3 Vertex2 = Hull->GetPosition( VertexIndex2 );
+			mVertexPositions.push_back( { Vertex2.X, Vertex2.Y, Vertex2.Z } );
+			mVertexNormals.push_back( { FaceNormal.X, FaceNormal.Y, FaceNormal.Z } );
 
-			int VertexIndex2 = Indices[ Index + 1 ];
-			PxVec3 Vertex2 = VertexBuffer[ VertexIndex2 ];
-			mVertexPositions.push_back( VsVector3( Vertex2.x, Vertex2.y, Vertex2.z ) );
-			mVertexNormals.push_back( VsVector3( FaceNormal.x, FaceNormal.y, FaceNormal.z ) );
+			int VertexIndex3 = Edge3->Origin;
+			RkVector3 Vertex3 = Hull->GetPosition( VertexIndex3 );
+			mVertexPositions.push_back( { Vertex3.X, Vertex3.Y, Vertex3.Z } );
+			mVertexNormals.push_back( { FaceNormal.X, FaceNormal.Y, FaceNormal.Z } );
+			
+
+			Edge2 = Edge3;
+			Edge3 = Hull->GetEdge( Edge3->Next );
 			}
+		while ( Edge1 != Edge3 );
 		}
 
-	// Extract (unique) edges
-	std::vector< VsPhysXEdge > Edges;
-	for ( int FaceIndex = 0; FaceIndex < PolygonCount; ++FaceIndex )
+	// Edges (unique)
+	int EdgeCount = Hull->EdgeCount / 2;
+	mEdgePositions.resize( 2 * EdgeCount );
+	for ( int EdgeIndex = 0; EdgeIndex < EdgeCount; EdgeIndex++ )
 		{
-		for ( int PolygonIndex = 0; PolygonIndex < PolygonCount; ++PolygonIndex )
-			{
-			PxHullPolygon Polygon;
-			ConvexMesh->getPolygonData( PolygonIndex, Polygon );
+		const RkHalfEdge* Edge = Hull->GetEdge( 2 * EdgeIndex + 0 );
+		RkVector3 EdgeVertex = Hull->GetPosition( Edge->Origin );
+		const RkHalfEdge* Twin = Hull->GetEdge( 2 * EdgeIndex + 1 );
+		RkVector3 TwinVertex = Hull->GetPosition( Twin->Origin );
 
-			int IndexCount = Polygon.mNbVerts;
-			const PxU8* Indices = IndexBuffer + Polygon.mIndexBase;
-
-			int VertexIndex1 = Indices[ IndexCount - 1 ];
-			for ( int Index = 0; Index < IndexCount; ++Index )
-				{
-				int VertexIndex2 = Indices[ Index ];
-
-				VsPhysXEdge Edge;
-				Edge.Index1 = std::min( VertexIndex1, VertexIndex2 );
-				Edge.Index2 = std::max( VertexIndex1, VertexIndex2 );
-				Edges.push_back( Edge );
-
-				VertexIndex1 = VertexIndex2;
-				}
-			}
-		}
-
-	std::sort( Edges.begin(), Edges.end() );
-	Edges.resize( std::unique( Edges.begin(), Edges.end() ) - Edges.begin() );
-	for ( VsPhysXEdge Edge : Edges )
-		{
-		PxVec3 Vertex1 = VertexBuffer[ Edge.Index1 ];
-		mEdgePositions.push_back( VsVector3( Vertex1.x, Vertex1.y, Vertex1.z ) );
-		PxVec3 Vertex2 = VertexBuffer[ Edge.Index2 ];
-		mEdgePositions.push_back( VsVector3( Vertex2.x, Vertex2.y, Vertex2.z ) );
+		mEdgePositions[ 2 * EdgeIndex + 0 ] = { EdgeVertex.X, EdgeVertex.Y, EdgeVertex.Z };
+		mEdgePositions[ 2 * EdgeIndex + 1 ] = { TwinVertex.X, TwinVertex.Y, TwinVertex.Z };
 		}
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsPhysXHull::~VsPhysXHull()
+VsRagnarokHull::~VsRagnarokHull()
 	{
-	VS_ASSERT( mNative->getReferenceCount() == 1 );
-	PX_RELEASE( mNative );
+	rkDestroyHull( mNative );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXHull::GetVertexCount() const
-	{
-	return static_cast<int>( mVertexPositions.size() );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const VsVector3* VsPhysXHull::GetVertexPositions() const
-	{
-	return mVertexPositions.data();
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const VsVector3* VsPhysXHull::GetVertexNormals() const
-	{
-	return mVertexNormals.data();
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-int VsPhysXHull::GetEdgeCount() const
-	{
-	return static_cast<int>( mEdgePositions.size() / 2 );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const VsVector3* VsPhysXHull::GetEdgePositions() const
-	{
-	return mEdgePositions.data();
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-PxConvexMesh* VsPhysXHull::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-// VsPhysXHullShape
-//--------------------------------------------------------------------------------------------------
-VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
-	: mBody( Body )
-	, mHull( Hull )
-	{
-	VsPhysXWorld* World = static_cast< VsPhysXWorld* >( Body->GetWorld() );
-	VsPhysXPlugin* Plugin = static_cast< VsPhysXPlugin* >( World->GetPlugin() );
-
-	PxRigidActor* RigidActor = Body->GetNative();
-	mNative = PxRigidActorExt::createExclusiveShape( *RigidActor, PxConvexMeshGeometry( Hull->GetNative() ), *Plugin->GetDefaultMaterial() );
-	if ( RigidActor->getType() == PxActorType::eRIGID_DYNAMIC )
-		{
-		PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( RigidActor );
-		if ( !( RigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC ) )
-			{
-			PxRigidBodyExt::updateMassAndInertia( *RigidDynamic, 1000.0f );
-			}
-		}
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsPhysXHullShape::~VsPhysXHullShape()
-	{
-	PX_RELEASE( mNative );
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsShapeType VsPhysXHullShape::GetType() const
-	{
-	return VS_HULL_SHAPE;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-IVsBody* VsPhysXHullShape::GetBody() const
-	{
-	return mBody;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsColor VsPhysXHullShape::GetColor() const
-	{
-	return mColor;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsPhysXHullShape::SetColor( const VsColor& Color )
-	{
-	mColor = Color;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-const IVsHull* VsPhysXHullShape::GetHull() const
-	{
-	return mHull;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-PxShape* VsPhysXHullShape::GetNative() const
-	{
-	return mNative;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-// VsPhysXMesh
-//--------------------------------------------------------------------------------------------------
-VsPhysXMesh::VsPhysXMesh()
-	{
-
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsPhysXMesh::~VsPhysXMesh()
-	{
-
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-int VsPhysXMesh::GetVertexCount() const
+int VsRagnarokHull::GetVertexCount() const
 	{
 	return static_cast< int >( mVertexPositions.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const VsVector3* VsPhysXMesh::GetVertexPositions() const
+const VsVector3* VsRagnarokHull::GetVertexPositions() const
 	{
 	return mVertexPositions.data();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const VsVector3* VsPhysXMesh::GetVertexNormals() const
+const VsVector3* VsRagnarokHull::GetVertexNormals() const
 	{
 	return mVertexNormals.data();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPhysXBody
-//--------------------------------------------------------------------------------------------------
-VsPhysXBody::VsPhysXBody( VsPhysXWorld* World, VsBodyType Type )
-	: mWorld( World )
+int VsRagnarokHull::GetEdgeCount() const
 	{
-	VsPhysXPlugin* Plugin = static_cast< VsPhysXPlugin* >( World->GetPlugin() );
-	PxPhysics* Physics = Plugin->GetPhysics();
-	if ( Type == VS_STATIC_BODY )
-		{
-		PxRigidStatic* StaticBody = Physics->createRigidStatic( PxTransform( PxIdentity ) );
-		mNative = StaticBody;
-		}
-	else
-		{
-		PxRigidDynamic* DynamicBody = Physics->createRigidDynamic( PxTransform( PxIdentity ) );
-		DynamicBody->setRigidBodyFlag( PxRigidBodyFlag::eKINEMATIC, Type == VS_KEYFRAMED_BODY ? true : false );
-		DynamicBody->setRigidBodyFlag( PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, true );
-		mNative = DynamicBody;
-		}
-
-	VS_ASSERT( mNative );
-	PxScene* Scene = World->GetNative();
-	Scene->addActor( *mNative );
+	return static_cast< int >( mEdgePositions.size() / 2 );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsPhysXBody::~VsPhysXBody()
+const VsVector3* VsRagnarokHull::GetEdgePositions() const
+	{
+	return mEdgePositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+RkHull* VsRagnarokHull::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsRagnarokHullShape
+//--------------------------------------------------------------------------------------------------
+VsRagnarokHullShape::VsRagnarokHullShape( VsRagnarokBody* Body, const VsRagnarokHull* Hull )
+	: mBody( Body )
+	, mHull( Hull )
+	{
+	mNative = Body->GetNative()->AddHull( Hull->GetNative() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsRagnarokHullShape::~VsRagnarokHullShape()
+	{
+	mBody->GetNative()->RemoveShape( mNative );
+	mNative = nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsShapeType VsRagnarokHullShape::GetType() const
+	{
+	return VS_HULL_SHAPE;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsBody* VsRagnarokHullShape::GetBody() const
+	{
+	return mBody;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsRagnarokHullShape::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokHullShape::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const IVsHull* VsRagnarokHullShape::GetHull() const
+	{
+	return mHull;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+RkHullShape* VsRagnarokHullShape::GetNative() const
+	{
+	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsRagnarokMesh
+//--------------------------------------------------------------------------------------------------
+VsRagnarokMesh::VsRagnarokMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsRagnarokMesh::~VsRagnarokMesh()
+	{
+
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsRagnarokMesh::GetVertexCount() const
+	{
+	return static_cast< int >( mVertexPositions.size() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsRagnarokMesh::GetVertexPositions() const
+	{
+	return mVertexPositions.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+const VsVector3* VsRagnarokMesh::GetVertexNormals() const
+	{
+	return mVertexNormals.data();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsRagnarokBody
+//--------------------------------------------------------------------------------------------------
+VsRagnarokBody::VsRagnarokBody( VsRagnarokWorld* World, VsBodyType Type )
+	: mWorld( World )
+	{
+	mNative = World->GetNative()->AddBody();
+
+	const RkBodyType TypeMap[] = { RK_STATIC_BODY, RK_KEYFRAMED_BODY, RK_DYNAMIC_BODY };
+	mNative->SetType( TypeMap[ Type ] );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsRagnarokBody::~VsRagnarokBody()
 	{
 	while ( !mShapes.empty() )
 		{
@@ -315,68 +242,61 @@ VsPhysXBody::~VsPhysXBody()
 		mShapes.pop_back();
 		DeleteShape( Shape );
 		}
+	RK_ASSERT( mNative->GetShapeCount() == 0 );
 
-	PX_RELEASE( mNative );
+	mWorld->GetNative()->RemoveBody( mNative );
+	mNative = nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsWorld* VsPhysXBody::GetWorld() const
+IVsWorld* VsRagnarokBody::GetWorld() const
 	{
 	return mWorld;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsBodyType VsPhysXBody::GetType() const
+VsBodyType VsRagnarokBody::GetType() const
 	{
-	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
-		{
-		return VS_STATIC_BODY;
-		}
-
-	VS_ASSERT( mNative->getType() == PxActorType::eRIGID_DYNAMIC );
-	PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic*>( mNative );
-	return RigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC ? VS_KEYFRAMED_BODY : VS_DYNAMIC_BODY;
+	RkBodyType Type = mNative->GetType();
+	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
+	return TypeMap[ Type ];
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsVector3 VsPhysXBody::GetPosition() const
+VsVector3 VsRagnarokBody::GetPosition() const
 	{
-	PxTransform Pose = mNative->getGlobalPose();
-	return { Pose.p.x, Pose.p.y, Pose.p.z };
+	RkVector3 Position = mNative->GetPosition();
+	return { Position.X, Position.Y, Position.Z };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXBody::SetPosition( const VsVector3& Position )
+void VsRagnarokBody::SetPosition( const VsVector3& Position )
 	{
-	PxTransform Pose = mNative->getGlobalPose();
-	Pose.p = PxVec3( Position.X, Position.Y, Position.Z );
-	mNative->setGlobalPose( Pose );
+	mNative->SetPosition( { Position.X, Position.Y, Position.Z } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsQuaternion VsPhysXBody::GetOrientation() const
+VsQuaternion VsRagnarokBody::GetOrientation() const
 	{
-	PxTransform Pose = mNative->getGlobalPose();
-	return { Pose.q.x, Pose.q.y, Pose.q.z, Pose.q.w };
+	RkQuaternion Orientation = mNative->GetOrientation();
+	return { Orientation.X, Orientation.Y, Orientation.Z, Orientation.W };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXBody::SetOrientation( const VsQuaternion& Orientation )
+void VsRagnarokBody::SetOrientation( const VsQuaternion& Orientation )
 	{
-	PxTransform Pose = mNative->getGlobalPose();
-	Pose.q = PxQuat( Orientation.X, Orientation.Y, Orientation.Z, Orientation.W );
-	mNative->setGlobalPose( Pose ); 
+	mNative->SetOrientation( { Orientation.X, Orientation.Y, Orientation.Z, Orientation.W } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsSphereShape* VsPhysXBody::CreateSphere( const VsVector3& Center, float Radius )
+IVsSphereShape* VsRagnarokBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...
 	VS_ASSERT( 0 );
@@ -386,7 +306,7 @@ IVsSphereShape* VsPhysXBody::CreateSphere( const VsVector3& Center, float Radius
 
 
 //--------------------------------------------------------------------------------------------------
-IVsCapsuleShape* VsPhysXBody::CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius )
+IVsCapsuleShape* VsRagnarokBody::CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius )
 	{
 	// DIRK_TODO: ...
 	VS_ASSERT( 0 );
@@ -396,14 +316,14 @@ IVsCapsuleShape* VsPhysXBody::CreateCapulse( const VsVector3& Center1, const VsV
 
 
 //--------------------------------------------------------------------------------------------------
-IVsHullShape* VsPhysXBody::CreateHull( const IVsHull* Hull )
+IVsHullShape* VsRagnarokBody::CreateHull( const IVsHull* Hull )
 	{
 	if ( !Hull )
 		{
 		return nullptr;
 		}
 
-	VsPhysXHullShape* Shape = new VsPhysXHullShape( this, static_cast< const VsPhysXHull* >( Hull ) );
+	VsRagnarokHullShape* Shape = new VsRagnarokHullShape( this, static_cast< const VsRagnarokHull* >( Hull ) );
 	mShapes.push_back( Shape );
 	mWorld->NotifyShapeAdded( this, Shape );
 
@@ -412,19 +332,22 @@ IVsHullShape* VsPhysXBody::CreateHull( const IVsHull* Hull )
 
 
 //--------------------------------------------------------------------------------------------------
-IVsMeshShape* VsPhysXBody::CreateMesh( const IVsMesh* Mesh )
+IVsMeshShape* VsRagnarokBody::CreateMesh( const IVsMesh* Mesh )
 	{
 	if ( !Mesh )
 		{
 		return nullptr;
 		}
 
+	// DIRK_TODO: ...
+	VS_ASSERT( 0 );
+	
 	return nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXBody::DestroyShape( IVsShape* Shape )
+void VsRagnarokBody::DestroyShape( IVsShape* Shape )
 	{
 	if ( !Shape )
 		{
@@ -438,93 +361,85 @@ void VsPhysXBody::DestroyShape( IVsShape* Shape )
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXBody::GetShapeCount() const
+int VsRagnarokBody::GetShapeCount() const
 	{
 	return static_cast< int >( mShapes.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsShape* VsPhysXBody::GetShape( int ShapeIndex )
+IVsShape* VsRagnarokBody::GetShape( int ShapeIndex )
 	{
 	return ( 0 <= ShapeIndex && ShapeIndex < GetShapeCount() ) ? mShapes[ ShapeIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsShape* VsPhysXBody::GetShape( int ShapeIndex ) const
+const IVsShape* VsRagnarokBody::GetShape( int ShapeIndex ) const
 	{
 	return ( 0 <= ShapeIndex && ShapeIndex < GetShapeCount() ) ? mShapes[ ShapeIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-PxRigidActor* VsPhysXBody::GetNative() const
+RkBody* VsRagnarokBody::GetNative() const
 	{
 	return mNative;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPhysXWorld
+// VsRagnarokWorld
 //--------------------------------------------------------------------------------------------------
-VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
+VsRagnarokWorld::VsRagnarokWorld( VsRagnarokPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
-	PxPhysics* Physics = Plugin->GetPhysics();
-	PxCpuDispatcher* Dispatcher = Plugin->GetDispatcher();
-
-	PxSceneDesc SceneDesc( Physics->getTolerancesScale() );
-	SceneDesc.gravity = PxVec3( 0.0f, -10.0f, 0.0f );
-	SceneDesc.cpuDispatcher = Dispatcher;
-	SceneDesc.filterShader = PxDefaultSimulationFilterShader;
-	SceneDesc.solverType = PxSolverType::eTGS;
-	SceneDesc.flags.raise( PxSceneFlag::eENABLE_STABILIZATION );
-	VS_ASSERT( SceneDesc.isValid() );
-	
-	mNative = Physics->createScene( SceneDesc );
-	VS_ASSERT( mNative );
+	tf::Executor* Executor = Plugin->GetExecutor();
+	mNative = new RkWorld( Executor );
+	mNative->SetGravity( { 0.0f, -10.0f, 0.0f } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsPhysXWorld::~VsPhysXWorld()
+VsRagnarokWorld::~VsRagnarokWorld()
 	{
 	while ( !mBodies.empty() )
 		{
-		VsPhysXBody* Body = mBodies.back();
+		VsRagnarokBody* Body = mBodies.back();
 		NotifyBodyRemoved( Body );
 		mBodies.pop_back();
 		delete Body;
 		}
+	VS_ASSERT( mNative->GetBodyCount() == 0 );
 
-	PX_RELEASE( mNative );
+	delete mNative;
+	mNative = nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsPlugin* VsPhysXWorld::GetPlugin() const
+IVsPlugin* VsRagnarokWorld::GetPlugin() const
 	{
 	return mPlugin;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsColor VsPhysXWorld::GetColor() const
+VsColor VsRagnarokWorld::GetColor() const
 	{
 	return mColor;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::SetColor( const VsColor& Color )
+void VsRagnarokWorld::SetColor( const VsColor& Color )
 	{
 	mColor = Color;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
+void VsRagnarokWorld::AddListener( IVsWorldListener* Listener )
 	{
 	// Add 
 	if ( !Listener )
@@ -539,7 +454,7 @@ void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 	mListeners.push_back( Listener );
 
 	// Sync
-	for ( VsPhysXBody* Body : mBodies )
+	for ( VsRagnarokBody* Body : mBodies )
 		{
 		Listener->OnBodyAdded( Body );
 		for ( int ShapeIndex = 0; ShapeIndex < Body->GetShapeCount(); ++ShapeIndex )
@@ -552,7 +467,7 @@ void VsPhysXWorld::AddListener( IVsWorldListener* Listener )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::RemoveListener( IVsWorldListener* Listener )
+void VsRagnarokWorld::RemoveListener( IVsWorldListener* Listener )
 	{
 	if ( !Listener )
 		{
@@ -564,52 +479,52 @@ void VsPhysXWorld::RemoveListener( IVsWorldListener* Listener )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::NotifyBodyAdded( IVsBody* Body )
+void VsRagnarokWorld::NotifyBodyAdded( IVsBody* Body )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyAdded( Body ); } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::NotifyBodyRemoved( IVsBody* Body )
+void VsRagnarokWorld::NotifyBodyRemoved( IVsBody* Body )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnBodyRemoved( Body ); } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
+void VsRagnarokWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeAdded( Body, Shape ); } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
+void VsRagnarokWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsVector3 VsPhysXWorld::GetGravity() const
+VsVector3 VsRagnarokWorld::GetGravity() const
 	{
-	PxVec3 Gravity = mNative->getGravity();
-	return { Gravity.x, Gravity.y, Gravity.z };
+	RkVector3 Gravity = mNative->GetGravity();
+	return { Gravity.X, Gravity.Y, Gravity.Z };
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::SetGravity( const VsVector3& Gravity )
+void VsRagnarokWorld::SetGravity( const VsVector3& Gravity )
 	{
-	mNative->setGravity( PxVec3( Gravity.X, Gravity.Y, Gravity.Z ) );
+	mNative->SetGravity( { Gravity.X, Gravity.Y, Gravity.Z } );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsBody* VsPhysXWorld::CreateBody( VsBodyType Type )
+IVsBody* VsRagnarokWorld::CreateBody( VsBodyType Type )
 	{
-	VsPhysXBody* Body = new VsPhysXBody( this, Type );
+	VsRagnarokBody* Body = new VsRagnarokBody( this, Type );
 	mBodies.push_back( Body );
 	NotifyBodyAdded( Body );
 
@@ -618,7 +533,7 @@ IVsBody* VsPhysXWorld::CreateBody( VsBodyType Type )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::DestroyBody( IVsBody* Body )
+void VsRagnarokWorld::DestroyBody( IVsBody* Body )
 	{
 	if ( !Body )
 		{
@@ -627,162 +542,136 @@ void VsPhysXWorld::DestroyBody( IVsBody* Body )
 
 	NotifyBodyRemoved( Body );
 	std::erase( mBodies, Body );
-	delete static_cast< VsPhysXBody* >( Body );
+	delete static_cast< VsRagnarokBody* >( Body );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXWorld::GetBodyCount() const
+int VsRagnarokWorld::GetBodyCount() const
 	{
 	return static_cast< int >( mBodies.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsBody* VsPhysXWorld::GetBody( int BodyIndex )
+IVsBody* VsRagnarokWorld::GetBody( int BodyIndex )
 	{
 	return ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? mBodies[ BodyIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsBody* VsPhysXWorld::GetBody( int BodyIndex ) const
+const IVsBody* VsRagnarokWorld::GetBody( int BodyIndex ) const
 	{
 	return ( 0 <= BodyIndex && BodyIndex < GetBodyCount() ) ? mBodies[ BodyIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::Step( float Timestep )
+void VsRagnarokWorld::Step( float Timestep )
 	{
-	// DIRK_TODO: Pass scratch buffer...
-	mNative->simulate( Timestep );
-	mNative->fetchResults( true );
+	mNative->Step( 8, Timestep );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-physx::PxScene* VsPhysXWorld::GetNative() const
+RkWorld* VsRagnarokWorld::GetNative() const
 	{
 	return mNative;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-// VsPhysXPlugin
+// VsRagnarokPlugin
 //--------------------------------------------------------------------------------------------------
-VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context )
+VsRagnarokPlugin::VsRagnarokPlugin( ImGuiContext* Context )
 	{
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
 
-	fs::path ModulePath = fs::current_path() / "plugins/physx";
-	SetDllDirectoryW( ModulePath.c_str() );
-
-	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", PX_PHYSICS_VERSION_MAJOR, PX_PHYSICS_VERSION_MINOR, PX_PHYSICS_VERSION_BUGFIX );
-
-	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
-	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
-	bool Success = PxInitExtensions( *mPhysics, NULL );
-	VS_ASSERT( Success );
-	mDispatcher = PxDefaultCpuDispatcherCreate( std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
-	mDefaultMaterial = mPhysics->createMaterial( 0.6f, 0.6f, 0.0f );
-
-	SetDllDirectory( NULL );
+	int WorkerCount = std::min( 8, static_cast< int >( std::thread::hardware_concurrency() / 2 ) );
+	mExecutor = new tf::Executor( WorkerCount );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-VsPhysXPlugin::~VsPhysXPlugin()
+VsRagnarokPlugin::~VsRagnarokPlugin()
 	{
 	while ( !mWorlds.empty() )
 		{
-		VsPhysXWorld* World = mWorlds.back();
+		VsRagnarokWorld* World = mWorlds.back();
 		mWorlds.pop_back();
 		delete World;
 		}
 
 	while ( !mMeshes.empty() )
 		{
-		VsPhysXMesh* Mesh = mMeshes.back();
+		VsRagnarokMesh* Mesh = mMeshes.back();
 		mMeshes.pop_back();
 		delete Mesh;
 		}
 
 	while ( !mHulls.empty() )
 		{
-		VsPhysXHull* Hull = mHulls.back();
+		VsRagnarokHull* Hull = mHulls.back();
 		mHulls.pop_back();
 		delete Hull;
 		}
 
-	PX_RELEASE( mDefaultMaterial );
-	PX_RELEASE( mDispatcher );
-	PxCloseExtensions();
-	PX_RELEASE( mPhysics );
-	PX_RELEASE( mFoundation );
+	delete mExecutor;
+	mExecutor = nullptr;
 
 	ImGui::SetCurrentContext( NULL );
 	}
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::Release()
+void VsRagnarokPlugin::Release()
 	{
 	delete this;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const char* VsPhysXPlugin::GetName() const
+const char* VsRagnarokPlugin::GetName() const
 	{
-	return "PhysX";
+	return "Ragnarok";
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const char* VsPhysXPlugin::GetVersion() const
+const char* VsRagnarokPlugin::GetVersion() const
 	{
-	return mVersion;
+	return "0.1";
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-bool VsPhysXPlugin::IsEnabled() const
+bool VsRagnarokPlugin::IsEnabled() const
 	{
 	return mEnabled;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::SetEnabled( bool Enabled )
+void VsRagnarokPlugin::SetEnabled( bool Enabled )
 	{
 	mEnabled = Enabled;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::OnInspectorGUI()
+void VsRagnarokPlugin::OnInspectorGUI()
 	{
-	ImGui::Text( "PhysX %s", mVersion );
+	ImGui::Text( "Ragnarok 0.1" );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsHull* VsPhysXPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
+IVsHull* VsRagnarokPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 	{
-	// Create params without cooking interface
-	PxTolerancesScale ToleranceScale;
-	PxCookingParams CookingParams( ToleranceScale );
-
-	PxConvexMeshDesc ConvexMeshDesc;
-	ConvexMeshDesc.points.count = VertexCount;
-	ConvexMeshDesc.points.stride = sizeof( VsVector3 );
-	ConvexMeshDesc.points.data = Vertices;
-	ConvexMeshDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
-
-	if ( PxConvexMesh* ConvexMesh = PxCreateConvexMesh( CookingParams, ConvexMeshDesc, mPhysics->getPhysicsInsertionCallback() ) )
+	if ( RkHull* Hull = rkCreateHull( VertexCount, (const RkVector3*)Vertices ) )
 		{
-		mHulls.push_back( new VsPhysXHull( ConvexMesh ) );
+		mHulls.push_back( new VsRagnarokHull( Hull ) );
 		return mHulls.back();
 		}
 
@@ -791,7 +680,7 @@ IVsHull* VsPhysXPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::DestroyHull( IVsHull* Hull )
+void VsRagnarokPlugin::DestroyHull( IVsHull* Hull )
 	{
 	if ( !Hull )
 		{
@@ -799,33 +688,33 @@ void VsPhysXPlugin::DestroyHull( IVsHull* Hull )
 		}
 
 	std::erase( mHulls, Hull );
-	delete static_cast< VsPhysXHull* >( Hull );
+	delete static_cast< VsRagnarokHull* >( Hull );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXPlugin::GetHullCount() const
+int VsRagnarokPlugin::GetHullCount() const
 	{
 	return static_cast< int >( mHulls.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsHull* VsPhysXPlugin::GetHull( int HullIndex )
+IVsHull* VsRagnarokPlugin::GetHull( int HullIndex )
 	{
 	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? mHulls[ HullIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsHull* VsPhysXPlugin::GetHull( int HullIndex ) const
+const IVsHull* VsRagnarokPlugin::GetHull( int HullIndex ) const
 	{
 	return ( 0 <= HullIndex && HullIndex < GetHullCount() ) ? mHulls[ HullIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsMesh* VsPhysXPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices )
+IVsMesh* VsRagnarokPlugin::CreateMesh( int TriangleCount, const int* TriangleIndices, int VertexCount, const VsVector3* Vertices )
 	{
 	// DIRK_TODO: ...
 	VS_ASSERT( 0 );
@@ -835,7 +724,7 @@ IVsMesh* VsPhysXPlugin::CreateMesh( int TriangleCount, const int* TriangleIndice
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::DestroyMesh( IVsMesh* Mesh )
+void VsRagnarokPlugin::DestroyMesh( IVsMesh* Mesh )
 	{
 	if ( !Mesh )
 		{
@@ -843,35 +732,35 @@ void VsPhysXPlugin::DestroyMesh( IVsMesh* Mesh )
 		}
 
 	std::erase( mMeshes, Mesh );
-	delete static_cast< VsPhysXMesh* >( Mesh );
+	delete static_cast< VsRagnarokMesh* >( Mesh );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXPlugin::GetMeshCount() const
+int VsRagnarokPlugin::GetMeshCount() const
 	{
 	return static_cast< int >( mMeshes.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsMesh* VsPhysXPlugin::GetMesh( int MeshIndex )
+IVsMesh* VsRagnarokPlugin::GetMesh( int MeshIndex )
 	{
 	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? mMeshes[ MeshIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsMesh* VsPhysXPlugin::GetMesh( int MeshIndex ) const
+const IVsMesh* VsRagnarokPlugin::GetMesh( int MeshIndex ) const
 	{
 	return ( 0 <= MeshIndex && MeshIndex < GetMeshCount() ) ? mMeshes[ MeshIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsWorld* VsPhysXPlugin::CreateWorld()
+IVsWorld* VsRagnarokPlugin::CreateWorld()
 	{
-	VsPhysXWorld* World = new VsPhysXWorld( this );
+	VsRagnarokWorld* World = new VsRagnarokWorld( this );
 	mWorlds.push_back( World );
 
 	return World;
@@ -879,7 +768,7 @@ IVsWorld* VsPhysXPlugin::CreateWorld()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::DestroyWorld( IVsWorld* World )
+void VsRagnarokPlugin::DestroyWorld( IVsWorld* World )
 	{
 	if ( !World )
 		{
@@ -887,58 +776,37 @@ void VsPhysXPlugin::DestroyWorld( IVsWorld* World )
 		}
 
 	std::erase( mWorlds, World );
-	delete static_cast< VsPhysXWorld* >( World );
+	delete static_cast< VsRagnarokWorld* >( World );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-int VsPhysXPlugin::GetWorldCount() const
+int VsRagnarokPlugin::GetWorldCount() const
 	{
 	return static_cast< int >( mWorlds.size() );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex )
+IVsWorld* VsRagnarokPlugin::GetWorld( int WorldIndex )
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-const IVsWorld* VsPhysXPlugin::GetWorld( int WorldIndex ) const
+const IVsWorld* VsRagnarokPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-physx::PxFoundation* VsPhysXPlugin::GetFoundation() const
+tf::Executor* VsRagnarokPlugin::GetExecutor() const
 	{
-	return mFoundation;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-physx::PxPhysics* VsPhysXPlugin::GetPhysics() const
-	{
-	return mPhysics;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-physx::PxCpuDispatcher* VsPhysXPlugin::GetDispatcher() const
-	{
-	return mDispatcher;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-physx::PxMaterial* VsPhysXPlugin::GetDefaultMaterial() const
-	{
-	return mDefaultMaterial;
+	return mExecutor;
 	}
 
 
 // Export
-VS_EXPORT_PLUGIN( VsPhysXPlugin );
+VS_EXPORT_PLUGIN( VsRagnarokPlugin );
