@@ -1,2 +1,2 @@
-- Add a way to setup initial camera
+- Update Taskflow to 4.0
 - Add more tests and shapes
