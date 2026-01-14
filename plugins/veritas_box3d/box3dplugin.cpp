@@ -724,9 +724,10 @@ b3WorldId VsBox3dWorld::GetNative() const
 //--------------------------------------------------------------------------------------------------
 void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext, void* UserContext )
 	{
-	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
+	VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
 	return World->EnqueueTask( TaskCallback, ItemCount, MinRange, TaskContext );
 	}
+
 
 //--------------------------------------------------------------------------------------------------
 void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, int MinRange, void* TaskContext )
@@ -755,7 +756,7 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 //--------------------------------------------------------------------------------------------------
 void VsBox3dWorld::FinishTask( void* Task, void* UserContext )
 	{
-	static VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
+	VsBox3dWorld* World = static_cast< VsBox3dWorld* >( UserContext );
 	return World->FinishTask( Task );
 	}
 
