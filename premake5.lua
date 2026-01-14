@@ -88,6 +88,19 @@ workspace "veritas"
 			files { "externals/imgui/**" }
 			includedirs { "externals/glad", "externals/glfw3/include" }
 
+		-- Add QHULL 
+		project "qhull"
+			location "build/externals/qhull"
+			kind "StaticLib"
+			files { "externals/qhull/**" }
+
+		-- Add Ragnarok
+		project "ragnarok"
+			kind "StaticLib"
+			location "build/externals/ragnarok"
+			files { "externals/ragnarok/**" }
+			includedirs { "externals", "externals/qhull", "externals/simd", "externals/taskflow", "externals/verstable" }
+
 	-- Plugins
 	group "plugins"
 
