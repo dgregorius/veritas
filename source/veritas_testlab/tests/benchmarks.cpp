@@ -112,10 +112,8 @@ class VsBenchmarkScene3 : public VsTest
 		virtual void Update( double Time, float ElapsedTime )
 			{
 			const float Omega = 10.0f;
-			float TargetAngle = mAngle;
-			VsFrame Keyframe = { mWasher->GetPosition(), { 0.0f, 0.0f, sinf( TargetAngle * VS_DEG2RAD ),cosf( TargetAngle * VS_DEG2RAD ) } };
 			mAngle += Omega * ElapsedTime;
-
+			VsFrame Keyframe = { mWasher->GetPosition(), { 0.0f, 0.0f, sinf( mAngle * VS_DEG2RAD ),cosf( mAngle * VS_DEG2RAD ) } };
 			mWasher->SetVelocityFromKeyframe( Keyframe, ElapsedTime );
 
 			VsTest::Update( Time, ElapsedTime );
@@ -254,3 +252,75 @@ class VsBenchmarkScene3 : public VsTest
 
 // Registry
 VS_DEFINE_TEST( "Benchmark", "Scene3 - Washer", VsOrbit( 0.0f, -20.0f, 75.0f, { 0.0f, 10.0f, 0.0f } ), VsBenchmarkScene3 );
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBenchmarkScene4
+//--------------------------------------------------------------------------------------------------
+class VsBenchmarkScene4 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera )
+			{
+			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 120.0f, 1.0f, 1200.0f ) );
+			IVsHull* Wall1 =  mPlugin->CreateBox( VsVector3( -50.0f, 8.0f,  0.0f ), VsVector3( 1.0f, 8.0f, 50.0f ) );
+			IVsHull* Wall2 =  mPlugin->CreateBox( VsVector3(  50.0f, 8.0f,  0.0f ), VsVector3( 1.0f, 8.0f, 50.0f ) );
+			IVsHull* Wall3 =  mPlugin->CreateBox( VsVector3(  0.0f, 8.0f, -50.0f ), VsVector3( 50.0f, 8.0f, 1.0f ) );
+			IVsHull* Wall4 =  mPlugin->CreateBox( VsVector3(  0.0f, 8.0f,  50.0f ), VsVector3( 50.0f, 8.0f, 1.0f ) );
+
+			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
+			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
+			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+			IVsShape* WallShape1 = GroundBody->CreateHull( Wall1 );
+			WallShape1->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+			IVsShape* WallShape2 = GroundBody->CreateHull( Wall2 );
+			WallShape2->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+			IVsShape* WallShape3 = GroundBody->CreateHull( Wall3 );
+			WallShape3->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+			IVsShape* WallShape4 = GroundBody->CreateHull( Wall4 );
+			WallShape4->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+
+			int Size = VS_DEBUG_TEST ? 6 : 24;
+			IVsHull* Convex = mPlugin->CreateConvex( 1.5f, 10 );
+			for ( int Y = 0; Y < Size; ++Y )
+				{
+				for ( int X = 0; X <= 20; ++X )
+					{
+					for ( int Z = 0; Z <= 20; ++Z )
+						{
+						IVsBody* JunkBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
+						JunkBody->SetPosition( VsVector3( -40.0f + 4.0f * X, 4.0f * Y + mHeight + 1.0f, -40.0f + 4.0f * Z ) );
+						JunkBody->CreateHull( Convex );
+						}
+					}
+				}
+
+			mCylinder = mPlugin->CreateCylinder( 4.0f, mHeight );
+			mStrider = mWorld->CreateBody( VS_KEYFRAMED_BODY );
+			mStrider->SetPosition( VsVector3( mRadius * cosf( mAngle * VS_DEG2RAD ), 0.0f, mRadius * sinf( mAngle * VS_DEG2RAD ) ) );
+			mStrider->CreateHull( mCylinder );
+			}
+
+		virtual void Update( double Time, float ElapsedTime )
+			{
+			const float Omega = -6.0f;
+			mAngle += Omega * ElapsedTime;
+			VsFrame Keyframe = { { mRadius * cosf( mAngle * VS_DEG2RAD ), 0.0f, mRadius * sinf( mAngle * VS_DEG2RAD ) }, { 0.0f, 0.0f, 0.0f, 1.0f } };
+			mStrider->SetVelocityFromKeyframe( Keyframe, ElapsedTime );
+
+			VsTest::Update( Time, ElapsedTime );
+			}
+
+	private:
+		float mAngle = 0.0f;
+		float mRadius = 35.0f;
+		float mHeight = 24.0f;
+		IVsHull* mCylinder = nullptr;
+		IVsBody* mStrider = nullptr;
+	};
+
+// Registry
+VS_DEFINE_TEST( "Benchmark", "Scene4 - Junkyard", VsOrbit( 45.0f, -25.0f, 150.0f, { 0.0f, 5.0f, 0.0f } ), VsBenchmarkScene4 );

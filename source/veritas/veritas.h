@@ -348,7 +348,10 @@ struct IVsPlugin
 	virtual void OnInspectorGUI() = 0;
 	
 	// Hull
-	IVsHull* CreateBox( VsVector3 Extent );
+	IVsHull* CreateBox( const VsVector3& Extent );
+	IVsHull* CreateBox( const VsVector3& Center, const VsVector3& Extent );
+	IVsHull* CreateCylinder( float Radius, float Height, int Slices = 16 );
+	IVsHull* CreateConvex( float Radius, int VertexCount );
 	virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) = 0;
 	virtual void DestroyHull( IVsHull* Hull ) = 0;
 	virtual int GetHullCount() const = 0;

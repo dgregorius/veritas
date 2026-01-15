@@ -145,9 +145,8 @@ void IVsBody::DeleteShape( IVsShape* Shape )
 //--------------------------------------------------------------------------------------------------
 // IVsPlugin
 //--------------------------------------------------------------------------------------------------
-IVsHull* IVsPlugin::CreateBox( VsVector3 Extent )
+IVsHull* IVsPlugin::CreateBox( const VsVector3& Extent )
 	{
-	int VertexCount = 8;
 	VsVector3 Vertices[] = 
 		{
 		VsVector3(  Extent.X,  Extent.Y,  Extent.Z ),
@@ -159,6 +158,77 @@ IVsHull* IVsPlugin::CreateBox( VsVector3 Extent )
 		VsVector3( -Extent.X, -Extent.Y, -Extent.Z ),
 		VsVector3(  Extent.X, -Extent.Y, -Extent.Z )
 		};
+
+	return CreateHull( std::size( Vertices ), Vertices );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsHull* IVsPlugin::CreateBox( const VsVector3& Center, const VsVector3& Extent )
+	{
+	VsVector3 Vertices[] = 
+		{
+		Center + VsVector3(  Extent.X,  Extent.Y,  Extent.Z ),
+		Center + VsVector3( -Extent.X,  Extent.Y,  Extent.Z ),
+		Center + VsVector3( -Extent.X, -Extent.Y,  Extent.Z ),
+		Center + VsVector3(  Extent.X, -Extent.Y,  Extent.Z ),
+		Center + VsVector3(  Extent.X,  Extent.Y, -Extent.Z ),
+		Center + VsVector3( -Extent.X,  Extent.Y, -Extent.Z ),
+		Center + VsVector3( -Extent.X, -Extent.Y, -Extent.Z ),
+		Center + VsVector3(  Extent.X, -Extent.Y, -Extent.Z )
+		};
+
+	return CreateHull( std::size( Vertices ), Vertices );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsHull* IVsPlugin::CreateCylinder( float Radius, float Height, int Slices )
+	{
+	VS_ASSERT( Height > 0.0f );
+	VS_ASSERT( Radius > 0.0f );
+	VS_ASSERT( 3 <= Slices && Slices <= 32 );
+
+	int VertexCount = 2 * Slices;
+	VsVector3* Vertices = (VsVector3*)alloca( VertexCount * sizeof( VsVector3 ) );
+	VS_ASSERT( Vertices );
+
+	float Alpha = 0.0f;
+	float DeltaAlpha = VS_2PI / Slices;
+
+	for ( int Index = 0; Index < Slices; ++Index )
+		{
+		float SinAlpha = sinf( Alpha );
+		float CosAlpha = cosf( Alpha );
+
+		Vertices[ 2 * Index + 0 ] = VsVector3( Radius * CosAlpha, 0.0f, Radius * SinAlpha );
+		Vertices[ 2 * Index + 1 ] = VsVector3( Radius * CosAlpha, Height, Radius * SinAlpha );
+
+		Alpha += DeltaAlpha;
+		}
+
+	return CreateHull( VertexCount, Vertices );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsHull* IVsPlugin::CreateConvex( float Radius, int VertexCount )
+	{
+	// Golden ratio
+	const float Phi = ( 1.0f + sqrtf( 5.0f ) ) / 2.0f;
+
+	// Random points on sphere (Fibonacci lattice)
+	VsVector3* Vertices = (VsVector3*)alloca( VertexCount * sizeof( VsVector3 ) );
+	for ( int VertexIndex = 0; VertexIndex < VertexCount; ++VertexIndex )
+		{
+		float Theta = VS_2PI * VertexIndex / Phi;							// Azimuthal angle
+		float Z = 1.0f - ( 2.0f * VertexIndex + 1.0f ) / VertexCount;		// Z coordinate
+		float Radius_XY = sqrtf( 1.0f - Z * Z );							// Radius in xy-plane
+
+		Vertices[ VertexIndex ].X = Radius * Radius_XY * cosf( Theta );
+		Vertices[ VertexIndex ].Y = Radius * Radius_XY * sinf( Theta );
+		Vertices[ VertexIndex ].Z = Radius * Z;
+		}
 
 	return CreateHull( VertexCount, Vertices );
 	}
