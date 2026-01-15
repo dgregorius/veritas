@@ -264,7 +264,7 @@ class VsBenchmarkScene4 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera )
 			{
-			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 120.0f, 1.0f, 1200.0f ) );
+			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 120.0f, 1.0f, 120.0f ) );
 			IVsHull* Wall1 =  mPlugin->CreateBox( VsVector3( -50.0f, 8.0f,  0.0f ), VsVector3( 1.0f, 8.0f, 50.0f ) );
 			IVsHull* Wall2 =  mPlugin->CreateBox( VsVector3(  50.0f, 8.0f,  0.0f ), VsVector3( 1.0f, 8.0f, 50.0f ) );
 			IVsHull* Wall3 =  mPlugin->CreateBox( VsVector3(  0.0f, 8.0f, -50.0f ), VsVector3( 50.0f, 8.0f, 1.0f ) );

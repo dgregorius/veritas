@@ -12,6 +12,7 @@ extern float IMGUI_UI_SCALE;
 
 extern float IMGUI_FONT_SIZE;
 extern ImFont* IMGUI_FONT_REGULAR;
+extern ImFont* IMGUI_FONT_REGULAR_MEDIUM;
 extern ImFont* IMGUI_FONT_REGULAR_BOLD;
 extern ImFont* IMGUI_FONT_SMALL;
 
