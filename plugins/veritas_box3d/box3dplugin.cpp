@@ -423,6 +423,47 @@ void VsBox3dBody::SetOrientation( const VsQuaternion& Orientation )
 
 
 //--------------------------------------------------------------------------------------------------
+VsVector3 VsBox3dBody::GetLinearVelocity() const
+	{
+	b3Vec3 LinearVelocity = b3Body_GetLinearVelocity( mNative );
+	return { LinearVelocity.x, LinearVelocity.y, LinearVelocity.z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dBody::SetLinearVelocity( const VsVector3& LinearVelocity )
+	{
+	b3Body_SetLinearVelocity( mNative, { LinearVelocity.X, LinearVelocity.Y, LinearVelocity.Z } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsBox3dBody::GetAngularVelocity() const
+	{
+	b3Vec3 AngularVelocity = b3Body_GetAngularVelocity( mNative );
+	return { AngularVelocity.x, AngularVelocity.y, AngularVelocity.z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dBody::SetAngularVelocity( const VsVector3& AngularVelocity )
+	{
+	b3Body_SetAngularVelocity( mNative, { AngularVelocity.X, AngularVelocity.Y, AngularVelocity.Z } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep )
+	{
+	b3Transform TargetTransform;
+	TargetTransform.p = { Keyframe.Origin.X, Keyframe.Origin.Y, Keyframe.Origin.Z };
+	TargetTransform.q = { Keyframe.Basis.X, Keyframe.Basis.Y, Keyframe.Basis.Z, Keyframe.Basis.W };
+
+	b3Body_SetTargetTransform( mNative, TargetTransform, Timestep, true );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsSphereShape* VsBox3dBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...

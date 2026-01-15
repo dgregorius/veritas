@@ -164,7 +164,7 @@ class VsJoltHull : public IVsHull
 	{
 	public:
 		// Construction / Destruction
-		explicit VsJoltHull( ShapeRefC Hull );
+		explicit VsJoltHull( ShapeRefC Hull, const VsVector3& Offset );
 		virtual ~VsJoltHull() = default;
 
 		// IVsHull
@@ -176,12 +176,15 @@ class VsJoltHull : public IVsHull
 		virtual const VsVector3* GetEdgePositions() const override;
 
 		ShapeRefC GetNative() const;
+		Vec3 GetOffset() const;
 
 	private:
 		std::vector< VsVector3 > mVertexPositions;
 		std::vector< VsVector3 > mVertexNormals;
 		std::vector< VsVector3 > mEdgePositions;
+		
 		ShapeRefC mNative;
+		Vec3 mOffset = {};
 	};
 
 
@@ -254,6 +257,14 @@ class VsJoltBody : public IVsBody
 		virtual void SetPosition( const VsVector3& Position ) override;
 		virtual VsQuaternion GetOrientation() const override;
 		virtual void SetOrientation( const VsQuaternion& Orientation ) override;
+
+		// Velocity
+		virtual VsVector3 GetLinearVelocity() const override;
+		virtual void SetLinearVelocity( const VsVector3& LinearVelocity ) override;
+		virtual VsVector3 GetAngularVelocity() const override;
+		virtual void SetAngularVelocity( const VsVector3& AngularVelocity ) override;
+
+		virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) override;
 
 		// Shapes
 		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;

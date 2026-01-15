@@ -296,6 +296,47 @@ void VsRagnarokBody::SetOrientation( const VsQuaternion& Orientation )
 
 
 //--------------------------------------------------------------------------------------------------
+VsVector3 VsRagnarokBody::GetLinearVelocity() const
+	{
+	RkVector3 LinearVelocity = mNative->GetLinearVelocity();
+	return { LinearVelocity.X, LinearVelocity.Y, LinearVelocity.Z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokBody::SetLinearVelocity( const VsVector3& LinearVelocity )
+	{
+	mNative->SetLinearVelocity( { LinearVelocity.X, LinearVelocity.Y, LinearVelocity.Z } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsRagnarokBody::GetAngularVelocity() const
+	{
+	RkVector3 AngularVelocity = mNative->GetAngularVelocity();
+	return { AngularVelocity.X, AngularVelocity.Y, AngularVelocity.Z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokBody::SetAngularVelocity( const VsVector3& AngularVelocity )
+	{
+	mNative->SetAngularVelocity( { AngularVelocity.X, AngularVelocity.Y, AngularVelocity.Z } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep )
+	{
+	RkTransform TargetTransform;
+	TargetTransform.Translation = { Keyframe.Origin.X, Keyframe.Origin.Y, Keyframe.Origin.Z };
+	TargetTransform.Rotation = { Keyframe.Basis.X, Keyframe.Basis.Y, Keyframe.Basis.Z, Keyframe.Basis.W };
+
+	mNative->SetVelocityFromKeyframe( TargetTransform, Timestep );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsSphereShape* VsRagnarokBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...

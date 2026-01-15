@@ -184,6 +184,15 @@ class VsBox3dBody : public IVsBody
 		virtual VsQuaternion GetOrientation() const override;
 		virtual void SetOrientation( const VsQuaternion& Orientation ) override;
 
+
+		// Velocity
+		virtual VsVector3 GetLinearVelocity() const override;
+		virtual void SetLinearVelocity( const VsVector3& LinearVelocity ) override;
+		virtual VsVector3 GetAngularVelocity() const override;
+		virtual void SetAngularVelocity( const VsVector3& AngularVelocity ) override;
+
+		virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) override;
+
 		// Shapes
 		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
 		virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) override;

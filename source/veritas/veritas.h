@@ -28,6 +28,20 @@ struct ImGuiContext;
 
 
 //--------------------------------------------------------------------------------------------------
+// Constants
+//--------------------------------------------------------------------------------------------------
+#define VS_PI				3.141592654f
+#define VS_2PI				6.283185307f
+#define VS_ONE_OVER_PI		0.318309886f
+#define VS_ONE_OVER_2PI		0.159154943f
+#define VS_PI_OVER_TWO		1.570796327f
+#define VS_PI_OVER_FOUR		0.785398163f
+
+#define VS_DEG2RAD			0.01745329251f
+#define VS_RAD2DEG			57.2957795131f
+
+
+//--------------------------------------------------------------------------------------------------
 // VS_ASSERT
 //--------------------------------------------------------------------------------------------------
 #if defined( DEBUG ) || defined( _DEBUG )
@@ -60,6 +74,21 @@ struct VsVector3
 	{
 	float X, Y, Z;
 	};
+
+// Binary arithmetic operators
+VsVector3 operator+( const VsVector3& V1, const VsVector3& V2 );
+VsVector3 operator-( const VsVector3& V1, const VsVector3& V2 );
+VsVector3 operator*( float F, const VsVector3& V );
+VsVector3 operator*( const VsVector3& V, float F );
+VsVector3 operator/( const VsVector3& V, float F );
+
+// Standard vector operations
+VsVector3 vsCross( const VsVector3& V1, const VsVector3& V2 );
+VsVector3 vsNormalize( const VsVector3& V );
+VsVector3 vsPerp( const VsVector3& V );
+
+float vsDot( const VsVector3& V1, const VsVector3& V2 );
+float vsLength( const VsVector3& V );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -233,6 +262,14 @@ struct IVsBody
 	virtual void SetPosition( const VsVector3& Position ) = 0;
 	virtual VsQuaternion GetOrientation() const = 0;
 	virtual void SetOrientation( const VsQuaternion& Orientation ) = 0;
+
+	// Velocity
+	virtual VsVector3 GetLinearVelocity() const = 0;
+	virtual void SetLinearVelocity( const VsVector3& LinearVelocity ) = 0;
+	virtual VsVector3 GetAngularVelocity() const = 0;
+	virtual void SetAngularVelocity( const VsVector3& AngularVelocity ) = 0;
+
+	virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) = 0;
 
 	// Shapes
 	virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) = 0;

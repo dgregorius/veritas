@@ -288,15 +288,17 @@ VsPhysXBody::VsPhysXBody( VsPhysXWorld* World, VsBodyType Type )
 	PxPhysics* Physics = Plugin->GetPhysics();
 	if ( Type == VS_STATIC_BODY )
 		{
-		PxRigidStatic* StaticBody = Physics->createRigidStatic( PxTransform( PxIdentity ) );
-		mNative = StaticBody;
+		PxRigidStatic* RigidStatic = Physics->createRigidStatic( PxTransform( PxIdentity ) );
+		mNative = RigidStatic;
 		}
 	else
 		{
-		PxRigidDynamic* DynamicBody = Physics->createRigidDynamic( PxTransform( PxIdentity ) );
-		DynamicBody->setRigidBodyFlag( PxRigidBodyFlag::eKINEMATIC, Type == VS_KEYFRAMED_BODY ? true : false );
-		DynamicBody->setRigidBodyFlag( PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, true );
-		mNative = DynamicBody;
+		PxRigidDynamic* RigidDynamic = Physics->createRigidDynamic( PxTransform( PxIdentity ) );
+		RigidDynamic->setRigidBodyFlag( PxRigidBodyFlag::eKINEMATIC, Type == VS_KEYFRAMED_BODY ? true : false );
+		RigidDynamic->setRigidBodyFlag( PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, true );
+		RigidDynamic->setLinearDamping( 0.0f );
+		RigidDynamic->setAngularDamping( 0.0f );
+		mNative = RigidDynamic;
 		}
 
 	VS_ASSERT( mNative );
@@ -372,6 +374,77 @@ void VsPhysXBody::SetOrientation( const VsQuaternion& Orientation )
 	PxTransform Pose = mNative->getGlobalPose();
 	Pose.q = PxQuat( Orientation.X, Orientation.Y, Orientation.Z, Orientation.W );
 	mNative->setGlobalPose( Pose ); 
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsPhysXBody::GetLinearVelocity() const
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return { 0.0f, 0.0f, 0.0f };
+		}
+
+	const PxRigidDynamic* RigidDynamic = static_cast< const PxRigidDynamic* >( mNative );
+	PxVec3 LinearVelocity = RigidDynamic->getLinearVelocity();
+	return { LinearVelocity.x, LinearVelocity.y, LinearVelocity.z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXBody::SetLinearVelocity( const VsVector3& LinearVelocity )
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return;
+		}
+
+	PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( mNative );
+	RigidDynamic->setLinearVelocity( { LinearVelocity.X, LinearVelocity.Y, LinearVelocity.Z }, true );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsPhysXBody::GetAngularVelocity() const
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return { 0.0f, 0.0f, 0.0f };
+		}
+
+	const PxRigidDynamic* RigidDynamic = static_cast< const PxRigidDynamic* >( mNative );
+	PxVec3 AngularVelocity = RigidDynamic->getAngularVelocity();
+	return { AngularVelocity.x, AngularVelocity.y, AngularVelocity.z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXBody::SetAngularVelocity( const VsVector3& AngularVelocity )
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return;
+		}
+
+	PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* > ( mNative );
+	RigidDynamic->setAngularVelocity( { AngularVelocity.X, AngularVelocity.Y, AngularVelocity.Z }, true );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float )
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return;
+		}
+
+	PxTransform Destination;
+	Destination.p = { Keyframe.Origin.X, Keyframe.Origin.Y, Keyframe.Origin.Z };
+	Destination.q = { Keyframe.Basis.X, Keyframe.Basis.Y, Keyframe.Basis.Z, Keyframe.Basis.W };
+
+	PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* > ( mNative );
+	RigidDynamic->setKinematicTarget( Destination );
 	}
 
 

@@ -66,10 +66,11 @@ static inline bool operator==( VsJoltEdge Lhs, VsJoltEdge Rhs )
 //--------------------------------------------------------------------------------------------------
 // VsJoltHull
 //--------------------------------------------------------------------------------------------------
-VsJoltHull::VsJoltHull( ShapeRefC Hull )
+VsJoltHull::VsJoltHull( ShapeRefC Hull, const VsVector3& Offset )
 	{
 	VS_ASSERT(Hull->GetSubType() == EShapeSubType::ConvexHull );
 	mNative = Hull;
+	mOffset = { Offset.X, Offset.Y, Offset.Z };
 
 	// Extract faces
 	const ConvexHullShape* HullShape = static_cast< const ConvexHullShape* >( Hull.GetPtr() );
@@ -90,15 +91,15 @@ VsJoltHull::VsJoltHull( ShapeRefC Hull )
 		Vec3 Pivot = HullShape->GetPoint( PivotIndex );
 		for ( int VertexIndex = 1; VertexIndex < VertexCount - 1; ++VertexIndex )
 			{
-			mVertexPositions.push_back( VsVector3( Pivot.GetX(), Pivot.GetY(), Pivot.GetZ() ) );
+			mVertexPositions.push_back( VsVector3( Pivot.GetX(), Pivot.GetY(), Pivot.GetZ() ) + Offset );
 			mVertexNormals.push_back( VsVector3( FaceNormal.GetX(), FaceNormal.GetY(), FaceNormal.GetZ() ) );
 			
 			Vec3 Vertex1 = HullShape->GetPoint( VertexIndices[ VertexIndex + 0 ] );
-			mVertexPositions.push_back( VsVector3( Vertex1.GetX(), Vertex1.GetY(), Vertex1.GetZ() ) );
+			mVertexPositions.push_back( VsVector3( Vertex1.GetX(), Vertex1.GetY(), Vertex1.GetZ() ) + Offset );
 			mVertexNormals.push_back( VsVector3( FaceNormal.GetX(), FaceNormal.GetY(), FaceNormal.GetZ() ) );
 			
 			Vec3 Vertex2 = HullShape->GetPoint( VertexIndices[ VertexIndex + 1 ] );
-			mVertexPositions.push_back( VsVector3( Vertex2.GetX(), Vertex2.GetY(), Vertex2.GetZ() ) );
+			mVertexPositions.push_back( VsVector3( Vertex2.GetX(), Vertex2.GetY(), Vertex2.GetZ() ) + Offset );
 			mVertexNormals.push_back( VsVector3( FaceNormal.GetX(), FaceNormal.GetY(), FaceNormal.GetZ() ) );
 			}
 		}
@@ -130,9 +131,9 @@ VsJoltHull::VsJoltHull( ShapeRefC Hull )
 	for ( VsJoltEdge Edge : Edges )
 		{
 		Vec3 Vertex1 = HullShape->GetPoint( Edge.Index1 );
-		mEdgePositions.push_back( VsVector3( Vertex1.GetX(), Vertex1.GetY(), Vertex1.GetZ() ) );
+		mEdgePositions.push_back( VsVector3( Vertex1.GetX(), Vertex1.GetY(), Vertex1.GetZ() ) + Offset );
 		Vec3 Vertex2 = HullShape->GetPoint( Edge.Index2 );
-		mEdgePositions.push_back( VsVector3( Vertex2.GetX(), Vertex2.GetY(), Vertex2.GetZ() ) );
+		mEdgePositions.push_back( VsVector3( Vertex2.GetX(), Vertex2.GetY(), Vertex2.GetZ() ) + Offset );
 		}
 	}
 
@@ -180,6 +181,13 @@ JPH::ShapeRefC VsJoltHull::GetNative() const
 
 
 //--------------------------------------------------------------------------------------------------
+JPH::Vec3 VsJoltHull::GetOffset() const
+	{
+	return mOffset;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsJoltHullShape
 //--------------------------------------------------------------------------------------------------
 VsJoltHullShape::VsJoltHullShape( VsJoltBody* Body, const VsJoltHull* Hull )
@@ -196,10 +204,11 @@ VsJoltHullShape::VsJoltHullShape( VsJoltBody* Body, const VsJoltHull* Hull )
 	Vec3 PrevMassCenter = CompoundShape->GetCenterOfMass();
 
 	ShapeRefC HullShape = Hull->GetNative();
-	mNative = CompoundShape->AddShape( Vec3::sZero(), Quat::sIdentity(), HullShape );
+	Vec3 CenterOfMass = HullShape->GetCenterOfMass();
+	mNative = CompoundShape->AddShape( Hull->GetOffset(), Quat::sIdentity(), HullShape );
 	CompoundShape->AdjustCenterOfMass();
 
-	BodyInterface.NotifyShapeChanged( Body->GetNative(), PrevMassCenter, true, EActivation::Activate);
+	BodyInterface.NotifyShapeChanged( Body->GetNative(), PrevMassCenter, true, EActivation::Activate );
 	
 	// DIRK_TODO: Cache all constraints attached to the parent body
 // 	// Notify the constraints that the shape has changed (this could be done more efficient as we know which constraints are affected)
@@ -315,12 +324,15 @@ VsJoltBody::VsJoltBody( VsJoltWorld* World, VsBodyType Type )
 	ShapeRefC Shape = CompoundResult.Get();
 
 	const EMotionType TypeMap[] = { EMotionType::Static, EMotionType::Kinematic, EMotionType::Dynamic };
-	BodyCreationSettings BodySettings( Shape, Vec3::sZero(), Quat::sIdentity(), TypeMap[ Type ], Type == VS_STATIC_BODY ? VsLayers::NON_MOVING : VsLayers::MOVING);
+	BodyCreationSettings BodySettings( Shape, Vec3::sZero(), Quat::sIdentity(), TypeMap[ Type ], Type == VS_STATIC_BODY ? VsLayers::NON_MOVING : VsLayers::MOVING );
+	BodySettings.mLinearDamping = 0.0f;
+	BodySettings.mAngularDamping = 0.0f;
+	BodySettings.mApplyGyroscopicForce = false;
+	BodySettings.mFriction = 0.6f;
 	
 	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
 	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
 	mNative = BodyInterface.CreateAndAddBody( BodySettings, EActivation::Activate );
-	VS_ASSERT( !mNative.IsInvalid() );
 	}
 
 
@@ -395,6 +407,55 @@ void VsJoltBody::SetOrientation( const VsQuaternion& Orientation )
 	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
 	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
 	BodyInterface.SetRotation( mNative, Quat( Orientation.X, Orientation.Y, Orientation.Z, Orientation.W ), EActivation::Activate );
+	}
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsJoltBody::GetLinearVelocity() const
+	{
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	Vec3 LinearVelocity = BodyInterface.GetLinearVelocity( mNative );
+	return { LinearVelocity.GetX(), LinearVelocity.GetY(), LinearVelocity.GetZ() };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltBody::SetLinearVelocity( const VsVector3& LinearVelocity )
+	{
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	BodyInterface.SetLinearVelocity( mNative, Vec3( LinearVelocity.X, LinearVelocity.Y, LinearVelocity.Z ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 VsJoltBody::GetAngularVelocity() const
+	{
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	Vec3 AngularVelocity = BodyInterface.GetAngularVelocity( mNative );
+	return { AngularVelocity.GetX(), AngularVelocity.GetY(), AngularVelocity.GetZ() };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltBody::SetAngularVelocity( const VsVector3& AngularVelocity )
+	{
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	BodyInterface.SetAngularVelocity( mNative, Vec3( AngularVelocity.X, AngularVelocity.Y, AngularVelocity.Z ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep )
+	{
+	Vec3 TargetPosition = { Keyframe.Origin.X, Keyframe.Origin.Y, Keyframe.Origin.Z };
+	Quat TargetRotation = { Keyframe.Basis.X, Keyframe.Basis.Y, Keyframe.Basis.Z, Keyframe.Basis.W };
+
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	BodyInterface.MoveKinematic( mNative, TargetPosition, TargetRotation, Timestep );
 	}
 
 
@@ -764,10 +825,17 @@ void VsJoltPlugin::OnInspectorGUI()
 //--------------------------------------------------------------------------------------------------
 IVsHull* VsJoltPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 	{
+	VsVector3 Center = {};
+	for ( int VertexIndex = 0; VertexIndex < VertexCount; ++VertexIndex )
+		{
+		Center = Center + Vertices[ VertexIndex ];
+		}
+	Center = Center / static_cast< float >( std::max( 1, VertexCount ) );
+	
 	Array< Vec3 > HullPoints( VertexCount );
 	for ( int VertexIndex = 0; VertexIndex < VertexCount; ++VertexIndex )
 		{
-		VsVector3 Vertex = Vertices[ VertexIndex ];
+		VsVector3 Vertex = Vertices[ VertexIndex ] - Center;
 		HullPoints[ VertexIndex ] = Vec3( Vertex.X, Vertex.Y, Vertex.Z );
 		}
 
@@ -776,7 +844,7 @@ IVsHull* VsJoltPlugin::CreateHull( int VertexCount, const VsVector3* Vertices )
 	ShapeSettings::ShapeResult Result = HullSettings.Create();
 	if ( !Result.HasError() )
 		{
-		mHulls.push_back( new VsJoltHull( Result.Get() ) );
+		mHulls.push_back( new VsJoltHull( Result.Get(), Center ) );
 		return mHulls.back();
 		}
 
