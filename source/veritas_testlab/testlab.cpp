@@ -405,15 +405,9 @@ void VsTestlab::BeginDockspace()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawInspector()
 	{
-	float Scale = ImGui::GetWindowDpiScale();
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Common" ) )
 		{
-		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
-
 		for ( const VsPluginPtr& Plugin : mPlugins )
 			{
 			bool Enabled = Plugin->IsEnabled();
@@ -424,10 +418,6 @@ void VsTestlab::DrawInspector()
 				CreateTests( mTestIndex );
 				}
 			}
-
-		ImGui::EndChild();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar( 2 );
 		}
 	ImGui::End();
 
@@ -437,21 +427,11 @@ void VsTestlab::DrawInspector()
 			{
 			if ( ImGui::Begin( Plugin->GetName(), NULL, ImGuiWindowFlags_NoFocusOnAppearing ) )
 				{
-				ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-				ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
-				ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-				ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
-
 				Plugin->OnInspectorGUI();
-
-				ImGui::EndChild();
-				ImGui::PopStyleColor();
-				ImGui::PopStyleVar( 2 );
 				}
 			ImGui::End();
 			}
 		}
-
 	ImGui::PopStyleVar();
 	}
 
@@ -459,15 +439,9 @@ void VsTestlab::DrawInspector()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawOutliner()
 	{
-	float Scale = ImGui::GetWindowDpiScale();
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Outliner" ) )
 		{
-		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 2 ) * Scale ) );
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-		ImGui::BeginChild( "##Child", ImVec2( 0.0f, 0.0f ), ImGuiChildFlags_AlwaysUseWindowPadding );
-
 		// Test selections
 		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 		for ( int TestIndex = 0; TestIndex < static_cast< int >( TestEntries.size() ); ++TestIndex )
@@ -542,10 +516,6 @@ void VsTestlab::DrawOutliner()
 			{
 			glfwSetWindowShouldClose( mWindow, GLFW_TRUE );
 			}
-
-		ImGui::EndChild();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar( 2 );
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();
@@ -555,14 +525,9 @@ void VsTestlab::DrawOutliner()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawProfiler()
 	{
-	float Scale = ImGui::GetWindowDpiScale();
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Profiler" ) )
 		{
-		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
-		ImGui::BeginChild( "##Child" );
-
 		const float History = 30.0f;
 		if ( ImPlot::BeginPlot( "##Scrolling", ImVec2( -1, -1 ) ) )
 			{
@@ -579,7 +544,6 @@ void VsTestlab::DrawProfiler()
 					ImPlot::PlotShaded( Plugin->GetName(), &Samples.Data[ 0 ].x, &Samples.Data[ 0 ].y, Samples.Data.size(), 0.0f, 0, Samples.Offset, 2 * sizeof( float ) );
 					}
 				}
-
 			ImPlot::PopStyleVar();
 
 			for ( size_t PluginIndex = 0; PluginIndex < mPlugins.size(); ++PluginIndex )
@@ -594,10 +558,6 @@ void VsTestlab::DrawProfiler()
 
 			ImPlot::EndPlot();
 			}
-
-		ImGui::EndChild();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();
@@ -607,12 +567,9 @@ void VsTestlab::DrawProfiler()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawViewport()
 	{
-	float Scale = ImGui::GetWindowDpiScale();
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImFloor( ImVec2( 6, 6 ) * Scale ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Viewport" ) )
 		{
-		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, IM_COL32( 48, 48, 48, 255 ) );
 		ImGui::BeginChild( "##Child" );
 
 		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
@@ -624,11 +581,10 @@ void VsTestlab::DrawViewport()
 		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
 		
 		ImGui::EndChild();
-		ImGui::PopStyleVar();
-		ImGui::PopStyleColor();
+		
 		}
 	ImGui::End();
-	ImGui::PopStyleVar();	
+	ImGui::PopStyleVar();
 	}
 
 

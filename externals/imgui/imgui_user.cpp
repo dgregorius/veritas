@@ -38,134 +38,96 @@ namespace ImGui
 {
 void StyleColorsCustom()
 	{
+	// ============== BASE PALETTE (tweak these!) ==============
+	const ImVec4 bg = ImVec4( 0.14f, 0.13f, 0.12f, 1.0f );  // main background
+	const ImVec4 bgDark = ImVec4( 0.10f, 0.09f, 0.08f, 1.0f );  // recessed
+	const ImVec4 bgLight = ImVec4( 0.20f, 0.19f, 0.18f, 1.0f );  // raised/hover
+	const ImVec4 accent = ImVec4( 0.33f, 0.52f, 0.76f, 1.0f );  // blue accent
+	const ImVec4 accentDim = ImVec4( 0.24f, 0.38f, 0.55f, 1.0f );  // softer blue
+	const ImVec4 text = ImVec4( 0.90f, 0.90f, 0.88f, 1.0f );  // warm white
+	const ImVec4 textDim = ImVec4( 0.50f, 0.48f, 0.46f, 1.0f );  // warm gray
+
+	// ============== DERIVED COLORS ==============
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImGui::StyleColorsDark( &style );
-
-	// --- Style (spacing/rounding close to Godot's feel) ---
-	style.Alpha = 1.0f;
-	style.DisabledAlpha = 0.60f;
-	style.WindowPadding = ImVec2( 10, 10 );
-	style.FramePadding = ImVec2( 6, 4 );
-	style.ItemSpacing = ImVec2( 8, 6 );
-	style.ItemInnerSpacing = ImVec2( 6, 4 );
-	style.IndentSpacing = 16.0f;
-	style.ScrollbarSize = 14.0f;
-	style.GrabMinSize = 10.0f;
-
-	style.WindowBorderSize = 1.0f;
-	style.ChildBorderSize = 1.0f;
-	style.PopupBorderSize = 1.0f;
-	style.FrameBorderSize = 1.0f;
-	style.TabBorderSize = 0.0f;
-
-	style.WindowRounding = 6.0f;
-	style.ChildRounding = 6.0f;
-	style.PopupRounding = 6.0f;
-	style.FrameRounding = 5.0f;
-	style.ScrollbarRounding = 9.0f;
-	style.GrabRounding = 5.0f;
-	style.TabRounding = 6.0f;
-
-	// --- Colors ---
-	// Base
-	const ImVec4 text = ImVec4( 0.951f, 0.951f, 0.951f, 1.00f ); // #D7D7D7
-	const ImVec4 text_dim = ImVec4( 0.647f, 0.647f, 0.647f, 1.00f ); // #A5A5A5
-	const ImVec4 text_dis = ImVec4( 0.463f, 0.463f, 0.463f, 1.00f ); // #767676
-
-	const ImVec4 bg0 = ImVec4( 0.075f, 0.075f, 0.075f, 1.00f ); // #131313
-	const ImVec4 bg1 = ImVec4( 0.098f, 0.098f, 0.098f, 1.00f ); // #191919
-	const ImVec4 bg2 = ImVec4( 0.145f, 0.145f, 0.145f, 1.00f ); // #252525
-	const ImVec4 bg3 = ImVec4( 0.224f, 0.224f, 0.224f, 1.00f ); // #393939
-
-	const ImVec4 border = ImVec4( 0.286f, 0.286f, 0.286f, 1.00f ); // #494949
-	const ImVec4 border_soft = ImVec4( 0.188f, 0.192f, 0.196f, 1.00f ); // #303132
-
-	// Slight bluish frames (Godot-ish)
-	const ImVec4 frame = ImVec4( 0.114f, 0.137f, 0.169f, 1.00f ); // #1D232B
-	const ImVec4 frame_h = ImVec4( 0.137f, 0.165f, 0.208f, 1.00f ); // #232A35
-	const ImVec4 frame_a = ImVec4( 0.161f, 0.208f, 0.275f, 1.00f ); // #293546
-
-	// Accent blues from the selection highlight in the screenshot
-	const ImVec4 blue = ImVec4( 0.220f, 0.376f, 0.584f, 1.00f ); // #386095
-	const ImVec4 blue_h = ImVec4( 0.184f, 0.306f, 0.467f, 1.00f ); // #2F4E77
-	const ImVec4 blue_a = ImVec4( 0.369f, 0.592f, 0.863f, 1.00f ); // #5E97DC
-	const ImVec4 blue_light = ImVec4( 0.471f, 0.643f, 0.878f, 1.00f ); // #78A4E0
-
 	ImVec4* c = style.Colors;
+
+	// Backgrounds
+	c[ ImGuiCol_WindowBg ] = bg;
+	c[ ImGuiCol_ChildBg ] = bg;
+	c[ ImGuiCol_PopupBg ] = bgDark;
+
+	// Tabs (active matches window for seamless look)
+	c[ ImGuiCol_Tab ] = bgDark;     // unselected
+	c[ ImGuiCol_TabHovered ] = bgLight;    // hover
+	c[ ImGuiCol_TabSelected ] = bg;         // selected (seamless!)
+	c[ ImGuiCol_TabSelectedOverline ] = accent;     // shows a colored line on active tab
+	c[ ImGuiCol_TabDimmed ] = bgDark;     // unfocused window, unselected
+	c[ ImGuiCol_TabDimmedSelected ] = bg;         // unfocused window, selected (still seamless)
+	c[ ImGuiCol_TabDimmedSelectedOverline ] = accentDim;  // subtler when window unfocused
+
+	// Title bar
+	c[ ImGuiCol_TitleBg ] = bgDark;
+	c[ ImGuiCol_TitleBgActive ] = bgDark;
+	c[ ImGuiCol_TitleBgCollapsed ] = bgDark;
+
+	// Frames (inputs, sliders, combo boxes)
+	c[ ImGuiCol_FrameBg ] = bgDark;
+	c[ ImGuiCol_FrameBgHovered ] = bgLight;
+	c[ ImGuiCol_FrameBgActive ] = accentDim;
+
+	// Buttons
+	//c[ ImGuiCol_Button ] = bgLight;
+	c[ ImGuiCol_Button ] = ImVec4( 0.22f, 0.21f, 0.20f, 1.0f );
+	c[ ImGuiCol_ButtonHovered ] = accentDim;
+	c[ ImGuiCol_ButtonActive ] = bgDark;      // pressed = recessed
+
+	// Headers (collapsing headers, selectable, menu items)
+	//c[ ImGuiCol_Header ] = accentDim;
+	c[ ImGuiCol_Header ] = ImVec4( 0.28f, 0.40f, 0.55f, 1.0f );  // softer selection
+	c[ ImGuiCol_HeaderHovered ] = accentDim;
+	c[ ImGuiCol_HeaderActive ] = accent;
+
+	// Separators, borders, resize grips
+	c[ ImGuiCol_Separator ] = bgLight;
+	c[ ImGuiCol_Border ] = ImVec4( 0, 0, 0, 0 ); 
+	c[ ImGuiCol_ResizeGrip ] = bgLight;
+	c[ ImGuiCol_ResizeGripHovered ] = accentDim;
+	c[ ImGuiCol_ResizeGripActive ] = accent;
+
+	// Slider grab
+	c[ ImGuiCol_SliderGrab ] = accentDim;
+	c[ ImGuiCol_SliderGrabActive ] = accent;
+
+	// Checkmark, scrollbar
+	c[ ImGuiCol_CheckMark ] = accent;
+	c[ ImGuiCol_ScrollbarBg ] = bgDark;
+	c[ ImGuiCol_ScrollbarGrab ] = bgLight;
+	c[ ImGuiCol_ScrollbarGrabHovered ] = accentDim;
+	c[ ImGuiCol_ScrollbarGrabActive ] = accent;
+
+	// Text
 	c[ ImGuiCol_Text ] = text;
-	c[ ImGuiCol_TextDisabled ] = text_dis;
+	c[ ImGuiCol_TextDisabled ] = textDim;
 
-	c[ ImGuiCol_WindowBg ] = bg1;
-	c[ ImGuiCol_ChildBg ] = bg1;
-	c[ ImGuiCol_PopupBg ] = ImVec4( bg2.x, bg2.y, bg2.z, 0.98f );
+	// Misc
+	c[ ImGuiCol_MenuBarBg ] = bgDark;
+	c[ ImGuiCol_TableHeaderBg ] = bgDark;
+	c[ ImGuiCol_TableRowBg ] = bg;
+	c[ ImGuiCol_TableRowBgAlt ] = bgDark;
 
-	c[ ImGuiCol_Border ] = border;
-	c[ ImGuiCol_BorderShadow ] = ImVec4( 0, 0, 0, 0 );
+	// ============== STYLE TWEAKS ==============
+	style.WindowRounding = 6.0f;
+	style.FrameRounding = 4.0f;
+	style.TabRounding = 4.0f;
+	style.ScrollbarRounding = 4.0f;
+	style.GrabRounding = 3.0f;
+	style.WindowBorderSize = 0.0f;
 
-	c[ ImGuiCol_FrameBg ] = frame;
-	c[ ImGuiCol_FrameBgHovered ] = frame_h;
-	c[ ImGuiCol_FrameBgActive ] = frame_a;
-
-	c[ ImGuiCol_TitleBg ] = bg2;
-	c[ ImGuiCol_TitleBgActive ] = bg3;
-	c[ ImGuiCol_TitleBgCollapsed ] = bg2;
-
-	c[ ImGuiCol_MenuBarBg ] = bg2;
-
-	c[ ImGuiCol_ScrollbarBg ] = bg0;
-	c[ ImGuiCol_ScrollbarGrab ] = bg3;
-	c[ ImGuiCol_ScrollbarGrabHovered ] = border;
-	c[ ImGuiCol_ScrollbarGrabActive ] = blue;
-
-	c[ ImGuiCol_CheckMark ] = blue_light;
-
-	c[ ImGuiCol_SliderGrab ] = blue;
-	c[ ImGuiCol_SliderGrabActive ] = blue_a;
-
-	c[ ImGuiCol_Button ] = bg2;
-	c[ ImGuiCol_ButtonHovered ] = frame_h;
-	c[ ImGuiCol_ButtonActive ] = frame_a;
-
-	c[ ImGuiCol_Header ] = bg2;
-	c[ ImGuiCol_HeaderHovered ] = frame_h;
-	c[ ImGuiCol_HeaderActive ] = blue;
-
-	c[ ImGuiCol_Separator ] = border_soft;
-	c[ ImGuiCol_SeparatorHovered ] = blue_h;
-	c[ ImGuiCol_SeparatorActive ] = blue;
-
-	c[ ImGuiCol_ResizeGrip ] = ImVec4( blue.x, blue.y, blue.z, 0.15f );
-	c[ ImGuiCol_ResizeGripHovered ] = ImVec4( blue_h.x, blue_h.y, blue_h.z, 0.55f );
-	c[ ImGuiCol_ResizeGripActive ] = ImVec4( blue.x, blue.y, blue.z, 0.85f );
-
-	c[ ImGuiCol_Tab ] = bg2;
-	c[ ImGuiCol_TabHovered ] = frame_h;
-	c[ ImGuiCol_TabSelected ] = bg3;
-	c[ ImGuiCol_TabSelectedOverline ] = blue;
-	c[ ImGuiCol_TabDimmed ] = bg2;
-	c[ ImGuiCol_TabDimmedSelected ] = bg3;
-
-	c[ ImGuiCol_DockingPreview ] = ImVec4( blue_a.x, blue_a.y, blue_a.z, 0.70f );
-	c[ ImGuiCol_DockingEmptyBg ] = bg0;
-
-	c[ ImGuiCol_PlotLines ] = text_dim;
-	c[ ImGuiCol_PlotLinesHovered ] = blue_light;
-	c[ ImGuiCol_PlotHistogram ] = blue;
-	c[ ImGuiCol_PlotHistogramHovered ] = blue_a;
-
-	c[ ImGuiCol_TableHeaderBg ] = bg3;
-	c[ ImGuiCol_TableBorderStrong ] = border;
-	c[ ImGuiCol_TableBorderLight ] = border_soft;
-	c[ ImGuiCol_TableRowBg ] = ImVec4( bg1.x, bg1.y, bg1.z, 0.00f );
-	c[ ImGuiCol_TableRowBgAlt ] = ImVec4( bg2.x, bg2.y, bg2.z, 0.35f );
-
-	c[ ImGuiCol_TextSelectedBg ] = ImVec4( blue_h.x, blue_h.y, blue_h.z, 0.60f );
-	c[ ImGuiCol_DragDropTarget ] = ImVec4( blue_a.x, blue_a.y, blue_a.z, 0.90f );
-
-	c[ ImGuiCol_NavCursor ] = blue_a;
-	c[ ImGuiCol_NavWindowingHighlight ] = ImVec4( 1, 1, 1, 0.70f );
-	c[ ImGuiCol_NavWindowingDimBg ] = ImVec4( 0, 0, 0, 0.20f );
-	c[ ImGuiCol_ModalWindowDimBg ] = ImVec4( 0, 0, 0, 0.55f );
+	style.TabBorderSize = 0.0f;
+	style.FramePadding = ImVec2( 8, 4 );
+	style.ItemSpacing = ImVec2( 8, 5 );
+	style.TabBarOverlineSize = 2.0f;
+	style.DockingSeparatorSize = 4.0f;
 	}
 
 void Startup( GLFWwindow* Window )
@@ -181,8 +143,8 @@ void Startup( GLFWwindow* Window )
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsCustom();
+	//ImGui::StyleColorsDark();
+	ImGui::StyleColorsCustom();
 
 	ImGuiIO& IO = ImGui::GetIO();
 	IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
