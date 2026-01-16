@@ -25,6 +25,20 @@ bool operator!=( const VsColor& Lhs, const VsColor& Rhs )
 //--------------------------------------------------------------------------------------------------
 // VsVector3
 //--------------------------------------------------------------------------------------------------
+VsVector3 operator+( const VsVector3& V )
+	{
+	return V;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsVector3 operator-( const VsVector3& V )
+	{
+	return { -V.X, -V.Y, -V.Z };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 VsVector3 operator+( const VsVector3& V1, const VsVector3& V2 )
 	{
 	VsVector3 Out;
@@ -130,6 +144,178 @@ float vsDot( const VsVector3& V1, const VsVector3& V2 )
 float vsLength( const VsVector3& V )
 	{
 	return sqrtf( vsDot( V, V ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+// VsQuaternion
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator+( const VsQuaternion& Q )
+	{
+	return Q;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator-( const VsQuaternion& Q )
+	{
+	return { -Q.X, -Q.Y, -Q.Z, -Q.W };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator*( const VsQuaternion& Q1, const VsQuaternion& Q2 )
+	{
+	VsQuaternion Out;
+	Out.V = vsCross( Q1.V, Q2.V ) + Q2.V * Q1.S + Q1.V * Q2.S;
+	Out.S = Q1.S * Q2.S - vsDot( Q1.V, Q2.V );
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator+( const VsQuaternion& Q1, const VsQuaternion& Q2 )
+	{
+	VsQuaternion Out;
+	Out.V = Q1.V + Q2.V;
+	Out.S = Q1.S + Q2.S;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator-( const VsQuaternion& Q1, const VsQuaternion& Q2 )
+	{
+	VsQuaternion Out;
+	Out.V = Q1.V - Q2.V;
+	Out.S = Q1.S - Q2.S;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator*( float F, const VsQuaternion& Q )
+	{
+	VsQuaternion Out;
+	Out.V = F * Q.V;
+	Out.S = F * Q.S;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator*( const VsQuaternion& Q, float F )
+	{
+	VsQuaternion Out;
+	Out.V = Q.V * F;
+	Out.S = Q.S * F;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion operator/( const VsQuaternion& Q, float F )
+	{
+	VsQuaternion Out;
+	Out.V = Q.V / F;
+	Out.S = Q.S / F;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion vsConjugate( const VsQuaternion& Q )
+	{
+	VsQuaternion Out;
+	Out.V = -Q.V;
+	Out.S = Q.S;
+
+	return Out;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion vsInvert( const VsQuaternion& Q )
+	{
+	float LengthSq = vsDot( Q, Q );
+	if ( LengthSq * LengthSq > 1000.0f * FLT_MIN )
+		{
+		VsQuaternion Out;
+		Out.V = -Q.V / LengthSq;
+		Out.S = Q.S / LengthSq;
+
+		return Out;
+		}
+
+	return { 0.0f, 0.0f, 0.0f, 0.0f };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion vsNormalize( const VsQuaternion& Q )
+	{
+	float LengthSq = vsDot( Q, Q );
+	if ( LengthSq > 1000.0f * FLT_MIN )
+		{
+		return Q / sqrtf( LengthSq );
+		}
+
+	return { 0.0f, 0.0f, 0.0f, 0.0f };
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float vsDot( const VsQuaternion& Q1, const VsQuaternion& Q2 )
+	{
+	return Q1.X * Q2.X + Q1.Y * Q2.Y + Q1.Z * Q2.Z + Q1.W * Q2.W;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float vsLength( const VsQuaternion& Q )
+	{
+	return sqrtf( vsDot( Q, Q ) );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsQuaternion vsShortestArc( const VsVector3& V1, const VsVector3& V2 )
+	{
+	VsQuaternion Out;
+
+	VsVector3 M = 0.5f * ( V1 + V2 );
+	if ( vsDot( M, M ) > 1000.0f * FLT_MIN )
+		{
+		Out.V = vsCross( V1, M );
+		Out.S = vsDot( V1, M );
+		}
+	else
+		{
+		// Anti-parallel: Use a perpendicular vector
+		if ( fabsf( V1.X ) > 0.5f )
+			{
+			Out.X = V1.Y;
+			Out.Y = -V1.X;
+			Out.Z = 0.0f;
+			}
+		else
+			{
+			Out.X = 0.0f;
+			Out.Y = V1.Z;
+			Out.Z = -V1.Y;
+			}
+
+		Out.W = 0.0f;
+		}
+
+	// The algorithm is simplified and made more accurate by normalizing at the end
+	return vsNormalize( Out );
 	}
 
 

@@ -324,3 +324,65 @@ class VsBenchmarkScene4 : public VsTest
 
 // Registry
 VS_DEFINE_TEST( "Benchmark", "Scene4 - Junkyard", VsOrbit( 45.0f, -25.0f, 150.0f, { 0.0f, 5.0f, 0.0f } ), VsBenchmarkScene4 );
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBenchmarkScene5
+//--------------------------------------------------------------------------------------------------
+class VsBenchmarkScene5 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera )
+			{
+			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 50.0f, 1.0f, 50.0f ) );
+			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
+			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
+			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+
+		
+			float Scale = 1.0f;
+			std::vector< VsVector3 > Vertices;
+			CreateRingVertices( Vertices, 40.0f, 0.0f );
+			const float ShrinkFactor = 0.05f;
+
+			VsVector3 Extent( 0.5f, 1.0f, 0.1f );
+			IVsHull* Box = mPlugin->CreateBox( Extent );
+			for ( int RingIndex = 0; RingIndex < kRingCount; ++RingIndex )
+				{
+				for ( int VertexIndex = 0; VertexIndex < kVertexCount; ++VertexIndex )
+					{
+					IVsBody* Domino = mWorld->CreateBody( VS_DYNAMIC_BODY );
+					Domino->SetPosition( Vertices[ VertexIndex ] * Scale + VsVector3( 0.0f, Extent.Y, 0.0f ) );
+					VsVector3 Normal = vsNormalize( Vertices[ VertexIndex ] );
+					Domino->SetOrientation( vsShortestArc( { 1.0f, 0.0f, 0.0f }, Normal));
+					if ( VertexIndex == 0 )
+						{
+						Domino->SetLinearVelocity( { 0.0f, 0.0f, 4.0f } );
+						Domino->SetAngularVelocity( { 4.0f, 0.0f, 0.0f } );
+						}
+					Domino->CreateHull( Box );
+
+					Scale -= ShrinkFactor / float( kVertexCount );
+					}
+				}
+			}
+
+	private:
+		void CreateRingVertices( std::vector< VsVector3 >& Vertices, float Radius, float Y )
+			{
+			Vertices.resize( kVertexCount );
+			for ( int VertexIndex = 0; VertexIndex < kVertexCount; ++VertexIndex )
+				{
+				float Alpha = float( VertexIndex ) / float( kVertexCount ) * VS_2PI;
+				Vertices[ VertexIndex ] = { cosf( Alpha ) * Radius, Y, sinf( Alpha ) * Radius };
+				}
+			}
+
+		enum { kRingCount = 16, kVertexCount = 200 };
+	};
+
+// Registry
+VS_DEFINE_TEST( "Benchmark", "Scene5 - Dominos", VsOrbit( 85.0f, -12.0f, 55.0f, { 0.0f, 1.0f, 0.0f } ), VsBenchmarkScene5 );

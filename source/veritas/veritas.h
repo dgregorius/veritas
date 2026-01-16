@@ -75,6 +75,10 @@ struct VsVector3
 	float X, Y, Z;
 	};
 
+// Unary operators
+VsVector3 operator+( const VsVector3& V );
+VsVector3 operator-( const VsVector3& V );
+
 // Binary arithmetic operators
 VsVector3 operator+( const VsVector3& V1, const VsVector3& V2 );
 VsVector3 operator-( const VsVector3& V1, const VsVector3& V2 );
@@ -107,8 +111,43 @@ struct VsMatrix3
 //--------------------------------------------------------------------------------------------------
 struct VsQuaternion
 	{
-	float X, Y, Z, W;
+	// Attributes
+	union
+		{
+		struct
+			{
+			float X, Y, Z, W;
+			};
+
+		struct
+			{
+			VsVector3 V;
+			float S;
+			};
+		};
 	};
+
+// Unary operators
+VsQuaternion operator+( const VsQuaternion& Q );
+VsQuaternion operator-( const VsQuaternion& Q );
+
+// Binary arithmetic operators
+VsQuaternion operator*( const VsQuaternion& Q1, const VsQuaternion& Q2 );
+VsQuaternion operator+( const VsQuaternion& Q1, const VsQuaternion& Q2 );
+VsQuaternion operator-( const VsQuaternion& Q1, const VsQuaternion& Q2 );
+VsQuaternion operator*( float F, const VsQuaternion& Q );
+VsQuaternion operator*( const VsQuaternion& Q, float F );
+VsQuaternion operator/( const VsQuaternion& Q, float F );
+
+// Standard quaternion operations
+VsQuaternion vsConjugate( const VsQuaternion& Q );
+VsQuaternion vsInvert( const VsQuaternion& Q );
+VsQuaternion vsNormalize( const VsQuaternion& Q );
+
+float vsDot( const VsQuaternion& Q1, const VsQuaternion& Q2 );
+float vsLength( const VsQuaternion& Q );
+	
+VsQuaternion vsShortestArc( const VsVector3& V1, const VsVector3& V2 );
 
 
 //--------------------------------------------------------------------------------------------------
