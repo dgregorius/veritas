@@ -405,7 +405,6 @@ void VsTestlab::BeginDockspace()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawInspector()
 	{
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Common" ) )
 		{
 		for ( const VsPluginPtr& Plugin : mPlugins )
@@ -432,14 +431,12 @@ void VsTestlab::DrawInspector()
 			ImGui::End();
 			}
 		}
-	ImGui::PopStyleVar();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawOutliner()
 	{
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Outliner" ) )
 		{
 		// Test selections
@@ -518,14 +515,12 @@ void VsTestlab::DrawOutliner()
 			}
 		}
 	ImGui::End();
-	ImGui::PopStyleVar();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawProfiler()
 	{
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
 	if ( ImGui::Begin( "Profiler" ) )
 		{
 		const float History = 30.0f;
@@ -560,14 +555,13 @@ void VsTestlab::DrawProfiler()
 			}
 		}
 	ImGui::End();
-	ImGui::PopStyleVar();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawViewport()
 	{
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 6, 6 ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 4, 4 ) );
 	if ( ImGui::Begin( "Viewport" ) )
 		{
 		ImGui::BeginChild( "##Child" );
@@ -578,10 +572,9 @@ void VsTestlab::DrawViewport()
 		mRenderTarget->Resize( static_cast< int >( WindowSize.x ), static_cast< int >( WindowSize.y ) );
 
 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
-		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 6.0f );
+		DrawList->AddImageRounded( (ImTextureID)(uintptr_t)mRenderTarget->GetTexture(), WindowPos, WindowPos + WindowSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ), IM_COL32_WHITE, 4.0f );
 		
 		ImGui::EndChild();
-		
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();

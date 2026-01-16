@@ -551,7 +551,7 @@ VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
 	SceneDesc.gravity = PxVec3( 0.0f, -10.0f, 0.0f );
 	SceneDesc.cpuDispatcher = Dispatcher;
 	SceneDesc.filterShader = PxDefaultSimulationFilterShader;
-	SceneDesc.solverType = PxSolverType::eTGS;
+	SceneDesc.solverType = PxSolverType::ePGS;
 	SceneDesc.flags.raise( PxSceneFlag::eENABLE_STABILIZATION );
 	VS_ASSERT( SceneDesc.isValid() );
 	
