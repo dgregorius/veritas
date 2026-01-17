@@ -889,9 +889,10 @@ void VsBox3dPlugin::SetEnabled( bool Enabled )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsBox3dPlugin::OnInspectorGUI()
+bool VsBox3dPlugin::OnInspectorGUI()
 	{
 	ImGui::Text( "Box3D %s", mVersion );
+	return false;
 	}
 
 

@@ -38,96 +38,87 @@ namespace ImGui
 {
 void StyleColorsCustom()
 	{
-	// ============== BASE PALETTE (tweak these!) ==============
-	const ImVec4 bg = ImVec4( 0.14f, 0.13f, 0.12f, 1.0f );  // main background
-	const ImVec4 bgDark = ImVec4( 0.10f, 0.09f, 0.08f, 1.0f );  // recessed
-	const ImVec4 bgLight = ImVec4( 0.20f, 0.19f, 0.18f, 1.0f );  // raised/hover
-	const ImVec4 accent = ImVec4( 0.33f, 0.52f, 0.76f, 1.0f );  // blue accent
-	const ImVec4 accentDim = ImVec4( 0.24f, 0.38f, 0.55f, 1.0f );  // softer blue
-	const ImVec4 text = ImVec4( 0.90f, 0.90f, 0.88f, 1.0f );  // warm white
-	const ImVec4 textDim = ImVec4( 0.50f, 0.48f, 0.46f, 1.0f );  // warm gray
-
 	// ============== DERIVED COLORS ==============
-	ImGuiStyle& style = ImGui::GetStyle();
-	ImVec4* c = style.Colors;
+	ImGuiStyle& Style = ImGui::GetStyle();
+	ImVec4* Colors = Style.Colors;
 
 	// Backgrounds
-	c[ ImGuiCol_WindowBg ] = bg;
-	c[ ImGuiCol_ChildBg ] = bg;
-	c[ ImGuiCol_PopupBg ] = bgDark;
+	Colors[ ImGuiCol_WindowBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_ChildBg ] = IMGUI_COLOR_BACKGROUND;
+	Colors[ ImGuiCol_PopupBg ] = IMGUI_COLOR_BACKGROUND_DARK;
 
 	// Tabs (active matches window for seamless look)
-	c[ ImGuiCol_Tab ] = bgDark;     // unselected
-	c[ ImGuiCol_TabHovered ] = bgLight;    // hover
-	c[ ImGuiCol_TabSelected ] = bg;         // selected (seamless!)
-	c[ ImGuiCol_TabSelectedOverline ] = accent;     // shows a colored line on active tab
-	c[ ImGuiCol_TabDimmed ] = bgDark;     // unfocused window, unselected
-	c[ ImGuiCol_TabDimmedSelected ] = bg;         // unfocused window, selected (still seamless)
-	c[ ImGuiCol_TabDimmedSelectedOverline ] = accentDim;  // subtler when window unfocused
+	Colors[ ImGuiCol_Tab ] = IMGUI_COLOR_BACKGROUND_DARK;						// unselected
+	Colors[ ImGuiCol_TabHovered ] = IMGUI_COLOR_BACKGROUND_LIGHT;				// hover
+	Colors[ ImGuiCol_TabSelected ] = IMGUI_COLOR_BACKGROUND;					// selected (seamless!)
+	Colors[ ImGuiCol_TabSelectedOverline ] = IMGUI_COLOR_ACCENT;				// shows a colored line on active tab
+	Colors[ ImGuiCol_TabDimmed ] = IMGUI_COLOR_BACKGROUND_DARK;					// unfocused window, unselected
+	Colors[ ImGuiCol_TabDimmedSelected ] = IMGUI_COLOR_BACKGROUND;				// unfocused window, selected (still seamless)
+	Colors[ ImGuiCol_TabDimmedSelectedOverline ] = IMGUI_COLOR_ACCENT_DIM;		// subtler when window unfocused
 
 	// Title bar
-	c[ ImGuiCol_TitleBg ] = bgDark;
-	c[ ImGuiCol_TitleBgActive ] = bgDark;
-	c[ ImGuiCol_TitleBgCollapsed ] = bgDark;
+	Colors[ ImGuiCol_TitleBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_TitleBgActive ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_TitleBgCollapsed ] = IMGUI_COLOR_BACKGROUND_DARK;
 
 	// Frames (inputs, sliders, combo boxes)
-	c[ ImGuiCol_FrameBg ] = bgDark;
-	c[ ImGuiCol_FrameBgHovered ] = bgLight;
-	c[ ImGuiCol_FrameBgActive ] = accentDim;
+	Colors[ ImGuiCol_FrameBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_FrameBgHovered ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_FrameBgActive ] = IMGUI_COLOR_ACCENT_DIM;
 
 	// Buttons
 	//c[ ImGuiCol_Button ] = bgLight;
-	c[ ImGuiCol_Button ] = ImVec4( 0.22f, 0.21f, 0.20f, 1.0f );
-	c[ ImGuiCol_ButtonHovered ] = accentDim;
-	c[ ImGuiCol_ButtonActive ] = bgDark;      // pressed = recessed
+	Colors[ ImGuiCol_Button ] = ImVec4( 0.22f, 0.22f, 0.22f, 1.0f );
+	Colors[ ImGuiCol_ButtonHovered ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_ButtonActive ] = ImVec4( 0.12f, 0.12f, 0.12f, 1.0f );		// pressed = recessed
 
 	// Headers (collapsing headers, selectable, menu items)
 	//c[ ImGuiCol_Header ] = accentDim;
-	c[ ImGuiCol_Header ] = ImVec4( 0.28f, 0.40f, 0.55f, 1.0f );  // softer selection
-	c[ ImGuiCol_HeaderHovered ] = accentDim;
-	c[ ImGuiCol_HeaderActive ] = accent;
+	Colors[ ImGuiCol_Header ] = ImVec4( 0.28f, 0.40f, 0.55f, 1.0f );			// softer selection
+	Colors[ ImGuiCol_HeaderHovered ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_HeaderActive ] = IMGUI_COLOR_ACCENT;
 
 	// Separators, borders, resize grips
-	c[ ImGuiCol_Separator ] = bgLight;
-	c[ ImGuiCol_Border ] = ImVec4( 0, 0, 0, 0 ); 
-	c[ ImGuiCol_ResizeGrip ] = bgLight;
-	c[ ImGuiCol_ResizeGripHovered ] = accentDim;
-	c[ ImGuiCol_ResizeGripActive ] = accent;
+	Colors[ ImGuiCol_Separator ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_Border ] = ImVec4( 0, 0, 0, 0 ); 
+	Colors[ ImGuiCol_ResizeGrip ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_ResizeGripHovered ] = IMGUI_COLOR_ACCENT_DIM;
+	Colors[ ImGuiCol_ResizeGripActive ] = IMGUI_COLOR_ACCENT;
 
 	// Slider grab
-	c[ ImGuiCol_SliderGrab ] = accentDim;
-	c[ ImGuiCol_SliderGrabActive ] = accent;
+	Colors[ ImGuiCol_SliderGrab ] = IMGUI_COLOR_ACCENT_DIM;
+	Colors[ ImGuiCol_SliderGrabActive ] = IMGUI_COLOR_ACCENT;
 
 	// Checkmark, scrollbar
-	c[ ImGuiCol_CheckMark ] = accent;
-	c[ ImGuiCol_ScrollbarBg ] = bgDark;
-	c[ ImGuiCol_ScrollbarGrab ] = bgLight;
-	c[ ImGuiCol_ScrollbarGrabHovered ] = accentDim;
-	c[ ImGuiCol_ScrollbarGrabActive ] = accent;
+	Colors[ ImGuiCol_CheckMark ] = IMGUI_COLOR_ACCENT;
+	Colors[ ImGuiCol_ScrollbarBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_ScrollbarGrab ] = IMGUI_COLOR_BACKGROUND_LIGHT;
+	Colors[ ImGuiCol_ScrollbarGrabHovered ] = IMGUI_COLOR_ACCENT_DIM;
+	Colors[ ImGuiCol_ScrollbarGrabActive ] = IMGUI_COLOR_ACCENT;
 
 	// Text
-	c[ ImGuiCol_Text ] = text;
-	c[ ImGuiCol_TextDisabled ] = textDim;
+	Colors[ ImGuiCol_Text ] = IMGUI_COLOR_TEXT;
+	Colors[ ImGuiCol_TextDisabled ] = IMGUI_COLOR_TEXT_DIM;
 
 	// Misc
-	c[ ImGuiCol_MenuBarBg ] = bgDark;
-	c[ ImGuiCol_TableHeaderBg ] = bgDark;
-	c[ ImGuiCol_TableRowBg ] = bg;
-	c[ ImGuiCol_TableRowBgAlt ] = bgDark;
+	Colors[ ImGuiCol_MenuBarBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_TableHeaderBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_TableRowBg ] = IMGUI_COLOR_BACKGROUND;
+	Colors[ ImGuiCol_TableRowBgAlt ] = IMGUI_COLOR_BACKGROUND_DARK;
 
 	// ============== STYLE TWEAKS ==============
-	style.WindowRounding = 6.0f;
-	style.FrameRounding = 4.0f;
-	style.TabRounding = 4.0f;
-	style.ScrollbarRounding = 4.0f;
-	style.GrabRounding = 3.0f;
-	style.WindowBorderSize = 0.0f;
+	Style.WindowRounding = 6.0f;
+	Style.FrameRounding = 4.0f;
+	Style.TabRounding = 4.0f;
+	Style.ScrollbarRounding = 4.0f;
+	Style.GrabRounding = 3.0f;
+	Style.WindowBorderSize = 0.0f;
 
-	style.TabBorderSize = 0.0f;
-	style.FramePadding = ImVec2( 8, 4 );
-	style.ItemSpacing = ImVec2( 8, 5 );
-	style.TabBarOverlineSize = 2.0f;
-	style.DockingSeparatorSize = 4.0f;
+	Style.TabBorderSize = 0.0f;
+	Style.FramePadding = ImVec2( 8, 4 );
+	Style.ItemSpacing = ImVec2( 8, 5 );
+	Style.TabBarOverlineSize = 2.0f;
+	Style.DockingSeparatorSize = 4.0f;
 	}
 
 void Startup( GLFWwindow* Window )
@@ -204,5 +195,69 @@ void Shutdown( GLFWwindow* )
 	
 	ImGui::DestroyContext();
 	ImPlot::DestroyContext();
+	}
+
+// Properties
+static void BeginProperty( const char* Label, const char* Tooltip )
+	{
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+
+	float Padding = 8.0f;
+	float ColumnWidth = ImGui::GetColumnWidth();
+	float LableWidth = ImGui::CalcTextSize( Label ).x;
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + ColumnWidth - LableWidth - Padding );
+
+	ImGui::AlignTextToFramePadding();
+	ImGui::TextUnformatted( Label );
+	if ( Tooltip && ImGui::IsItemHovered() )
+		{
+		ImGui::SetTooltip( "%s", Tooltip );
+		}
+		
+	ImGui::TableNextColumn();
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + Padding );
+	ImGui::SetNextItemWidth( -Padding ); 
+	}
+
+
+bool BeginProperties( const char* Name )
+	{
+	if ( ImGui::BeginTable( Name, 2, ImGuiTableFlags_Resizable ) )
+		{
+		ImGui::TableSetupColumn( "Label", ImGuiTableColumnFlags_WidthFixed, 160.0f );
+		ImGui::TableSetupColumn( "Value", ImGuiTableColumnFlags_WidthStretch );
+		
+		return true;
+		}
+
+	return false;
+	}
+
+
+void EndProperties()
+	{
+	ImGui::EndTable();
+	}
+
+
+bool BeginSection( const char* Label )
+	{
+	ImGui::EndTable();
+	bool Open = ImGui::CollapsingHeader( Label, ImGuiTreeNodeFlags_DefaultOpen );
+	BeginProperties( "##Properties" );
+	
+	return Open;
+	}
+
+
+bool Property( const char* Label, bool& Value, const char* Tooltip )
+	{
+	ImGui::PushID( Label );
+	ImGui::BeginProperty( Label, Tooltip );
+	bool Changed = ImGui::Checkbox( "##Value", &Value );
+	ImGui::PopID();
+
+	return Changed;
 	}
 }

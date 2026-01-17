@@ -701,9 +701,10 @@ void VsRagnarokPlugin::SetEnabled( bool Enabled )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsRagnarokPlugin::OnInspectorGUI()
+bool VsRagnarokPlugin::OnInspectorGUI()
 	{
 	ImGui::Text( "Ragnarok 0.1" );
+	return false;
 	}
 
 

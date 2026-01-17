@@ -405,40 +405,65 @@ void VsTestlab::BeginDockspace()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawInspector()
 	{
+	// Common properties
+	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Common" ) )
 		{
-		for ( const VsPluginPtr& Plugin : mPlugins )
+		if ( ImGui::BeginProperties( "Common" ) )
 			{
-			bool Enabled = Plugin->IsEnabled();
-			if ( ImGui::Checkbox( Plugin->GetName(), &Enabled ) )
+			if ( ImGui::BeginSection( "Plugins" ) )
 				{
-				DestroyTests();
-				Plugin->SetEnabled( Enabled );
-				CreateTests( mTestIndex );
+				for ( const VsPluginPtr& Plugin : mPlugins )
+					{
+					bool Enabled = Plugin->IsEnabled();
+					if ( ImGui::Property( Plugin->GetName(), Enabled ) )
+						{
+						DestroyTests();
+						Plugin->SetEnabled( Enabled );
+						CreateTests( mTestIndex );
+						}
+					}
 				}
+
+			ImGui::EndProperties();
 			}
 		}
 	ImGui::End();
+	ImGui::PopStyleColor();
 
+	// Plugin properties
 	for ( const VsPluginPtr& Plugin : mPlugins )
 		{
-		if ( Plugin->IsEnabled() )
+		ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
+		if ( ImGui::Begin( Plugin->GetName(), NULL, ImGuiWindowFlags_NoFocusOnAppearing ) )
 			{
-			if ( ImGui::Begin( Plugin->GetName(), NULL, ImGuiWindowFlags_NoFocusOnAppearing ) )
+			if ( Plugin->OnInspectorGUI() )
 				{
-				Plugin->OnInspectorGUI();
+				DestroyTests();
+				CreateTests( mTestIndex );
 				}
-			ImGui::End();
 			}
+		ImGui::End();
+		ImGui::PopStyleColor();
 		}
+	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawOutliner()
 	{
+	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Outliner" ) )
 		{
+		static char Buffer[ 256 ] = "";
+		ImGui::SetNextItemWidth( -1 );  
+		ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 4.0f );
+		ImGui::InputTextWithHint( "##Search", "Filter...", Buffer, sizeof( Buffer ) );
+		ImGui::PopStyleVar();
+
+		ImGui::Separator();
+
 		// Test selections
 		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 		for ( int TestIndex = 0; TestIndex < static_cast< int >( TestEntries.size() ); ++TestIndex )
@@ -515,12 +540,14 @@ void VsTestlab::DrawOutliner()
 			}
 		}
 	ImGui::End();
+	ImGui::PopStyleColor();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawProfiler()
 	{
+	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Profiler" ) )
 		{
 		const float History = 30.0f;
@@ -555,12 +582,14 @@ void VsTestlab::DrawProfiler()
 			}
 		}
 	ImGui::End();
+	ImGui::PopStyleColor();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawViewport()
 	{
+	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 4, 4 ) );
 	if ( ImGui::Begin( "Viewport" ) )
 		{
@@ -578,6 +607,7 @@ void VsTestlab::DrawViewport()
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
 	}
 
 

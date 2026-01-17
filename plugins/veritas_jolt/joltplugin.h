@@ -362,7 +362,7 @@ class VsJoltPlugin : public IVsPlugin
 		virtual bool IsEnabled() const override;
 		virtual void SetEnabled( bool Enabled ) override;
 
-		virtual void OnInspectorGUI() override;
+		virtual bool OnInspectorGUI() override;
 
 		// Hulls
 		virtual IVsHull* CreateHull( int VertexCount, const VsVector3* Vertices ) override;

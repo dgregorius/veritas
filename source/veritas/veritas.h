@@ -384,7 +384,7 @@ struct IVsPlugin
 	virtual bool IsEnabled() const = 0;
 	virtual void SetEnabled( bool Enabled ) = 0;
 
-	virtual void OnInspectorGUI() = 0;
+	virtual bool OnInspectorGUI() = 0;
 	
 	// Hull
 	IVsHull* CreateBox( const VsVector3& Extent );

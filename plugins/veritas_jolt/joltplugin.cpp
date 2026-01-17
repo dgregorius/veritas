@@ -816,9 +816,10 @@ void VsJoltPlugin::SetEnabled( bool Enabled )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsJoltPlugin::OnInspectorGUI()
+bool VsJoltPlugin::OnInspectorGUI()
 	{
 	ImGui::Text( "Jolt %s", mVersion );
+	return false;
 	}
 
 

@@ -834,9 +834,10 @@ void VsPhysXPlugin::SetEnabled( bool Enabled )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsPhysXPlugin::OnInspectorGUI()
+bool VsPhysXPlugin::OnInspectorGUI()
 	{
 	ImGui::Text( "PhysX %s", mVersion );
+	return false;
 	}
 
 
