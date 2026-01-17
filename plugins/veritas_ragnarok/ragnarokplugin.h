@@ -76,6 +76,10 @@ class VsRagnarokHullShape : public IVsHullShape
 		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
 
+		// Material
+		void SetFriction( float Friction );
+		void SetRestitution( float Restitution );
+
 		// Ragnarok
 		RkHullShape* GetNative() const;
 

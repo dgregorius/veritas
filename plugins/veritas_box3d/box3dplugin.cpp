@@ -202,6 +202,20 @@ const IVsHull* VsBox3dHullShape::GetHull() const
 
 
 //--------------------------------------------------------------------------------------------------
+void VsBox3dHullShape::SetFriction( float Friction )
+	{
+	b3Shape_SetFriction( mNative, Friction );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dHullShape::SetRestitution( float Restitution )
+	{
+	b3Shape_SetRestitution( mNative, Restitution );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 b3ShapeId VsBox3dHullShape::GetNative() const
 	{
 	return mNative;
@@ -334,6 +348,20 @@ void VsBox3dMeshShape::SetColor( const VsColor& Color )
 const IVsMesh* VsBox3dMeshShape::GetMesh() const
 	{
 	return mMesh;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dMeshShape::SetFriction( float Friction )
+	{
+	b3Shape_SetFriction( mNative, Friction );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dMeshShape::SetRestitution( float Restitution )
+	{
+	b3Shape_SetRestitution( mNative, Restitution );
 	}
 
 
@@ -477,8 +505,24 @@ void VsBox3dBody::SetFriction( float Friction )
 		{
 		mFriction = Friction;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{ 
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast< VsBox3dHullShape* >( Shape )->SetFriction( Friction );
+					break;
+
+				case VS_MESH_SHAPE:
+					static_cast< VsBox3dMeshShape* >( Shape )->SetFriction( Friction );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 
@@ -497,8 +541,24 @@ void VsBox3dBody::SetRestitution( float Restitution )
 		{
 		mRestitution = Restitution;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast<VsBox3dHullShape*>( Shape )->SetRestitution( Restitution );
+					break;
+
+				case VS_MESH_SHAPE:
+					static_cast<VsBox3dMeshShape*>( Shape )->SetRestitution( Restitution );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 

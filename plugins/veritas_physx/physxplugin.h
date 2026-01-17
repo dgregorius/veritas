@@ -82,6 +82,10 @@ class VsPhysXHullShape : public IVsHullShape
 		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
 
+		// Material
+		void SetFriction( float Friction );
+		void SetRestitution( float Restitution );
+
 		// PhysX
 		PxShape* GetNative() const;
 
@@ -89,6 +93,7 @@ class VsPhysXHullShape : public IVsHullShape
 		VsPhysXBody* mBody = nullptr;
 		VsColor mColor = VS_COLOR_TRANSPARENT;
 		const VsPhysXHull* mHull = nullptr;
+		PxMaterial* mMaterial = nullptr;
 		PxShape* mNative = nullptr;
 	};
 
@@ -274,7 +279,6 @@ class VsPhysXPlugin : public IVsPlugin
 		PxFoundation* GetFoundation() const;
 		PxPhysics* GetPhysics() const;
 		PxCpuDispatcher* GetDispatcher() const;
-		PxMaterial* GetDefaultMaterial() const;
 
 	private:
 		char mVersion[ 64 ];
@@ -288,5 +292,4 @@ class VsPhysXPlugin : public IVsPlugin
 		PxFoundation* mFoundation = nullptr;
 		PxPhysics* mPhysics = nullptr;
 		PxDefaultCpuDispatcher* mDispatcher = nullptr;
-		PxMaterial* mDefaultMaterial = nullptr;
 	};

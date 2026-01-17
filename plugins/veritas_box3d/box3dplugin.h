@@ -96,6 +96,10 @@ class VsBox3dHullShape : public IVsHullShape
 		// IVsHullShape
 		virtual const IVsHull* GetHull() const override;
 
+		// Material
+		void SetFriction( float Friction );
+		void SetRestitution( float Restitution );
+
 		// Native Box3d type
 		b3ShapeId GetNative() const;
 
@@ -150,6 +154,10 @@ class VsBox3dMeshShape : public IVsMeshShape
 
 		// IVsMeshShape
 		virtual const IVsMesh* GetMesh() const override;
+
+		// Material
+		void SetFriction( float Friction );
+		void SetRestitution( float Restitution );
 
 		// Native Box3d type
 		b3ShapeId GetNative() const;

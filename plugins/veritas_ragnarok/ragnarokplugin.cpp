@@ -176,6 +176,20 @@ const IVsHull* VsRagnarokHullShape::GetHull() const
 
 
 //--------------------------------------------------------------------------------------------------
+void VsRagnarokHullShape::SetFriction( float Friction )
+	{
+	mNative->SetFriction( Friction );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokHullShape::SetRestitution( float Restitution )
+	{
+	mNative->SetRestitution( Restitution );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 RkHullShape* VsRagnarokHullShape::GetNative() const
 	{
 	return mNative;
@@ -350,8 +364,20 @@ void VsRagnarokBody::SetFriction( float Friction )
 		{
 		mFriction = Friction;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast< VsRagnarokHullShape* >( Shape )->SetFriction( Friction );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 
@@ -370,8 +396,20 @@ void VsRagnarokBody::SetRestitution( float Restitution )
 		{
 		mRestitution = Restitution;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast< VsRagnarokHullShape* >( Shape )->SetRestitution( Shape );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 

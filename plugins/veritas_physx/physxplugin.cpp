@@ -179,8 +179,12 @@ VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
 	VsPhysXWorld* World = static_cast< VsPhysXWorld* >( Body->GetWorld() );
 	VsPhysXPlugin* Plugin = static_cast< VsPhysXPlugin* >( World->GetPlugin() );
 
+	PxPhysics* Physics = Plugin->GetPhysics();
+	mMaterial = Physics->createMaterial( 0.6f, 0.6f, 0.0f );
+	VS_ASSERT( mMaterial );
+
 	PxRigidActor* RigidActor = Body->GetNative();
-	mNative = PxRigidActorExt::createExclusiveShape( *RigidActor, PxConvexMeshGeometry( Hull->GetNative() ), *Plugin->GetDefaultMaterial() );
+	mNative = PxRigidActorExt::createExclusiveShape( *RigidActor, PxConvexMeshGeometry( Hull->GetNative() ), *mMaterial );
 	if ( RigidActor->getType() == PxActorType::eRIGID_DYNAMIC )
 		{
 		PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( RigidActor );
@@ -196,6 +200,7 @@ VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
 VsPhysXHullShape::~VsPhysXHullShape()
 	{
 	PX_RELEASE( mNative );
+	PX_RELEASE( mMaterial );
 	}
 
 
@@ -231,6 +236,21 @@ void VsPhysXHullShape::SetColor( const VsColor& Color )
 const IVsHull* VsPhysXHullShape::GetHull() const
 	{
 	return mHull;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXHullShape::SetFriction( float Friction )
+	{
+	mMaterial->setStaticFriction( Friction );
+	mMaterial->setDynamicFriction( Friction );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXHullShape::SetRestitution( float Restitution )
+	{
+	mMaterial->setRestitution( Restitution );
 	}
 
 
@@ -462,8 +482,20 @@ void VsPhysXBody::SetFriction( float Friction )
 		{
 		mFriction = Friction;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast< VsPhysXHullShape* >( Shape )->SetFriction( Friction );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 
@@ -482,8 +514,20 @@ void VsPhysXBody::SetRestitution( float Restitution )
 		{
 		mRestitution = Restitution;
 
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
+		// Propagate to shapes
+		for ( IVsShape* Shape : mShapes )
+			{
+			switch ( Shape->GetType() )
+				{
+				case VS_HULL_SHAPE:
+					static_cast< VsPhysXHullShape* >( Shape )->SetRestitution( Restitution );
+					break;
+
+				default:
+					VS_ASSERT( 0 );
+					break;
+				}
+			}
 		}
 	}
 
@@ -789,19 +833,15 @@ VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context )
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
 
-	fs::path ModulePath = fs::current_path() / "plugins/physx";
-	SetDllDirectoryW( ModulePath.c_str() );
-
 	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", PX_PHYSICS_VERSION_MAJOR, PX_PHYSICS_VERSION_MINOR, PX_PHYSICS_VERSION_BUGFIX );
 
+	fs::path ModulePath = fs::current_path() / "plugins/physx";
+	SetDllDirectoryW( ModulePath.c_str() );
 	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
 	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
-	bool Success = PxInitExtensions( *mPhysics, NULL );
-	VS_ASSERT( Success );
+	PxInitExtensions( *mPhysics, NULL );
 	mDispatcher = PxDefaultCpuDispatcherCreate( std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
-	mDefaultMaterial = mPhysics->createMaterial( 0.6f, 0.6f, 0.0f );
-
-	SetDllDirectory( NULL );
+	SetDllDirectoryW( NULL );
 	}
 
 
@@ -829,7 +869,6 @@ VsPhysXPlugin::~VsPhysXPlugin()
 		delete Hull;
 		}
 
-	PX_RELEASE( mDefaultMaterial );
 	PX_RELEASE( mDispatcher );
 	PxCloseExtensions();
 	PX_RELEASE( mPhysics );
@@ -1044,13 +1083,6 @@ physx::PxPhysics* VsPhysXPlugin::GetPhysics() const
 physx::PxCpuDispatcher* VsPhysXPlugin::GetDispatcher() const
 	{
 	return mDispatcher;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-physx::PxMaterial* VsPhysXPlugin::GetDefaultMaterial() const
-	{
-	return mDefaultMaterial;
 	}
 
 
