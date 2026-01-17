@@ -310,6 +310,12 @@ struct IVsBody
 
 	virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) = 0;
 
+	// Materials
+	virtual float GetFriction() const = 0;
+	virtual void SetFriction( float Friction ) = 0;
+	virtual float GetRestitution() const = 0;
+	virtual void SetRestitution( float Restitution ) = 0;
+
 	// Shapes
 	virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) = 0;
 	virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) = 0;

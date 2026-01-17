@@ -184,7 +184,6 @@ class VsBox3dBody : public IVsBody
 		virtual VsQuaternion GetOrientation() const override;
 		virtual void SetOrientation( const VsQuaternion& Orientation ) override;
 
-
 		// Velocity
 		virtual VsVector3 GetLinearVelocity() const override;
 		virtual void SetLinearVelocity( const VsVector3& LinearVelocity ) override;
@@ -192,6 +191,12 @@ class VsBox3dBody : public IVsBody
 		virtual void SetAngularVelocity( const VsVector3& AngularVelocity ) override;
 
 		virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) override;
+
+		// Materials
+		virtual float GetFriction() const override;
+		virtual void SetFriction( float Friction ) override;
+		virtual float GetRestitution() const override;
+		virtual void SetRestitution( float Restitution ) override;
 
 		// Shapes
 		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
@@ -209,6 +214,8 @@ class VsBox3dBody : public IVsBody
 
 	private:	
 		VsBox3dWorld* mWorld = nullptr;
+		float mFriction = 0.6f;
+		float mRestitution = 0.0f;
 		std::vector< IVsShape* > mShapes;
 		b3BodyId mNative = {};
 	};

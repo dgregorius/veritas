@@ -138,6 +138,12 @@ class VsRagnarokBody : public IVsBody
 
 		virtual void SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timestep ) override;
 
+		// Materials
+		virtual float GetFriction() const override;
+		virtual void SetFriction( float Friction ) override;
+		virtual float GetRestitution() const override;
+		virtual void SetRestitution( float Restitution ) override;
+
 		// Shapes
 		virtual IVsSphereShape* CreateSphere( const VsVector3& Center, float Radius ) override;
 		virtual IVsCapsuleShape* CreateCapulse( const VsVector3& Center1, const VsVector3& Center2, float Radius ) override;
@@ -154,6 +160,8 @@ class VsRagnarokBody : public IVsBody
 
 	private:
 		VsRagnarokWorld* mWorld = nullptr;
+		float mFriction = 0.6f;
+		float mRestitution = 0.0f;
 		std::vector< IVsShape* > mShapes;
 		RkBody* mNative = nullptr;
 	};

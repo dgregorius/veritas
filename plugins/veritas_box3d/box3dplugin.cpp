@@ -464,6 +464,46 @@ void VsBox3dBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timest
 
 
 //--------------------------------------------------------------------------------------------------
+float VsBox3dBody::GetFriction() const
+	{
+	return mFriction;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dBody::SetFriction( float Friction )
+	{
+	if ( mFriction != Friction )
+		{
+		mFriction = Friction;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsBox3dBody::GetRestitution() const
+	{
+	return mRestitution;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dBody::SetRestitution( float Restitution )
+	{
+	if ( mRestitution != Restitution )
+		{
+		mRestitution = Restitution;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsSphereShape* VsBox3dBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...

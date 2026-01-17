@@ -460,6 +460,46 @@ void VsJoltBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timeste
 
 
 //--------------------------------------------------------------------------------------------------
+float VsJoltBody::GetFriction() const
+	{
+	return mFriction;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltBody::SetFriction( float Friction )
+	{
+	if ( mFriction != Friction )
+		{
+		mFriction = Friction;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsJoltBody::GetRestitution() const
+	{
+	return mRestitution;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltBody::SetRestitution( float Restitution )
+	{
+	if ( mRestitution != Restitution )
+		{
+		mRestitution = Restitution;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsSphereShape* VsJoltBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	return nullptr;

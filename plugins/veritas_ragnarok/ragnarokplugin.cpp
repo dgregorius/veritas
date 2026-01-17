@@ -337,6 +337,46 @@ void VsRagnarokBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Tim
 
 
 //--------------------------------------------------------------------------------------------------
+float VsRagnarokBody::GetFriction() const
+	{
+	return mFriction;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokBody::SetFriction( float Friction )
+	{
+	if ( mFriction != Friction )
+		{
+		mFriction = Friction;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsRagnarokBody::GetRestitution() const
+	{
+	return mRestitution;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokBody::SetRestitution( float Restitution )
+	{
+	if ( mRestitution != Restitution )
+		{
+		mRestitution = Restitution;
+
+		// DIRK_TODO: Propagate...
+		VS_ASSERT( 0 );
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 IVsSphereShape* VsRagnarokBody::CreateSphere( const VsVector3& Center, float Radius )
 	{
 	// DIRK_TODO: ...
