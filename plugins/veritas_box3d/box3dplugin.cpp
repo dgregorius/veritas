@@ -592,6 +592,8 @@ IVsHullShape* VsBox3dBody::CreateHull( const IVsHull* Hull )
 		}
 
 	VsBox3dHullShape* Shape = new VsBox3dHullShape( this, static_cast< const VsBox3dHull* >( Hull ) );
+	Shape->SetFriction( mFriction );
+	Shape->SetRestitution( mRestitution );
 	mShapes.push_back( Shape );
 	mWorld->NotifyShapeAdded( this, Shape );
 
@@ -608,6 +610,8 @@ IVsMeshShape* VsBox3dBody::CreateMesh( const IVsMesh* Mesh )
 		}
 
 	VsBox3dMeshShape* Shape = new VsBox3dMeshShape( this, static_cast< const VsBox3dMesh* >( Mesh ) );
+	Shape->SetFriction( mFriction );
+	Shape->SetRestitution( mRestitution );
 	mShapes.push_back( Shape );
 	mWorld->NotifyShapeAdded( this, Shape );
 	

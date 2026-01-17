@@ -16,22 +16,22 @@ class VsBasicScene1 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 15.0f, 1.0f, 15.0f ) );
+			IVsHull* Ground = mPlugin->CreateBox( { 15.0f, 1.0f, 15.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
-			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
 			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
 			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
 
 
-			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+			IVsHull* Box = mPlugin->CreateBox( { 1.0f, 1.0f, 1.0f } );
 			IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
-			BoxBody->SetPosition( VsVector3( 0.0f, 15.0f, 0.0f ) );
+			BoxBody->SetPosition( { 0.0f, 15.0f, 0.0f } );
 			BoxBody->CreateHull( Box );
 			}
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene1 - Falling Box", VsOrbit( 45.0f, -20.0f, 40.0f ), VsBasicScene1);
+VS_DEFINE_TEST( "Basics", "Scene1 - Falling Box", VsOrbit( 45.0f, -20.0f, 40.0f ), VsBasicScene1 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -44,17 +44,17 @@ class VsBasicScene2 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 15.0f, 1.0f, 15.0f ) );
+			IVsHull* Ground = mPlugin->CreateBox( { 15.0f, 1.0f, 15.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
-			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
 			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
 			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
 
-			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+			IVsHull* Box = mPlugin->CreateBox( { 1.0f, 1.0f, 1.0f } );
 			for ( int Index = 0; Index < 5; ++Index )
 				{
 				IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
-				BoxBody->SetPosition( VsVector3( 0.0f, 2.5f * Index + 1.5f, 0.0f ) );
+				BoxBody->SetPosition( { 0.0f, 2.5f * Index + 1.5f, 0.0f }  );
 				BoxBody->CreateHull( Box );
 				}
 			}
@@ -74,19 +74,19 @@ class VsBasicScene3 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 25.0f, 1.0f, 25.0f ) );
+			IVsHull* Ground = mPlugin->CreateBox( { 25.0f, 1.0f, 25.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
-			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
 			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
 			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
 
-			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+			IVsHull* Box = mPlugin->CreateBox( { 1.0f, 1.0f, 1.0f } );
 			for ( int Row = 0; Row < 12; ++Row )
 				{
 				for ( int Column = 0; Column < 12 - Row; ++Column )
 					{
 					IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
-					BoxBody->SetPosition( VsVector3( -11.0f + 2.0f * Column + Row, 1.5f + 2.5f * Row, 0.0f ) );
+					BoxBody->SetPosition( { -11.0f + 2.0f * Column + Row, 1.5f + 2.5f * Row, 0.0f } );
 					BoxBody->CreateHull( Box );
 					}
 				}
@@ -98,7 +98,7 @@ VS_DEFINE_TEST( "Basics", "Scene3 - Small pyramid", VsOrbit( 0.0f, -30.0f, 50.0f
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBasicScene4 - Sliding Boxes
+// VsBasicScene4 - Inclined Plane
 //--------------------------------------------------------------------------------------------------
 class VsBasicScene4 : public VsTest
 	{
@@ -107,13 +107,53 @@ class VsBasicScene4 : public VsTest
 	public:
 		virtual void Create( VsCamera* Camera ) override
 			{
-			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 75.0f, 1.0f, 75.0f ) );
+			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
-			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
+			GroundBody->SetFriction( 1.0f );
 			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
 			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
 
+			IVsHull* Plane = mPlugin->CreateBox( { 16.0f, 0.5f, 10.0f } );
+			IVsBody* PlaneBody = mWorld->CreateBody( VS_STATIC_BODY );
+			PlaneBody->SetPosition( { 0.0f, 7.5f, -5.0f } );
+			PlaneBody->SetOrientation( { sinf( 20.0f * VS_DEG2RAD ), 0.0f, 0.0f, cosf( 20.0f * VS_DEG2RAD ) } );
+			PlaneBody->SetFriction( 1.0f );
+			IVsShape* PlaneShape = PlaneBody->CreateHull( Plane );
+			PlaneShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+			
 			IVsHull* Box = mPlugin->CreateBox( VsVector3( 1.0f, 1.0f, 1.0f ) );
+			for ( int Index = 0; Index < 5; ++Index )
+				{
+				IVsBody* BoxBody = mWorld->CreateBody( VS_DYNAMIC_BODY );
+				BoxBody->SetPosition( { -10.0f + 5.0f * Index, 15.75f, -10.6f } );
+				BoxBody->SetFriction( ( Index + 1 ) * 0.2f );
+				BoxBody->CreateHull( Box );
+				}
+			}
+	};
+
+// Registry
+VS_DEFINE_TEST( "Basics", "Scene4 - Inclined Plane", VsOrbit( -55.0f, -30.0f, 60.0f, { 0.0f, 7.5f, 0.0f } ), VsBasicScene4 );
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBasicScene5 - Sliding Boxes
+//--------------------------------------------------------------------------------------------------
+class VsBasicScene5 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera ) override
+			{
+			IVsHull* Ground = mPlugin->CreateBox( { 75.0f, 1.0f, 75.0f } );
+			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
+			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
+			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+
+			IVsHull* Box = mPlugin->CreateBox( { 1.0f, 1.0f, 1.0f } );
 			for ( int Index = 0; Index < 32; ++Index )
 				{
 				float Alpha = VS_PI / 16.0f * Index;
@@ -127,4 +167,6 @@ class VsBasicScene4 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene4 - Sliding Boxes", VsOrbit( 45.0f, -35.0f, 140.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene4 );
+VS_DEFINE_TEST( "Basics", "Scene5 - Sliding Boxes", VsOrbit( 45.0f, -35.0f, 140.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene5 );
+
+

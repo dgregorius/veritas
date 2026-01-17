@@ -462,40 +462,36 @@ void VsJoltBody::SetVelocityFromKeyframe( const VsFrame& Keyframe, float Timeste
 //--------------------------------------------------------------------------------------------------
 float VsJoltBody::GetFriction() const
 	{
-	return mFriction;
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	return BodyInterface.GetFriction( mNative );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsJoltBody::SetFriction( float Friction )
 	{
-	if ( mFriction != Friction )
-		{
-		mFriction = Friction;
-
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
-		}
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	BodyInterface.SetFriction( mNative, Friction );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 float VsJoltBody::GetRestitution() const
 	{
-	return mRestitution;
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	return BodyInterface.GetRestitution( mNative );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsJoltBody::SetRestitution( float Restitution )
 	{
-	if ( mRestitution != Restitution )
-		{
-		mRestitution = Restitution;
-
-		// DIRK_TODO: Propagate...
-		VS_ASSERT( 0 );
-		}
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	return BodyInterface.SetRestitution( mNative, Restitution );
 	}
 
 
@@ -585,6 +581,8 @@ VsJoltWorld::VsJoltWorld( VsJoltPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
 	mNative.Init( cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, mBroadphaseLayerInterface, mObjectVsBroadphaseLayerFilter, mObjectVsObjectLayerFilter );
+	mNative.SetCombineFriction( CombineFriction );
+	mNative.SetCombineRestitution( CombineRestitution );
 	}
 
 
@@ -762,6 +760,26 @@ void VsJoltWorld::Step( float Timestep )
 PhysicsSystem& VsJoltWorld::GetNative()
 	{
 	return mNative;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsJoltWorld::CombineFriction( const Body& Body1, const SubShapeID&, const Body& Body2, const SubShapeID& )
+	{
+	float Friction1 = Body1.GetFriction();
+	float Friction2 = Body2.GetFriction();
+
+	return sqrtf( Friction1 * Friction2 );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+float VsJoltWorld::CombineRestitution( const Body& Body1, const SubShapeID& SubShapeID1, const Body& Body2, const SubShapeID& SubShapeID2 )
+	{
+	float Restitution1 = Body1.GetRestitution();
+	float Restitution2 = Body2.GetRestitution();
+
+	return std::max( Restitution1, Restitution2 );
 	}
 
 

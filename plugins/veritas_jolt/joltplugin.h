@@ -289,8 +289,6 @@ class VsJoltBody : public IVsBody
 	private:
 		VsJoltWorld* mWorld = nullptr;
 		std::vector< IVsShape* > mShapes;
-		float mFriction = 0.6f;
-		float mRestitution = 0.0f;
 		BodyID mNative = {};
 	};
 
@@ -339,6 +337,9 @@ class VsJoltWorld : public IVsWorld
 		PhysicsSystem& GetNative();
 
 	private:
+		static float CombineFriction( const Body& Body1, const SubShapeID& SubShapeID1, const Body& Body2, const SubShapeID& SubShapeID2 );
+		static float CombineRestitution( const Body& Body1, const SubShapeID& SubShapeID1, const Body& Body2, const SubShapeID& SubShapeID2 );
+
 		VsJoltPlugin* mPlugin = nullptr;
 		VsColor mColor = { 0.5f, 0.9f, 0.8f, 1.00f };
 		std::vector< IVsWorldListener* > mListeners;

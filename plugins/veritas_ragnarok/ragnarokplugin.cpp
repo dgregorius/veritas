@@ -402,7 +402,7 @@ void VsRagnarokBody::SetRestitution( float Restitution )
 			switch ( Shape->GetType() )
 				{
 				case VS_HULL_SHAPE:
-					static_cast< VsRagnarokHullShape* >( Shape )->SetRestitution( Shape );
+					static_cast< VsRagnarokHullShape* >( Shape )->SetRestitution( Restitution );
 					break;
 
 				default:
@@ -443,6 +443,8 @@ IVsHullShape* VsRagnarokBody::CreateHull( const IVsHull* Hull )
 		}
 
 	VsRagnarokHullShape* Shape = new VsRagnarokHullShape( this, static_cast< const VsRagnarokHull* >( Hull ) );
+	Shape->SetFriction( mFriction );
+	Shape->SetRestitution( mRestitution );
 	mShapes.push_back( Shape );
 	mWorld->NotifyShapeAdded( this, Shape );
 

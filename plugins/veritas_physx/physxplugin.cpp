@@ -181,6 +181,8 @@ VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
 
 	PxPhysics* Physics = Plugin->GetPhysics();
 	mMaterial = Physics->createMaterial( 0.6f, 0.6f, 0.0f );
+	mMaterial->setFrictionCombineMode( PxCombineMode::eAVERAGE );
+	mMaterial->setRestitutionCombineMode( PxCombineMode::eMAX );
 	VS_ASSERT( mMaterial );
 
 	PxRigidActor* RigidActor = Body->GetNative();
@@ -561,6 +563,8 @@ IVsHullShape* VsPhysXBody::CreateHull( const IVsHull* Hull )
 		}
 
 	VsPhysXHullShape* Shape = new VsPhysXHullShape( this, static_cast< const VsPhysXHull* >( Hull ) );
+	Shape->SetFriction( mFriction );
+	Shape->SetRestitution( mRestitution );
 	mShapes.push_back( Shape );
 	mWorld->NotifyShapeAdded( this, Shape );
 
