@@ -488,11 +488,12 @@ void VsTestlab::DrawOutliner()
 		ImGui::InputTextWithHint( "##Search", "Filter...", Buffer, sizeof( Buffer ) );
 		ImGui::PopStyleVar();
 
-		ImGui::Separator();
+		//ImGui::Separator();
+		ImGui::Spacing();
 	
 		// Test selections
 		ImGui::PushStyleColor( ImGuiCol_ChildBg, IMGUI_COLOR_BACKGROUND_DARK );
-		if ( ImGui::BeginChild( "##Child", ImVec2( 0, 0 ), ImGuiChildFlags_AutoResizeY ) )
+		if ( ImGui::BeginChild( "##Child", ImVec2( 0, -121 ) ) )
 			{
 			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 			for ( int TestIndex = 0; TestIndex < static_cast<int>( TestEntries.size() ); ++TestIndex )
@@ -505,8 +506,10 @@ void VsTestlab::DrawOutliner()
 					ImGui::SetNextItemOpen( true, ImGuiCond_Once );
 					}
 
+				ImGui::PushFont( IMGUI_FONT_REGULAR_BOLD, 0.0f );;
 				ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
 				bool CategoryOpen = ImGui::TreeNodeEx( Category, CategoryFlags );
+				ImGui::PopFont();
 
 				while ( true )
 					{

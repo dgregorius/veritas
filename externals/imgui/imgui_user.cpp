@@ -244,8 +244,10 @@ void EndProperties()
 bool BeginSection( const char* Label )
 	{
 	ImGui::EndTable();
+	ImGui::PushFont( IMGUI_FONT_REGULAR_BOLD, 0.0f );
 	bool Open = ImGui::CollapsingHeader( Label, ImGuiTreeNodeFlags_DefaultOpen );
-	BeginProperties( "##Properties" );
+	ImGui::PopFont();
+	ImGui::BeginProperties( "##Properties" );
 	
 	return Open;
 	}
