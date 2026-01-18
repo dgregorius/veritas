@@ -181,7 +181,6 @@ VsPhysXHullShape::VsPhysXHullShape( VsPhysXBody* Body, const VsPhysXHull* Hull )
 
 	PxPhysics* Physics = Plugin->GetPhysics();
 	mMaterial = Physics->createMaterial( 0.6f, 0.6f, 0.0f );
-	mMaterial->setFrictionCombineMode( PxCombineMode::eAVERAGE );
 	mMaterial->setRestitutionCombineMode( PxCombineMode::eMAX );
 	VS_ASSERT( mMaterial );
 
@@ -657,8 +656,10 @@ VsPhysXWorld::VsPhysXWorld( VsPhysXPlugin* Plugin )
 	SceneDesc.gravity = PxVec3( 0.0f, -10.0f, 0.0f );
 	SceneDesc.cpuDispatcher = Dispatcher;
 	SceneDesc.filterShader = PxDefaultSimulationFilterShader;
-	SceneDesc.solverType = PxSolverType::ePGS;
+	SceneDesc.solverType = PxSolverType::eTGS;
 	SceneDesc.flags.raise( PxSceneFlag::eENABLE_STABILIZATION );
+	SceneDesc.flags.raise( PxSceneFlag::eENABLE_FRICTION_EVERY_ITERATION );
+	SceneDesc.flags.raise( PxSceneFlag::eENABLE_ENHANCED_DETERMINISM );
 	VS_ASSERT( SceneDesc.isValid() );
 	
 	mNative = Physics->createScene( SceneDesc );

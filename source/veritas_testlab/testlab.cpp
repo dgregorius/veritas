@@ -489,59 +489,65 @@ void VsTestlab::DrawOutliner()
 		ImGui::PopStyleVar();
 
 		ImGui::Separator();
-
+	
 		// Test selections
-		const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
-		for ( int TestIndex = 0; TestIndex < static_cast< int >( TestEntries.size() ); ++TestIndex )
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, IMGUI_COLOR_BACKGROUND_DARK );
+		if ( ImGui::BeginChild( "##Child", ImVec2( 0, 0 ), ImGuiChildFlags_AutoResizeY ) )
 			{
-			// New category
-			const char* Category = TestEntries[ TestIndex ].Category;
-			if ( strcmp( TestEntries[ mTestIndex ].Category, Category ) == 0 )
+			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
+			for ( int TestIndex = 0; TestIndex < static_cast<int>( TestEntries.size() ); ++TestIndex )
 				{
-				// Assure the parent of the initial test selection is always open
-				ImGui::SetNextItemOpen( true, ImGuiCond_Once );
-				}
-
-			ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
-			bool CategoryOpen = ImGui::TreeNodeEx( Category, CategoryFlags );
-
-			while ( true )
-				{
-				if ( CategoryOpen )
+				// New category
+				const char* Category = TestEntries[ TestIndex ].Category;
+				if ( strcmp( TestEntries[ mTestIndex ].Category, Category ) == 0 )
 					{
-					bool Selected = ( TestIndex == mTestIndex );
-					ImGuiTreeNodeFlags TestFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
-					if ( Selected )
-						{
-						TestFlags |= ImGuiTreeNodeFlags_Selected;
-						}
+					// Assure the parent of the initial test selection is always open
+					ImGui::SetNextItemOpen( true, ImGuiCond_Once );
+					}
 
-					if ( ImGui::TreeNodeEx( TestEntries[ TestIndex ].Name, TestFlags ) )
+				ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+				bool CategoryOpen = ImGui::TreeNodeEx( Category, CategoryFlags );
+
+				while ( true )
+					{
+					if ( CategoryOpen )
 						{
-						if ( ImGui::IsItemClicked() )
+						bool Selected = ( TestIndex == mTestIndex );
+						ImGuiTreeNodeFlags TestFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+						if ( Selected )
 							{
-							DestroyTests();
-							CreateTests( TestIndex );
+							TestFlags |= ImGuiTreeNodeFlags_Selected;
 							}
 
-						ImGui::TreePop();
+						if ( ImGui::TreeNodeEx( TestEntries[ TestIndex ].Name, TestFlags ) )
+							{
+							if ( ImGui::IsItemClicked() )
+								{
+								DestroyTests();
+								CreateTests( TestIndex );
+								}
+
+							ImGui::TreePop();
+							}
 						}
+
+					const char* NextCategory = TestIndex + 1 < TestEntries.size() ? TestEntries[ TestIndex + 1 ].Category : "";
+					if ( strcmp( NextCategory, Category ) != 0 )
+						{
+						break;
+						}
+
+					TestIndex++;
 					}
 
-				const char* NextCategory = TestIndex + 1 < TestEntries.size() ? TestEntries[ TestIndex + 1 ].Category : "";
-				if ( strcmp( NextCategory, Category ) != 0 )
+				if ( CategoryOpen )
 					{
-					break;
+					ImGui::TreePop();
 					}
-
-				TestIndex++;
-				}
-
-			if ( CategoryOpen )
-				{
-				ImGui::TreePop();
 				}
 			}
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 
 		ImGui::Spacing();
 		ImGui::Separator();
