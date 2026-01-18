@@ -413,7 +413,7 @@ IVsWorld* VsBox3dBody::GetWorld() const
 VsBodyType VsBox3dBody::GetType() const
 	{
 	b3BodyType Type = b3Body_GetType( mNative );
-	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
+	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_DYNAMIC_BODY };
 	return TypeMap[ Type ];
 	}
 
@@ -655,6 +655,13 @@ const IVsShape* VsBox3dBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+bool VsBox3dBody::IsSleeping() const
+	{
+	return !b3Body_IsAwake( mNative );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 b3BodyId VsBox3dBody::GetNative() const
 	{
 	return mNative;
@@ -786,6 +793,20 @@ VsColor VsBox3dWorld::GetColor() const
 void VsBox3dWorld::SetColor( const VsColor& Color )
 	{
 	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dWorld::SetAutoSleeping( bool Enable )
+	{
+	b3World_EnableSleeping( mNative, Enable );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsBox3dWorld::IsAutoSleepingEnabled() const
+	{
+	return b3World_IsSleepingEnabled( mNative );
 	}
 
 

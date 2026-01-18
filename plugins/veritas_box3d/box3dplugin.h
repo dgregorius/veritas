@@ -217,6 +217,9 @@ class VsBox3dBody : public IVsBody
 		virtual IVsShape* GetShape( int ShapeIndex ) override;
 		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
 
+		// Sleeping
+		virtual bool IsSleeping() const override;
+
 		// Native
 		b3BodyId GetNative() const;
 
@@ -242,10 +245,6 @@ class VsBox3dWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
-		// Color
-		virtual VsColor GetColor() const override;
-		virtual void SetColor( const VsColor& Color ) override;
-
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
@@ -254,6 +253,14 @@ class VsBox3dWorld : public IVsWorld
 		void NotifyBodyRemoved( IVsBody* Body );
 		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
 		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
+		// Sleeping
+		virtual void SetAutoSleeping( bool Enable ) override;
+		virtual bool IsAutoSleepingEnabled() const override;
 
 		// Gravity
 		virtual VsVector3 GetGravity() const override;

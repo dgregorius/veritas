@@ -274,7 +274,7 @@ IVsWorld* VsRagnarokBody::GetWorld() const
 VsBodyType VsRagnarokBody::GetType() const
 	{
 	RkBodyType Type = mNative->GetType();
-	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
+	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_DYNAMIC_BODY };
 	return TypeMap[ Type ];
 	}
 
@@ -503,6 +503,13 @@ const IVsShape* VsRagnarokBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+bool VsRagnarokBody::IsSleeping() const
+	{
+	return mNative->IsSleeping();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 RkBody* VsRagnarokBody::GetNative() const
 	{
 	return mNative;
@@ -542,20 +549,6 @@ VsRagnarokWorld::~VsRagnarokWorld()
 IVsPlugin* VsRagnarokWorld::GetPlugin() const
 	{
 	return mPlugin;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsColor VsRagnarokWorld::GetColor() const
-	{
-	return mColor;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsRagnarokWorld::SetColor( const VsColor& Color )
-	{
-	mColor = Color;
 	}
 
 
@@ -624,6 +617,34 @@ void VsRagnarokWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
 void VsRagnarokWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsRagnarokWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokWorld::SetAutoSleeping( bool Enable )
+	{
+	mNative->EnableAutoSleeping( Enable );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsRagnarokWorld::IsAutoSleepingEnabled() const
+	{
+	return mNative->IsAutoSleepingEnabled();
 	}
 
 

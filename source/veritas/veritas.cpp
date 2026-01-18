@@ -23,6 +23,40 @@ bool operator!=( const VsColor& Lhs, const VsColor& Rhs )
 
 
 //--------------------------------------------------------------------------------------------------
+VsColor vsLighten( const VsColor& Color, float Amount )
+	{
+	// amount: 0.0 = no change, 1.0 = pure white
+	Amount = std::clamp( Amount, 0.0f, 1.0f );
+
+	// Lighten by blending towards white
+	return VsColor
+		{
+		Color.R + ( 1.0f - Color.R ) * Amount,
+		Color.G + ( 1.0f - Color.G ) * Amount,
+		Color.B + ( 1.0f - Color.B ) * Amount,
+		Color.A
+		};
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor vsDarken( const VsColor& Color, float Amount )
+	{
+	// amount: 0.0 = no change, 1.0 = pure black
+	Amount = std::clamp( Amount, 0.0f, 1.0f );
+
+	// Darken by blending towards black
+	return VsColor
+		{
+		Color.R * ( 1.0f - Amount ),
+		Color.G * ( 1.0f - Amount ),
+		Color.B * ( 1.0f - Amount ),
+		Color.A
+		};
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // VsVector3
 //--------------------------------------------------------------------------------------------------
 VsVector3 operator+( const VsVector3& V )

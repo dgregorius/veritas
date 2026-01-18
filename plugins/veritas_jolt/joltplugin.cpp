@@ -368,7 +368,7 @@ VsBodyType VsJoltBody::GetType() const
 	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
 	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
 	EMotionType Type = BodyInterface.GetMotionType( mNative );
-	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_STATIC_BODY };
+	VsBodyType TypeMap[] = { VS_STATIC_BODY, VS_KEYFRAMED_BODY, VS_DYNAMIC_BODY };
 	return TypeMap[ int( Type ) ];
 	}
 
@@ -569,6 +569,15 @@ const IVsShape* VsJoltBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+bool VsJoltBody::IsSleeping() const
+	{
+	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
+	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
+	return !BodyInterface.IsActive( mNative );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 BodyID VsJoltBody::GetNative() const
 	{
 	return mNative;
@@ -604,20 +613,6 @@ VsJoltWorld::~VsJoltWorld()
 IVsPlugin* VsJoltWorld::GetPlugin() const
 	{
 	return mPlugin;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsColor VsJoltWorld::GetColor() const
-	{
-	return mColor;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsJoltWorld::SetColor( const VsColor& Color )
-	{
-	mColor = Color;
 	}
 
 
@@ -686,6 +681,37 @@ void VsJoltWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
 void VsJoltWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsJoltWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltWorld::SetAutoSleeping( bool Enable )
+	{
+	PhysicsSettings Settings = mNative.GetPhysicsSettings();
+	Settings.mAllowSleeping = Enable;
+	mNative.SetPhysicsSettings( Settings );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsJoltWorld::IsAutoSleepingEnabled() const
+	{
+	PhysicsSettings Settings = mNative.GetPhysicsSettings();
+	return Settings.mAllowSleeping;
 	}
 
 

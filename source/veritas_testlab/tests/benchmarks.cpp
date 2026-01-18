@@ -398,6 +398,8 @@ class VsBenchmarkScene6 : public VsTest
 	public:
 		virtual void Create()
 			{
+			mWorld->SetAutoSleeping( false );
+
 			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
 			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );

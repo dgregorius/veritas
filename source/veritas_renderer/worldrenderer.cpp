@@ -61,11 +61,15 @@ void VsWorldRenderer::DrawFrame()
 		for ( size_t ShapeIndex = 0; ShapeIndex < ShapeCount; ++ShapeIndex )
 			{
 			IVsShape* Shape = HullShapes[ ShapeIndex ];
-			
 			VsColor ShapeColor = Shape->GetColor();
 			VsColor Color = ShapeColor != VS_COLOR_TRANSPARENT ? ShapeColor : mWorld->GetColor();
-
+			
 			IVsBody* Body = Shape->GetBody();
+			if ( Body->GetType() != VS_STATIC_BODY && Body->IsSleeping() )
+				{
+				Color = vsDarken( Color, 0.3f );
+				}
+
 			InstanceData[ ShapeIndex ].Transform = vsAsMat4( Body->GetPosition(), Body->GetOrientation() );
 			InstanceData[ ShapeIndex ].Color = { Color.R, Color.G, Color.B, Color.A };
 			}
@@ -79,7 +83,6 @@ void VsWorldRenderer::DrawFrame()
 	glDisable( GL_CULL_FACE );
 
 	VS_ASSERT( glGetError() == GL_NO_ERROR );
-
 
 	// Render edge instances
 	glEnable( GL_CULL_FACE );

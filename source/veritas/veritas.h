@@ -61,8 +61,14 @@ struct VsColor
 	float R, G, B, A;
 	};
 
+// Comparison operators
 bool operator==( const VsColor& Lhs, const VsColor& Rhs );
 bool operator!=( const VsColor& Lhs, const VsColor& Rhs );
+
+// Standard color operations
+VsColor vsLighten( const VsColor& Color, float Amount );
+VsColor vsDarken( const VsColor& Color, float Amount );
+	
 
 static inline constexpr VsColor VS_COLOR_TRANSPARENT = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -327,6 +333,9 @@ struct IVsBody
 	virtual IVsShape* GetShape( int ShapeIndex ) = 0;
 	virtual const IVsShape* GetShape( int ShapeIndex ) const = 0;
 
+	// Sleeping
+	virtual bool IsSleeping() const = 0;
+
 	protected:
 		static void DeleteShape( IVsShape* Shape );
 		virtual ~IVsBody() = default;
@@ -360,6 +369,9 @@ struct IVsWorld
 
 	virtual VsColor GetColor() const = 0;
 	virtual void SetColor( const VsColor& Color ) = 0;
+
+	virtual void SetAutoSleeping( bool Enable ) = 0;
+	virtual bool IsAutoSleepingEnabled() const = 0;
 
 	virtual VsVector3 GetGravity() const = 0;
 	virtual void SetGravity( const VsVector3& Gravity ) = 0;

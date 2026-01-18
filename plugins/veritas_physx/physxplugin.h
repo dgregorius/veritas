@@ -166,6 +166,9 @@ class VsPhysXBody : public IVsBody
 		virtual IVsShape* GetShape( int ShapeIndex ) override;
 		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
 
+		// Sleeping
+		virtual bool IsSleeping() const override;
+
 		// PhysX
 		PxRigidActor* GetNative() const;
 
@@ -191,10 +194,6 @@ class VsPhysXWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
-		// Color
-		virtual VsColor GetColor() const override;
-		virtual void SetColor( const VsColor& Color ) override;
-
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
@@ -203,6 +202,14 @@ class VsPhysXWorld : public IVsWorld
 		void NotifyBodyRemoved( IVsBody* Body );
 		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
 		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
+		// Sleeping
+		virtual void SetAutoSleeping( bool Enable ) override;
+		virtual bool IsAutoSleepingEnabled() const override;
 
 		// Gravity
 		virtual VsVector3 GetGravity() const override;
@@ -226,8 +233,8 @@ class VsPhysXWorld : public IVsWorld
 		VsColor mColor = { 0.9f, 0.8f, 0.5f, 1.00f };
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsPhysXBody* > mBodies;
-
 		PxScene* mNative = nullptr;
+		bool mAutoSleeping = true;
 	};
 
 

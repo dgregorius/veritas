@@ -159,6 +159,9 @@ class VsRagnarokBody : public IVsBody
 		virtual IVsShape* GetShape( int ShapeIndex ) override;
 		virtual const IVsShape* GetShape( int ShapeIndex ) const override;
 
+		// Sleeping
+		virtual bool IsSleeping() const override;
+
 		// Ragnarok
 		RkBody* GetNative() const;
 
@@ -184,10 +187,6 @@ class VsRagnarokWorld : public IVsWorld
 		// Plugin
 		virtual IVsPlugin* GetPlugin() const override;
 
-		// Color
-		virtual VsColor GetColor() const override;
-		virtual void SetColor( const VsColor& Color ) override;
-
 		// Events
 		virtual void AddListener( IVsWorldListener* Listener ) override;
 		virtual void RemoveListener( IVsWorldListener* Listener ) override;
@@ -196,6 +195,14 @@ class VsRagnarokWorld : public IVsWorld
 		void NotifyBodyRemoved( IVsBody* Body );
 		void NotifyShapeAdded( IVsBody* Body, IVsShape* Shape );
 		void NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape );
+
+		// Color
+		virtual VsColor GetColor() const override;
+		virtual void SetColor( const VsColor& Color ) override;
+
+		// Sleeping
+		virtual void SetAutoSleeping( bool Enable ) override;
+		virtual bool IsAutoSleepingEnabled() const override;
 
 		// Gravity
 		virtual VsVector3 GetGravity() const override;

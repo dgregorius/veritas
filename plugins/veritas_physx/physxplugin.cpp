@@ -320,6 +320,11 @@ VsPhysXBody::VsPhysXBody( VsPhysXWorld* World, VsBodyType Type )
 		RigidDynamic->setRigidBodyFlag( PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, true );
 		RigidDynamic->setLinearDamping( 0.0f );
 		RigidDynamic->setAngularDamping( 0.0f );
+		if ( !mWorld->IsAutoSleepingEnabled() )
+			{
+			RigidDynamic->setWakeCounter( PX_MAX_F32 );
+			}
+
 		mNative = RigidDynamic;
 		}
 
@@ -620,6 +625,19 @@ const IVsShape* VsPhysXBody::GetShape( int ShapeIndex ) const
 
 
 //--------------------------------------------------------------------------------------------------
+bool VsPhysXBody::IsSleeping() const
+	{
+	if ( mNative->getType() == PxActorType::eRIGID_STATIC )
+		{
+		return true;
+		}
+
+	const PxRigidDynamic* RigidDynamic = static_cast< const PxRigidDynamic* > ( mNative );
+	return RigidDynamic->isSleeping();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 PxRigidActor* VsPhysXBody::GetNative() const
 	{
 	return mNative;
@@ -667,20 +685,6 @@ VsPhysXWorld::~VsPhysXWorld()
 IVsPlugin* VsPhysXWorld::GetPlugin() const
 	{
 	return mPlugin;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-VsColor VsPhysXWorld::GetColor() const
-	{
-	return mColor;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-void VsPhysXWorld::SetColor( const VsColor& Color )
-	{
-	mColor = Color;
 	}
 
 
@@ -749,6 +753,75 @@ void VsPhysXWorld::NotifyShapeAdded( IVsBody* Body, IVsShape* Shape )
 void VsPhysXWorld::NotifyShapeRemoved( IVsBody* Body, IVsShape* Shape )
 	{
 	std::for_each( mListeners.begin(), mListeners.end(), [ = ]( IVsWorldListener* Listener ) { Listener->OnShapeRemoved( Body, Shape ); } );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+VsColor VsPhysXWorld::GetColor() const
+	{
+	return mColor;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::SetColor( const VsColor& Color )
+	{
+	mColor = Color;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXWorld::SetAutoSleeping( bool Enable )
+	{
+	if ( mAutoSleeping && !Enable )
+		{
+		// Disable sleeping
+		mAutoSleeping = false;
+		for ( VsPhysXBody* Body : mBodies )
+			{
+			PxRigidActor* Native = Body->GetNative();
+			if ( Native->getType() == PxActorType::eRIGID_STATIC )
+				{
+				continue;
+				}
+			PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( Native );
+			if ( RigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC )
+				{
+				continue;
+				}
+			
+			RigidDynamic->wakeUp();
+			RigidDynamic->setWakeCounter( PX_MAX_F32 );
+			}
+		}
+	if ( !mAutoSleeping && Enable )
+		{
+		// Enable sleeping
+		mAutoSleeping = true;
+		for ( VsPhysXBody* Body : mBodies )
+			{
+			PxRigidActor* Native = Body->GetNative();
+			if ( Native->getType() == PxActorType::eRIGID_STATIC )
+				{
+				continue;
+				}
+			PxRigidDynamic* RigidDynamic = static_cast< PxRigidDynamic* >( Native );
+			if ( RigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC )
+				{
+				continue;
+				}
+
+			const float Default = 0.4f;
+			RigidDynamic->setWakeCounter( Default );
+			}
+		}
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+bool VsPhysXWorld::IsAutoSleepingEnabled() const
+	{
+	return mAutoSleeping;
 	}
 
 
