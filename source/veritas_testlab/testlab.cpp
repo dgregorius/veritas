@@ -425,6 +425,16 @@ void VsTestlab::DrawInspector()
 					}
 				}
 
+			if ( ImGui::BeginSection( "Settings" ) )
+				{
+				static bool Sleeping = true;
+				if ( ImGui::Property( "Sleeping", Sleeping ) )
+					{
+					DestroyTests();
+					CreateTests( mTestIndex );
+					}
+				}
+
 			ImGui::EndProperties();
 			}
 		}
@@ -659,7 +669,7 @@ void VsTestlab::CreateTests( int TestIndex )
 			VS_ASSERT( !mTests[ PluginIndex ] );
 			VsCreator vsCreateTest = TestEntries[ TestIndex ].Creator;
 			VsTest* Test = vsCreateTest( Plugin.get() );
-			Test->Create( mCamera );
+			Test->Create();
 
 			mTests[ PluginIndex ] = Test;
 			}

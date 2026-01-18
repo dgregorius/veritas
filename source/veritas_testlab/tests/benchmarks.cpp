@@ -14,7 +14,7 @@ class VsBenchmarkScene1 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 250.0f, 1.0f, 250.0f ) );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -51,7 +51,7 @@ class VsBenchmarkScene2 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 180.0f, 1.0f, 180.0f ) );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -97,7 +97,7 @@ class VsBenchmarkScene3 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 100.0f, 1.0f, 100.0f ) );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -262,7 +262,7 @@ class VsBenchmarkScene4 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 120.0f, 1.0f, 120.0f ) );
 			IVsHull* Wall1 =  mPlugin->CreateBox( VsVector3( -50.0f, 8.0f,  0.0f ), VsVector3( 1.0f, 8.0f, 50.0f ) );
@@ -334,7 +334,7 @@ class VsBenchmarkScene5 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 50.0f, 1.0f, 50.0f ) );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -396,7 +396,7 @@ class VsBenchmarkScene6 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera )
+		virtual void Create()
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );

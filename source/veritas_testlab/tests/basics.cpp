@@ -14,7 +14,7 @@ class VsBasicScene1 : public VsTest
 	using VsTest::VsTest;
 	
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 15.0f, 1.0f, 15.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -42,7 +42,7 @@ class VsBasicScene2 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 15.0f, 1.0f, 15.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -72,7 +72,7 @@ class VsBasicScene3 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 25.0f, 1.0f, 25.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -105,7 +105,7 @@ class VsBasicScene4 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -145,7 +145,7 @@ class VsBasicScene5 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			IVsHull* Ground = mPlugin->CreateBox( { 75.0f, 1.0f, 75.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
@@ -178,7 +178,7 @@ class VsBasicScene6 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			mWorld->SetGravity( { 0.0f, 0.0f, 0.0f } );
 
@@ -212,7 +212,7 @@ class VsBasicScene7 : public VsTest
 	using VsTest::VsTest;
 
 	public:
-		virtual void Create( VsCamera* Camera ) override
+		virtual void Create() override
 			{
 			mWorld->SetGravity( { 0.0f, 0.0f, 0.0f } );
 

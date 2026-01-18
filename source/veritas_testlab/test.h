@@ -39,7 +39,7 @@ class VsTest
 		virtual ~VsTest() = default;
 
 		// Lifetime management
-		virtual void Create( VsCamera* Camera ) = 0;
+		virtual void Create() = 0;
 		virtual void Update( double Time, float ElapsedTime );
 		virtual void Render( double Time, float ElapsedTime );
 		virtual void Destroy();
