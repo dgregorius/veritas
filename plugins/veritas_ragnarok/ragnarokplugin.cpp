@@ -762,8 +762,6 @@ VsRagnarokPlugin::~VsRagnarokPlugin()
 
 	delete mExecutor;
 	mExecutor = nullptr;
-
-	ImGui::SetCurrentContext( NULL );
 	}
 
 //--------------------------------------------------------------------------------------------------

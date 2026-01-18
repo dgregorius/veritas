@@ -19,6 +19,21 @@
 #  include <crtdbg.h>
 #endif
 
+//--------------------------------------------------------------------------------------------------
+// Local utilities
+//--------------------------------------------------------------------------------------------------
+static void* vsAlloc( size_t Size, void* )
+	{
+	return malloc( Size );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+static void vsFree( void* Address, void* )
+	{
+	free( Address );
+	}
+
 
 //--------------------------------------------------------------------------------------------------
 // VsTestlab
@@ -73,6 +88,7 @@ int VsTestlab::Run()
 #endif
 
 	// Simulation loop
+	ImGui::SetAllocatorFunctions( vsAlloc, vsFree );
 	ImGui::Startup( mWindow );
 		{
 		Startup();

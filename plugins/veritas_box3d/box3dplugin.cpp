@@ -973,8 +973,6 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		mHulls.pop_back();
 		delete Hull;
 		}
-
-	ImGui::SetCurrentContext( NULL );
 	}
 
 

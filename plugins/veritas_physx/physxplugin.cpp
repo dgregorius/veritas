@@ -950,8 +950,6 @@ VsPhysXPlugin::~VsPhysXPlugin()
 	PxCloseExtensions();
 	PX_RELEASE( mPhysics );
 	PX_RELEASE( mFoundation );
-
-	ImGui::SetCurrentContext( NULL );
 	}
 
 //--------------------------------------------------------------------------------------------------

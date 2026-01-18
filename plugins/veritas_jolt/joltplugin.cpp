@@ -860,8 +860,6 @@ VsJoltPlugin::~VsJoltPlugin()
 	UnregisterTypes();
 	delete Factory::sInstance;
 	Factory::sInstance = nullptr;
-
-	ImGui::SetCurrentContext( NULL );
 	}
 
 
