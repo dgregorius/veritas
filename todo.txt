@@ -1,5 +1,7 @@
-- Pass malloc/free to ImGui context
-- Update Taskflow to 4.0
-- Add more tests and shapes
-  * Inclined plane
-  * Gyroscopes
+
+- Add joints
+  * Ragdoll tests
+  * Mouse interaction
+- More shapes (e.g. sphere and restitution test)
+- Check Jolt for good tests
+
