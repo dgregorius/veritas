@@ -170,3 +170,65 @@ class VsBasicScene5 : public VsTest
 VS_DEFINE_TEST( "Basics", "Scene5 - Sliding Boxes", VsOrbit( 45.0f, -35.0f, 140.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene5 );
 
 
+//--------------------------------------------------------------------------------------------------
+// VsBasicScene6 - Spinning Books
+//--------------------------------------------------------------------------------------------------
+class VsBasicScene6 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera ) override
+			{
+			mWorld->SetGravity( { 0.0f, 0.0f, 0.0f } );
+
+			IVsHull* Book = mPlugin->CreateBox( { 0.35f, 0.08f, 0.5f } );
+			IVsBody* BookBody1 = mWorld->CreateBody( VS_DYNAMIC_BODY );
+			BookBody1->SetPosition( { -2.0f, 2.0f, 0.0f } );
+			BookBody1->SetAngularVelocity( { 5.0f, 0.01f, 0.01f } );
+			BookBody1->CreateHull( Book );
+		
+			IVsBody* BookBody2 = mWorld->CreateBody( VS_DYNAMIC_BODY );
+			BookBody2->SetPosition( { 0.0f, 2.0f, 0.0f } );
+			BookBody2->SetAngularVelocity( { 0.01f, 5.0f, 0.01f } );
+			BookBody2->CreateHull( Book );
+
+			IVsBody* BookBody3 = mWorld->CreateBody( VS_DYNAMIC_BODY );
+			BookBody3->SetPosition( { 2.0f, 2.0f, 0.0f } );
+			BookBody3->SetAngularVelocity( { 0.01f, 0.01f, 5.0f } );
+			BookBody3->CreateHull( Book );
+			}
+	};
+
+// Registry
+VS_DEFINE_TEST( "Basics", "Scene6 - Spinning Books", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene6 );
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBasicScene7 - Dzhanibekov Effect
+//--------------------------------------------------------------------------------------------------
+class VsBasicScene7 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera ) override
+			{
+			mWorld->SetGravity( { 0.0f, 0.0f, 0.0f } );
+
+			IVsHull* Box = mPlugin->CreateBox( { 1.0f, 0.05f, 0.1f } );
+			IVsHull* Cylinder = mPlugin->CreateCylinder( 0.15f, 0.6f, 32 );
+
+			IVsBody* Body = mWorld->CreateBody( VS_DYNAMIC_BODY );
+			Body->SetPosition( { 0.0f, 2.0f, 0.0f } );
+			Body->SetOrientation( { sinf( 45.0f * VS_DEG2RAD ), 0.0f, 0.0f, cosf( 45.0f * VS_DEG2RAD ) } );
+			Body->SetAngularVelocity( { 0.01f, 0.01f, 5.0f } );
+			Body->CreateHull( Cylinder );
+			Body->CreateHull( Box );
+			}
+	};
+
+// Registry
+VS_DEFINE_TEST( "Basics", "Scene7 - Dzhanibekov Effect", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene7 );
+
+

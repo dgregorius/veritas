@@ -327,8 +327,9 @@ VsJoltBody::VsJoltBody( VsJoltWorld* World, VsBodyType Type )
 	BodyCreationSettings BodySettings( Shape, Vec3::sZero(), Quat::sIdentity(), TypeMap[ Type ], Type == VS_STATIC_BODY ? VsLayers::NON_MOVING : VsLayers::MOVING );
 	BodySettings.mLinearDamping = 0.0f;
 	BodySettings.mAngularDamping = 0.0f;
-	BodySettings.mApplyGyroscopicForce = false;
+	BodySettings.mApplyGyroscopicForce = true;
 	BodySettings.mFriction = 0.6f;
+	BodySettings.mRestitution = 0.0f;
 	
 	PhysicsSystem& PhysicsSystem = mWorld->GetNative();
 	BodyInterface& BodyInterface = PhysicsSystem.GetBodyInterfaceNoLock();
