@@ -371,8 +371,8 @@ IVsHull* IVsPlugin::CreateBox( const VsVector3& Center, const VsVector3& Extent 
 //--------------------------------------------------------------------------------------------------
 IVsHull* IVsPlugin::CreateCylinder( float Radius, float Height, int Slices )
 	{
-	VS_ASSERT( Height > 0.0f );
 	VS_ASSERT( Radius > 0.0f );
+	VS_ASSERT( Height > 0.0f );
 	VS_ASSERT( 3 <= Slices && Slices <= 32 );
 
 	int VertexCount = 2 * Slices;
@@ -389,6 +389,36 @@ IVsHull* IVsPlugin::CreateCylinder( float Radius, float Height, int Slices )
 
 		Vertices[ 2 * Index + 0 ] = VsVector3( Radius * CosAlpha, 0.0f, Radius * SinAlpha );
 		Vertices[ 2 * Index + 1 ] = VsVector3( Radius * CosAlpha, Height, Radius * SinAlpha );
+
+		Alpha += DeltaAlpha;
+		}
+
+	return CreateHull( VertexCount, Vertices );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+IVsHull* IVsPlugin::CreateCone( float Radius1, float Radius2, float Height, int Slices )
+	{
+	VS_ASSERT( Radius1 > 0.0f );
+	VS_ASSERT( Radius2 > 0.0f );
+	VS_ASSERT( Height > 0.0f );
+	VS_ASSERT( 3 <= Slices && Slices <= 32 );
+
+	int VertexCount = 2 * Slices;
+	VsVector3* Vertices = (VsVector3*)alloca( VertexCount * sizeof( VsVector3 ) );
+	VS_ASSERT( Vertices );
+
+	float Alpha = 0.0f;
+	float DeltaAlpha = VS_2PI / Slices;
+
+	for ( int Index = 0; Index < Slices; ++Index )
+		{
+		float SinAlpha = sinf( Alpha );
+		float CosAlpha = cosf( Alpha );
+
+		Vertices[ 2 * Index + 0 ] = VsVector3( Radius1 * CosAlpha,   0.0f, Radius1 * SinAlpha );
+		Vertices[ 2 * Index + 1 ] = VsVector3( Radius2 * CosAlpha, Height, Radius2 * SinAlpha );
 
 		Alpha += DeltaAlpha;
 		}

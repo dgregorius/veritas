@@ -7,7 +7,7 @@
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBenchmarkScene1
+// VsBenchmarkScene1 - 5000 Falling Boxes
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene1 : public VsTest
 	{
@@ -44,7 +44,7 @@ VS_DEFINE_TEST( "Benchmark", "Scene1 - 5000 Falling Boxes", VsOrbit( 45.0f, -25.
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBenchmarkScene2
+// VsBenchmarkScene2 - 225 Pyramids
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene2 : public VsTest
 	{
@@ -90,7 +90,7 @@ VS_DEFINE_TEST( "Benchmark", "Scene2 - 225 Pyramids", VsOrbit( 15.0f, -25.0f, 36
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBenchmarkScene3
+// VsBenchmarkScene3 - Washer
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene3 : public VsTest
 	{
@@ -255,7 +255,7 @@ VS_DEFINE_TEST( "Benchmark", "Scene3 - Washer", VsOrbit( 0.0f, -20.0f, 75.0f, { 
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBenchmarkScene4
+// VsBenchmarkScene4 - Junkyard
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene4 : public VsTest
 	{
@@ -327,7 +327,7 @@ VS_DEFINE_TEST( "Benchmark", "Scene4 - Junkyard", VsOrbit( 45.0f, -25.0f, 150.0f
 
 
 //--------------------------------------------------------------------------------------------------
-// VsBenchmarkScene5
+// VsBenchmarkScene5 - Dominos
 //--------------------------------------------------------------------------------------------------
 class VsBenchmarkScene5 : public VsTest
 	{
@@ -386,3 +386,39 @@ class VsBenchmarkScene5 : public VsTest
 
 // Registry
 VS_DEFINE_TEST( "Benchmark", "Scene5 - Dominos", VsOrbit( 85.0f, -12.0f, 55.0f, { 0.0f, 1.0f, 0.0f } ), VsBenchmarkScene5 );
+
+
+//--------------------------------------------------------------------------------------------------
+// VsBenchmarkScene6 - Convex Stacks
+//--------------------------------------------------------------------------------------------------
+class VsBenchmarkScene6 : public VsTest
+	{
+	using VsTest::VsTest;
+
+	public:
+		virtual void Create( VsCamera* Camera )
+			{
+			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
+			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
+			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
+			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
+			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
+
+			IVsHull* Cone = mPlugin->CreateCone( 0.9f, 1.8f, 2.0f, 32 );
+			for ( float X = -32.0f; X <= 32.0f; X += 4 )
+				{
+				for ( float Y = 0.0f; Y <= 16.0f; Y += 2.0f )
+					{
+					for ( float Z = -32.0f; Z <= 32.0f; Z += 4 )
+						{
+						IVsBody* Body = mWorld->CreateBody( VS_DYNAMIC_BODY );
+						Body->SetPosition( { X, Y, Z } );
+						Body->CreateHull( Cone );
+						}
+					}
+				}
+			}
+	};
+
+// Registry
+VS_DEFINE_TEST( "Benchmark", "Scene6 - Convex Stack", VsOrbit( 45.0f, -20.0f, 100.0f, { 0.0f, 4.0f, 0.0f } ), VsBenchmarkScene6 );
