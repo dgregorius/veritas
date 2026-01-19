@@ -4,6 +4,7 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "test.h"
+#include "clock.h"
 
 
 //--------------------------------------------------------------------------------------------------
@@ -21,16 +22,16 @@ VsTest::VsTest( IVsPlugin* Plugin )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::Update( double Time, float ElapsedTime )
+void VsTest::Update( VsCamera* Camera, float Timestep )
 	{
-	mWorld->Step( ElapsedTime );
+	mWorld->Step( Timestep );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsTest::Render( double Time, float ElapsedTime )
+void VsTest::Render( VsCamera* Camera, float Timestep )
 	{
-	mWorldRenderer->DrawFrame();
+	mWorldRenderer->DrawFrame( Camera );
 	}
 
 

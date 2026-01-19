@@ -42,11 +42,14 @@ VsWorldRenderer::~VsWorldRenderer()
 
 
 //--------------------------------------------------------------------------------------------------
-void VsWorldRenderer::DrawFrame()
+void VsWorldRenderer::DrawFrame( VsCamera* Camera )
 	{
 	// Render mesh instances
 	glEnable( GL_CULL_FACE );
 	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( 2.0f, 2.0f );
+
 	glBindVertexArray( VsMeshVertex::Format );
 
 	VsShader* MeshShader = VsShader::MeshShader;
@@ -75,33 +78,37 @@ void VsWorldRenderer::DrawFrame()
 			}
 
 		InstancedHull->Upload( InstanceData );
-		InstancedHull->RenderFaces();
+		InstancedHull->RenderFaces( MeshShader );
 		}
 
 	glBindVertexArray( GL_NONE );
+
+	glDisable( GL_POLYGON_OFFSET_FILL );
 	glDisable( GL_DEPTH_TEST );
 	glDisable( GL_CULL_FACE );
-
-	VS_ASSERT( glGetError() == GL_NO_ERROR );
 
 	// Render edge instances
-	glEnable( GL_CULL_FACE );
+	glBindVertexArray( VsEmptyVertex::Format );
+
 	glEnable( GL_DEPTH_TEST );
-	glBindVertexArray( VsEdgeVertex::Format );
-
-	VsShader* EdgeShader = VsShader::EdgeShader;
-	EdgeShader->Use();
-
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	VsShader* LineShader = VsShader::LineShader;
+	LineShader->Use();
+	LineShader->SetUniform( "uViewProj", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+	LineShader->SetUniform( "uResolution", glm::vec2( static_cast< float >( Camera->GetWidth() ), static_cast< float >( Camera->GetHeight() ) ) );
+	LineShader->SetUniform( "uLineWidth", 1.0f );
+	
 	for ( const auto& [ InstancedHull, _ ] : mHullInstances )
 		{
-		InstancedHull->RenderEdges();
+		InstancedHull->RenderEdges( LineShader );
 		}
 
 	glBindVertexArray( GL_NONE );
-	glDisable( GL_DEPTH_TEST );
-	glDisable( GL_CULL_FACE );
 
-	VS_ASSERT( glGetError() == GL_NO_ERROR );
+	glDisable( GL_BLEND );
+	glDisable( GL_DEPTH_TEST );
 	}
 
 

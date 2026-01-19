@@ -11,6 +11,7 @@
 //--------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "camera.h"
 #include "geometry.h"
 #include "instancedmesh.h"
 #include "shader.h"
@@ -36,7 +37,7 @@ class VsWorldRenderer : public IVsWorldListener
 		~VsWorldRenderer();
 
 		// Rendering
-		void DrawFrame();
+		void DrawFrame( VsCamera* Camera );
 		
 	private:
 		// World listener 

@@ -43,7 +43,7 @@ void StyleColorsCustom()
 	ImVec4* Colors = Style.Colors;
 
 	// Backgrounds
-	Colors[ ImGuiCol_WindowBg ] = IMGUI_COLOR_BACKGROUND_DARK;
+	Colors[ ImGuiCol_WindowBg ] = IMGUI_COLOR_BACKGROUND;
 	Colors[ ImGuiCol_ChildBg ] = IMGUI_COLOR_BACKGROUND;
 	Colors[ ImGuiCol_PopupBg ] = IMGUI_COLOR_BACKGROUND_DARK;
 
@@ -210,9 +210,9 @@ static void BeginProperty( const char* Label, const char* Tooltip )
 
 	ImGui::AlignTextToFramePadding();
 	ImGui::TextUnformatted( Label );
-	if ( Tooltip && ImGui::IsItemHovered() )
+	if ( Tooltip )
 		{
-		ImGui::SetTooltip( "%s", Tooltip );
+		ImGui::SetItemTooltip( "%s", Tooltip );
 		}
 		
 	ImGui::TableNextColumn();

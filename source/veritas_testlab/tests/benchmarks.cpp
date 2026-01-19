@@ -109,14 +109,14 @@ class VsBenchmarkScene3 : public VsTest
 			CreateLoad();
 			}
 
-		virtual void Update( double Time, float ElapsedTime )
+		virtual void Update( VsCamera* Camera, float Timestep )
 			{
 			const float Omega = 10.0f;
-			mAngle += Omega * ElapsedTime;
+			mAngle += Omega * Timestep;
 			VsFrame Keyframe = { mWasher->GetPosition(), { 0.0f, 0.0f, sinf( mAngle * VS_DEG2RAD ),cosf( mAngle * VS_DEG2RAD ) } };
-			mWasher->SetVelocityFromKeyframe( Keyframe, ElapsedTime );
+			mWasher->SetVelocityFromKeyframe( Keyframe, Timestep );
 
-			VsTest::Update( Time, ElapsedTime );
+			VsTest::Update( Camera, Timestep );
 			}
 
 	private:
@@ -304,14 +304,14 @@ class VsBenchmarkScene4 : public VsTest
 			mStrider->CreateHull( mCylinder );
 			}
 
-		virtual void Update( double Time, float ElapsedTime )
+		virtual void Update( VsCamera* Camera, float Timestep )
 			{
 			const float Omega = -6.0f;
-			mAngle += Omega * ElapsedTime;
+			mAngle += Omega * Timestep;
 			VsFrame Keyframe = { { mRadius * cosf( mAngle * VS_DEG2RAD ), 0.0f, mRadius * sinf( mAngle * VS_DEG2RAD ) }, { 0.0f, 0.0f, 0.0f, 1.0f } };
-			mStrider->SetVelocityFromKeyframe( Keyframe, ElapsedTime );
+			mStrider->SetVelocityFromKeyframe( Keyframe, Timestep );
 
-			VsTest::Update( Time, ElapsedTime );
+			VsTest::Update( Camera, Timestep );
 			}
 
 	private:

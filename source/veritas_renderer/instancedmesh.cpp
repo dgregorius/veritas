@@ -56,20 +56,25 @@ void VsInstancedMesh::Upload( const std::vector< VsInstanceData >& InstanceData 
 		// Update buffer
 		glNamedBufferSubData( mInstanceBuffer, 0, mInstanceSize * sizeof( VsInstanceData ), InstanceData.data() );
 		}
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsInstancedMesh::RenderFaces()
+void VsInstancedMesh::RenderFaces( VsShader* Shader )
 	{
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, mInstanceBuffer );
-	mGeometry->RenderFaces( mInstanceSize );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+
+	mGeometry->RenderFaces( Shader, mInstanceSize );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsInstancedMesh::RenderEdges()
+void VsInstancedMesh::RenderEdges( VsShader* Shader )
 	{
 	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, mInstanceBuffer );
-	mGeometry->RenderEdges( mInstanceSize );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
+
+	mGeometry->RenderEdges( Shader, mInstanceSize );
 	}

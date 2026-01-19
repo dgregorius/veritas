@@ -4,6 +4,7 @@
 // Copyright (c) by D. Gregorius. All rights reserved.
 //--------------------------------------------------------------------------------------------------
 #include "geometry.h"
+#include "shader.h"
 
 // OpenGL
 #include <glad.h>
@@ -20,6 +21,7 @@ VsGeometry::VsGeometry( const std::vector< VsMeshVertex >& Vertices )
 	mVertexCount = static_cast< int >( Vertices.size() );
 	glCreateBuffers( 1, &mVertexBuffer );
 	glNamedBufferStorage( mVertexBuffer, Vertices.size() * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
@@ -31,12 +33,14 @@ VsGeometry::VsGeometry( const std::vector< VsMeshVertex >& Vertices, const std::
 	mVertexCount = static_cast< int >( Vertices.size() );
 	glCreateBuffers( 1, &mVertexBuffer );
 	glNamedBufferStorage( mVertexBuffer, Vertices.size() * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 
 	// Edges
 	VS_ASSERT( !Edges.empty() );
 	mEdgeCount = static_cast< int >( Edges.size() / 2 );
 	glCreateBuffers( 1, &mEdgeBuffer );
-	glNamedBufferStorage( mEdgeBuffer, Edges.size() * sizeof( VsEdgeVertex ), Edges.data(), GL_DYNAMIC_STORAGE_BIT );
+	glNamedBufferStorage( mEdgeBuffer, Edges.size() * sizeof( VsEdgeVertex ), Edges.data(), 0 );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
@@ -48,12 +52,14 @@ VsGeometry::VsGeometry( const std::vector< int >& Indices, const std::vector< Vs
 	mElementCount = static_cast< int >( Indices.size() );
 	glCreateBuffers( 1, &mElementBuffer );
 	glNamedBufferStorage( mElementBuffer, Indices.size() * sizeof( int ), Indices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 
 	// Vertices
 	VS_ASSERT( !Vertices.empty() );
 	mVertexCount = static_cast< int >( Vertices.size() );
 	glCreateBuffers( 1, &mVertexBuffer );
 	glNamedBufferStorage( mVertexBuffer, Vertices.size() * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
@@ -62,21 +68,24 @@ VsGeometry::VsGeometry( const std::vector< int >& Indices, const std::vector< Vs
 	{
 	// Elements
 	VS_ASSERT( !Indices.empty() );
-	mElementCount = static_cast<int>( Indices.size() );
+	mElementCount = static_cast< int >( Indices.size() );
 	glCreateBuffers( 1, &mElementBuffer );
 	glNamedBufferStorage( mElementBuffer, Indices.size() * sizeof( int ), Indices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 
 	// Vertices
 	VS_ASSERT( !Vertices.empty() );
-	mVertexCount = static_cast<int>( Vertices.size() );
+	mVertexCount = static_cast< int >( Vertices.size() );
 	glCreateBuffers( 1, &mVertexBuffer );
 	glNamedBufferStorage( mVertexBuffer, Vertices.size() * sizeof( VsMeshVertex ), Vertices.data(), GL_DYNAMIC_STORAGE_BIT );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 
 	// Edges
 	VS_ASSERT( !Edges.empty() );
-	mEdgeCount = static_cast<int>( Edges.size() / 2 );
+	mEdgeCount = static_cast< int >( Edges.size() / 2 );
 	glCreateBuffers( 1, &mEdgeBuffer );
-	glNamedBufferStorage( mEdgeBuffer, Edges.size() * sizeof( VsEdgeVertex ), Edges.data(), GL_DYNAMIC_STORAGE_BIT );
+	glNamedBufferStorage( mEdgeBuffer, Edges.size() * sizeof( VsEdgeVertex ), Edges.data(), 0 );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
@@ -86,11 +95,12 @@ VsGeometry::~VsGeometry()
 	glDeleteBuffers( 1, &mEdgeBuffer );
 	glDeleteBuffers( 1, &mVertexBuffer );
 	glDeleteBuffers( 1, &mElementBuffer );
+	VS_ASSERT( glGetError() == GL_NO_ERROR );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsGeometry::RenderFaces( int InstanceCount )
+void VsGeometry::RenderFaces( VsShader* Shader, int InstanceCount )
 	{
 	if ( InstanceCount > 0 )
 		{
@@ -104,19 +114,20 @@ void VsGeometry::RenderFaces( int InstanceCount )
 			{
 			glDrawArraysInstanced( GL_TRIANGLES, 0, mVertexCount, InstanceCount );
 			}
+		VS_ASSERT( glGetError() == GL_NO_ERROR );
 		}
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void VsGeometry::RenderEdges( int InstanceCount )
+void VsGeometry::RenderEdges( VsShader* Shader, int InstanceCount )
 	{
 	if ( InstanceCount > 0 )
 		{
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, GL_NONE );
-		glBindVertexBuffer( 0, mEdgeBuffer, 0, sizeof( VsEdgeVertex ) );
-
-		glDrawArraysInstanced( GL_LINES, 0, 2 * mEdgeCount, InstanceCount );
+		Shader->SetUniform( "uEdgeCount", mEdgeCount );
+		glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 1, mEdgeBuffer );
+		glDrawArraysInstanced( GL_TRIANGLES, 0, 6, InstanceCount * mEdgeCount );
+		VS_ASSERT( glGetError() == GL_NO_ERROR );
 		}
 	}
 
@@ -171,8 +182,8 @@ static VsGeometry* vsOnCreateHull( IVsShape* Shape )
 		int VertexIndex2 = 2 * EdgeIndex + 1;
 		VsVector3 P2 = EdgePositions[ VertexIndex2 ];
 
-		Edges[ VertexIndex1 ] = { { P1.X, P1.Y, P1.Z }, 0xFF000000 };
-		Edges[ VertexIndex2 ] = { { P2.X, P2.Y, P2.Z }, 0xFF000000 };
+		Edges[ VertexIndex1 ] = { { P1.X, P1.Y, P1.Z }, 0xFF222222 };
+		Edges[ VertexIndex2 ] = { { P2.X, P2.Y, P2.Z }, 0xFF222222 };
 		}
 
 	return new VsGeometry( Vertices, Edges );

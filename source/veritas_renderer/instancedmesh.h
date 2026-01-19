@@ -20,6 +20,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 class VsGeometry;
+class VsShader;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -48,8 +49,8 @@ class VsInstancedMesh
 		// Rendering
 		void Upload( const std::vector< VsInstanceData >& InstanceData );
 		
-		void RenderFaces();
-		void RenderEdges();
+		void RenderFaces( VsShader* Shader );
+		void RenderEdges( VsShader* Shader );
 
 	private:
 		VsGeometry* mGeometry = nullptr;

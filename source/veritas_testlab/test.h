@@ -40,8 +40,8 @@ class VsTest
 
 		// Lifetime management
 		virtual void Create() = 0;
-		virtual void Update( double Time, float ElapsedTime );
-		virtual void Render( double Time, float ElapsedTime );
+		virtual void Update( VsCamera* Camera, float Timestep );
+		virtual void Render( VsCamera* Camera, float Timestep );
 		virtual void Destroy();
 
 	protected:

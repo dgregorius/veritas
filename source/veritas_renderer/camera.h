@@ -39,9 +39,16 @@ struct VsOrbit
 class VsCamera
 	{
 	public:
-		// Comstruction / Destruction
+		// Construction / Destruction
 		VsCamera();
 		~VsCamera();
+
+		// Viewport
+		int GetWidth() const;
+		void SetWidth( int Width );
+		int GetHeight() const;
+		void SetHeight( int Height );
+		void Resize( int Width, int Height );
 
 		// View
 		float GetYaw() const;
@@ -67,8 +74,6 @@ class VsCamera
 		// Projection
 		float GetFOV() const;
 		void SetFOV( float FOV );
-		void SetAspectRatio( float AspectRatio );
-		float GetAspectRatio() const;
 		float GetNearPlane() const;
 		void SetNearPlane( float NearPlane );
 		float GetFarPlane() const;
@@ -88,13 +93,15 @@ class VsCamera
 
 		uint32_t mUBO = 0;
 
+		int mWidth = 0;
+		int mHeight = 0;
+
 		float mYaw = 45.0f;
 		float mPitch = -25.0f;
 		float mRadius = 25.0f;
 		glm::vec3 mTarget = { 0.0f, 0.0f, 0.0f };
 
 		float mFOV = 50.0f;
-		float mAspectRatio = 0.0f;
 		float mNearPlane = 0.03f;
 		float mFarPlane = 1000.0f;
 	};

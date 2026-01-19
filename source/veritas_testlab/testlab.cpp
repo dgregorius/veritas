@@ -74,8 +74,6 @@ int VsTestlab::Run()
 		}
 
 	// Initialize OpenGL
-	glEnable( GL_POLYGON_OFFSET_FILL );
-	glPolygonOffset( 2.0f, 2.0f );
 	glEnable( GL_CULL_FACE );
 	glCullFace( GL_BACK );
 	glFrontFace( GL_CCW );
@@ -216,7 +214,7 @@ void VsTestlab::UpdateFrame()
 		if ( VsTest* Test = mTests[ TestIndex ] )
 			{
 			uint64_t Ticks1 = vsGetTicks();
-			Test->Update( 0.0f, Timestep );
+			Test->Update( mCamera, Timestep );
 			uint64_t Ticks2 = vsGetTicks();
 
 			float DeltaTime = static_cast<float>( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
@@ -353,14 +351,12 @@ void VsTestlab::RenderGrid()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::RenderTests()
 	{
-	double Time = 0;
-	float ElapsedTime = 0.0f;
-
 	for ( VsTest* Test : mTests )
 		{
 		if ( Test )
 			{
-			Test->Render( Time, ElapsedTime );
+			VS_ASSERT( VsClock::GetFrequency() > 0.0f );
+			Test->Render( mCamera, 1.0f / VsClock::GetFrequency() );
 			}
 		}
 	}
@@ -369,17 +365,17 @@ void VsTestlab::RenderTests()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::BeginDockspace()
 	{
-	ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoDocking;
-	WindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-	WindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
 	const ImGuiViewport* Viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos( Viewport->WorkPos );
 	ImGui::SetNextWindowSize( Viewport->WorkSize );
 	ImGui::SetNextWindowViewport( Viewport->ID );
 
+	ImGuiWindowFlags WindowFlags = 0;
+	WindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
+	WindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f ); 
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
 	bool Open = ImGui::Begin( "##Testlab", nullptr, WindowFlags );
 	ImGui::PopStyleVar( 3 );
@@ -413,7 +409,9 @@ void VsTestlab::BeginDockspace()
 			}
 
 		ImGuiDockNodeFlags NodeFlags = ImGuiDockNodeFlags_NoWindowMenuButton;
+		ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND_DARK );
 		ImGui::DockSpace( DockspaceID, ImVec2( 0.0f, 0.0f ), NodeFlags );
+		ImGui::PopStyleColor( 1 );
 		}
 	}
 
@@ -422,7 +420,6 @@ void VsTestlab::BeginDockspace()
 void VsTestlab::DrawInspector()
 	{
 	// Common properties
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Common" ) )
 		{
 		if ( ImGui::BeginProperties( "Common" ) )
@@ -455,12 +452,10 @@ void VsTestlab::DrawInspector()
 			}
 		}
 	ImGui::End();
-	ImGui::PopStyleColor();
 
 	// Plugin properties
 	for ( const VsPluginPtr& Plugin : mPlugins )
 		{
-		ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 		if ( ImGui::Begin( Plugin->GetName(), NULL, ImGuiWindowFlags_NoFocusOnAppearing ) )
 			{
 			if ( Plugin->OnInspectorGUI() )
@@ -470,16 +465,13 @@ void VsTestlab::DrawInspector()
 				}
 			}
 		ImGui::End();
-		ImGui::PopStyleColor();
 		}
-	
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawOutliner()
 	{
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Outliner" ) )
 		{
 		static char Buffer[ 256 ] = "";
@@ -575,14 +567,12 @@ void VsTestlab::DrawOutliner()
 			}
 		}
 	ImGui::End();
-	ImGui::PopStyleColor();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawProfiler()
 	{
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	if ( ImGui::Begin( "Profiler" ) )
 		{
 		const float History = 30.0f;
@@ -617,14 +607,12 @@ void VsTestlab::DrawProfiler()
 			}
 		}
 	ImGui::End();
-	ImGui::PopStyleColor();
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawViewport()
 	{
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, IMGUI_COLOR_BACKGROUND );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 4, 4 ) );
 	if ( ImGui::Begin( "Viewport" ) )
 		{
@@ -632,7 +620,7 @@ void VsTestlab::DrawViewport()
 
 		ImVec2 WindowPos = ImGui::GetCursorScreenPos();
 		ImVec2 WindowSize = ImGui::GetContentRegionAvail();
-		mCamera->SetAspectRatio( WindowSize.x / ImMax( 1.0f, WindowSize.y ) );
+		mCamera->Resize( static_cast<int>( WindowSize.x ), static_cast<int>( WindowSize.y ) );
 		mRenderTarget->Resize( static_cast< int >( WindowSize.x ), static_cast< int >( WindowSize.y ) );
 
 		ImDrawList* DrawList = ImGui::GetWindowDrawList();
@@ -642,7 +630,6 @@ void VsTestlab::DrawViewport()
 		}
 	ImGui::End();
 	ImGui::PopStyleVar();
-	ImGui::PopStyleColor();
 	}
 
 

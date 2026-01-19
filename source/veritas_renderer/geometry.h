@@ -16,6 +16,8 @@
 // Veritas
 #include <veritas/veritas.h>
 
+class VsShader;
+
 
 //--------------------------------------------------------------------------------------------------
 // VsGeometry
@@ -31,8 +33,8 @@ class VsGeometry
 		~VsGeometry();
 
 		// Rendering
-		void RenderFaces( int InstanceCount );
-		void RenderEdges( int InstanceCount );
+		void RenderFaces( VsShader* Shader, int InstanceCount );
+		void RenderEdges( VsShader* Shader, int InstanceCount );
 
 	private:
 		int mElementCount = 0;

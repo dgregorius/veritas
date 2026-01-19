@@ -34,6 +34,46 @@ VsCamera::~VsCamera()
 
 
 //--------------------------------------------------------------------------------------------------
+int VsCamera::GetWidth() const
+	{
+	return mWidth;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::SetWidth( int Width )
+	{
+	VS_ASSERT( Width >= 0 );
+	mWidth = Width;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsCamera::GetHeight() const
+	{
+	return mHeight;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::SetHeight( int Height )
+	{
+	VS_ASSERT( Height >= 0 );
+	mHeight = Height;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsCamera::Resize( int Width, int Height )
+	{
+	VS_ASSERT( Width >= 0 );
+	mWidth = Width;
+	VS_ASSERT( Height >= 0 );
+	mHeight = Height;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 float VsCamera::GetYaw() const
 	{
 	return mYaw;
@@ -189,21 +229,6 @@ void VsCamera::SetFOV( float FOV )
 
 
 //--------------------------------------------------------------------------------------------------
-void VsCamera::SetAspectRatio( float AspectRatio )
-	{
-	VS_ASSERT( AspectRatio >= 0.0f );
-	mAspectRatio = AspectRatio;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-float VsCamera::GetAspectRatio() const
-	{
-	return mAspectRatio;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
 float VsCamera::GetNearPlane() const
 	{
 	return mNearPlane;
@@ -236,7 +261,8 @@ void VsCamera::SetFarPlane( float FarPlane )
 //--------------------------------------------------------------------------------------------------
 glm::mat4 VsCamera::GetProjectionMatrix( ) const
 	{
-	return glm::perspective( glm::radians( mFOV ), mAspectRatio, mNearPlane, mFarPlane );
+	float AspectRatio = static_cast< float >( mWidth ) / static_cast< float >( glm::max( 1, mHeight ) );
+	return glm::perspective( glm::radians( mFOV ), AspectRatio, mNearPlane, mFarPlane );
 	}
 
 
