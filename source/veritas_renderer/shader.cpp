@@ -286,18 +286,12 @@ void vsLoadShaders()
 	VsShader::MeshShader = new VsShader( fs::path( "shaders/mesh.vs" ), fs::path( "shaders/mesh.fs" ) );
 	VS_ASSERT( !VsShader::EdgeShader );
 	VsShader::EdgeShader = new VsShader( fs::path( "shaders/edge.vs" ), fs::path( "shaders/edge.fs" ) );
-	VS_ASSERT( !VsShader::LineShader );
-	VsShader::LineShader = new VsShader( fs::path( "shaders/line.vs" ), fs::path( "shaders/line.fs" ) );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
 void vsUnloadShaders()
 	{
-	VS_ASSERT( VsShader::LineShader );
-	delete VsShader::LineShader;
-	VsShader::LineShader = nullptr;
-
 	VS_ASSERT( VsShader::EdgeShader );
 	delete VsShader::EdgeShader;
 	VsShader::EdgeShader = nullptr;

@@ -59,7 +59,6 @@ class VsShader
 		static inline VsShader* GridShader = nullptr;
 		static inline VsShader* MeshShader = nullptr;
 		static inline VsShader* EdgeShader = nullptr;
-		static inline VsShader* LineShader = nullptr;
 
 	private:
 		uint32_t mProgram = 0;

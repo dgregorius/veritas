@@ -94,15 +94,15 @@ void VsWorldRenderer::DrawFrame( VsCamera* Camera )
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
-	VsShader* LineShader = VsShader::LineShader;
-	LineShader->Use();
-	LineShader->SetUniform( "uViewProj", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
-	LineShader->SetUniform( "uResolution", glm::vec2( static_cast< float >( Camera->GetWidth() ), static_cast< float >( Camera->GetHeight() ) ) );
-	LineShader->SetUniform( "uLineWidth", 1.0f );
+	VsShader* EdgeShader = VsShader::EdgeShader;
+	EdgeShader->Use();
+	EdgeShader->SetUniform( "uViewProj", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+	EdgeShader->SetUniform( "uResolution", glm::vec2( static_cast< float >( Camera->GetWidth() ), static_cast< float >( Camera->GetHeight() ) ) );
+	EdgeShader->SetUniform( "uLineWidth", 1.0f );
 	
 	for ( const auto& [ InstancedHull, _ ] : mHullInstances )
 		{
-		InstancedHull->RenderEdges( LineShader );
+		InstancedHull->RenderEdges( EdgeShader );
 		}
 
 	glBindVertexArray( GL_NONE );
