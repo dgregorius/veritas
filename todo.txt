@@ -1,4 +1,6 @@
 
+- Check __restrict in Box3D b3ClipPolygon()
+
 - Add joints
   * Ragdoll tests
   * Mouse interaction

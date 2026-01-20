@@ -182,8 +182,8 @@ static VsGeometry* vsOnCreateHull( IVsShape* Shape )
 		int VertexIndex2 = 2 * EdgeIndex + 1;
 		VsVector3 P2 = EdgePositions[ VertexIndex2 ];
 
-		Edges[ VertexIndex1 ] = { { P1.X, P1.Y, P1.Z }, 0xFF222222 };
-		Edges[ VertexIndex2 ] = { { P2.X, P2.Y, P2.Z }, 0xFF222222 };
+		Edges[ VertexIndex1 ] = { { P1.X, P1.Y, P1.Z }, 0xFF000000 };
+		Edges[ VertexIndex2 ] = { { P2.X, P2.Y, P2.Z }, 0xFF000000 };
 		}
 
 	return new VsGeometry( Vertices, Edges );
