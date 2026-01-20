@@ -303,21 +303,39 @@ static float rkDeepestPointSeparation( const RkTransform& Transform1, const RkTr
 
 
 //--------------------------------------------------------------------------------------------------
-static RkVector3 rkPolygonCenter( const RkArray< RkClipVertex >& Polygon )
+static RkVector3 rkPolygonCenter( const RkClipVertex* Polygon, int VertexCount )
 	{
 	RkVector3 Center = RK_VEC3_ZERO;
 
-	if ( !Polygon.Empty() )
+	if ( VertexCount > 0 )
 		{
-		for ( int Index = 0; Index < Polygon.Size(); ++Index )
+		for ( int Index = 0; Index < VertexCount; ++Index )
 			{
 			Center += Polygon[ Index ].Position;
 			}
-		Center /= float( Polygon.Size() );
+		Center /= float( VertexCount );
 		}
 
 	return Center;
 	}
+
+
+//--------------------------------------------------------------------------------------------------
+// static RkVector3 rkPolygonCenter( const RkArray< RkClipVertex >& Polygon )
+// 	{
+// 	RkVector3 Center = RK_VEC3_ZERO;
+// 
+// 	if ( !Polygon.Empty() )
+// 		{
+// 		for ( int Index = 0; Index < Polygon.Size(); ++Index )
+// 			{
+// 			Center += Polygon[ Index ].Position;
+// 			}
+// 		Center /= float( Polygon.Size() );
+// 		}
+// 
+// 	return Center;
+// 	}
 
 
 //--------------------------------------------------------------------------------------------------
@@ -465,13 +483,14 @@ static bool rkBuildFaceContact( RkManifold& Manifold, const RkTransform& Transfo
 	int IncFace = rkFindIncidentFace( Transform2, Hull2, RefPlane, Query.VertexIndex );
 
 	// Build clip polygon from incident face
-	RkStackArray< RkClipVertex, 64 > Input, Output;
-	rkBuildPolygon( Input, Transform2, Hull2, IncFace, RefPlane );
+	RkClipVertex InputBuffer[ 128 ];
+	RkClipVertex* Input = InputBuffer;
+	RkClipVertex OutputBuffer[ 128 ];
+	RkClipVertex* Output = OutputBuffer;
+
+	int VertexCount = rkBuildPolygon( Input, Transform2, Hull2, IncFace, RefPlane );
 
 	// Clip incident face against side planes of reference face
-	RkStackArray< RkClipVertex, 64 >* pInput = &Input;
-	RkStackArray< RkClipVertex, 64 >* pOutput = &Output;
-
 	const RkFace* Face = Hull1->GetFace( RefFace );
 	const RkHalfEdge* Edge = Hull1->GetEdge( Face->Edge );
 
@@ -486,10 +505,10 @@ static bool rkBuildFaceContact( RkManifold& Manifold, const RkTransform& Transfo
 		RkPlane3 ClipPlane = RkPlane3( Binormal, Vertex1 );
 		ClipPlane.Offset += 2.0f * RK_CONVEX_RADIUS;
 
-		rkClipPolygon( *pOutput, *pInput, ClipPlane, Hull1->GetEdgeIndex( Edge ), RefPlane );
-		std::swap( pInput, pOutput );
+		VertexCount = rkClipPolygon( Output, Input, VertexCount, ClipPlane, Hull1->GetEdgeIndex( Edge ), RefPlane );
+		std::swap( Input, Output );
 
-		if ( pInput->Size() < 3 )
+		if ( VertexCount < 3 )
 			{
 			break;
 			}
@@ -499,10 +518,10 @@ static bool rkBuildFaceContact( RkManifold& Manifold, const RkTransform& Transfo
 	while ( Edge != Hull1->GetEdge( Face->Edge ) );
 
 	// Cull excessive vertices. The will slide vertices onto the reference plane
-	RkStackArray< RkClipVertex, 64 >& Polygon = *pInput;
-	rkCullPolygon( Polygon, RefPlane );
+	RkClipVertex* Polygon = Input;
+	VertexCount = rkCullPolygon( Polygon, VertexCount, RefPlane );
 
-	if ( Polygon.Empty() )
+	if ( !VertexCount )
 		{
 		Manifold.PointCount = 0;
 		Manifold.AngularFrictionImpulse = 0.0f;
@@ -516,14 +535,14 @@ static bool rkBuildFaceContact( RkManifold& Manifold, const RkTransform& Transfo
 	// Overwrite the manifold 
 	RkManifold Backup = Manifold;
 
-	Manifold.Center = rkPolygonCenter( Polygon );
+	Manifold.Center = rkPolygonCenter( Polygon, VertexCount );
 	Manifold.Normal = FlipNormal ? -RefPlane.Normal : RefPlane.Normal;
 	Manifold.Tangent1 = rkPerp( Manifold.Normal );
 	Manifold.Tangent2 = rkCross( Manifold.Tangent1, Manifold.Normal );
 	rkProjectFriction( Manifold, Backup );
 
-	Manifold.PointCount = Polygon.Size();
-	for ( int Index = 0; Index < Polygon.Size(); ++Index )
+	Manifold.PointCount = VertexCount;
+	for ( int Index = 0; Index < VertexCount; ++Index )
 		{
 		// Reminder: Clip vertices are on the reference plane!
 		RkVector3 Point1 = Polygon[ Index ].Position;

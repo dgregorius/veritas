@@ -123,18 +123,19 @@ bool rkClipSegment( RkClipVertex Segment[ 2 ], const RkTransform& Transform, con
 //--------------------------------------------------------------------------------------------------
 // Hull clipping
 //--------------------------------------------------------------------------------------------------
-static bool rkValidatePolygon( const RkArray< RkClipVertex >& Polygon )
+static bool rkValidatePolygon( const RkClipVertex* Polygon, int VertexCount )
 	{
 	// Empty polygons are valid (we can clip away all points when re-constructing manifolds from cache)
-	if ( Polygon.Empty() )
+	if ( !VertexCount )
 		{
 		return true;
 		}
 
 	// Validate that incoming and outgoing edges match
-	RkClipVertex Vertex1 = Polygon.Back();
-	for ( const RkClipVertex& Vertex2 : Polygon )
+	RkClipVertex Vertex1 = Polygon[ VertexCount - 1 ];
+	for ( int VertexIndex2 = 0; VertexIndex2 < VertexCount; ++VertexIndex2 )
 		{
+		RkClipVertex Vertex2 = Polygon[ VertexIndex2 ];
 		if ( Vertex1.Pair.OutgoingType != Vertex2.Pair.IncomingType )
 			{
 			return false;
@@ -153,107 +154,101 @@ static bool rkValidatePolygon( const RkArray< RkClipVertex >& Polygon )
 
 
 //--------------------------------------------------------------------------------------------------
-void rkBuildPolygon( RkArray< RkClipVertex >& Out, const RkTransform& Transform, const RkHull* Hull, int IncFace, const RkPlane3& RefPlane )
+int rkBuildPolygon( RkClipVertex* Polygon, const RkTransform& Transform, const RkHull* Hull, int IncFace, const RkPlane3& RefPlane )
 	{
+	int VertexCount = 0;
 	const RkFace* Face = Hull->GetFace( IncFace );
 	const RkHalfEdge* Edge = Hull->GetEdge( Face->Edge );
 	RK_ASSERT( Edge->Face == IncFace );
-	
-	do 
+
+	do
 		{
 		const RkHalfEdge* Next = Hull->GetEdge( Edge->Next );
-		
-		RkClipVertex Vertex;
+
+		RkClipVertex& Vertex = Polygon[ VertexCount++ ];
 		Vertex.Position = Transform * Hull->GetPosition( Next->Origin );
 		Vertex.Separation = rkDistance( RefPlane, Vertex.Position );
 		Vertex.Pair = rkMakePair( RK_FEATURE_SHAPE_2, Hull->GetEdgeIndex( Edge ), RK_FEATURE_SHAPE_2, Hull->GetEdgeIndex( Next ) );
-		Out.PushBack( Vertex );
 		
 		Edge = Next;
-		} 
+		}
 	while ( Edge != Hull->GetEdge( Face->Edge ) );
-
-	RK_ASSERT( rkValidatePolygon( Out ) );
+	
+	RK_ASSERT( rkValidatePolygon( Polygon, VertexCount ) );
+	return VertexCount;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void rkClipPolygon( RkArray< RkClipVertex >& Out, const RkArray< RkClipVertex >& In, const RkPlane3& ClipPlane, int Edge, const RkPlane3& RefPlane )
+int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRICT Polygon, int VertexCount, const RkPlane3& ClipPlane, int Edge, const RkPlane3& RefPlane )
 	{
-	RK_ASSERT( In.Size() >= 3 );
-	Out.Clear();
-
-	const int PolyCount = In.Size();
-	const RkClipVertex* RK_RESTRICT Polygon = In.Data();
-
-	RkClipVertex Vertex1 = Polygon[ PolyCount - 1 ];
+	int Count = 0;
+	RkClipVertex Vertex1 = Polygon[ VertexCount - 1 ];
 	float Distance1 = rkDistance( ClipPlane, Vertex1.Position );
-	
-	for ( int PolygonIndex = 0; PolygonIndex < PolyCount; ++PolygonIndex )
+
+	for ( int VertexIndex = 0; VertexIndex < VertexCount; ++VertexIndex )
 		{
-		RkClipVertex Vertex2 = Polygon[ PolygonIndex ];
+		RkClipVertex Vertex2 = Polygon[ VertexIndex ];
 		float Distance2 = rkDistance( ClipPlane, Vertex2.Position );
-	
+
 		// Clip edge against plane (Sutherland-Hodgman clipping)
 		if ( Distance1 <= 0.0f && Distance2 <= 0.0f )
 			{
 			// Both vertices are behind the plane - keep vertex2
-			int Index = Out.PushBack();
-			Out[ Index ] = Vertex2;
+			Out[ Count++ ] = Vertex2;
 			}
 		else if ( Distance1 <= 0.0f && Distance2 > 0.0f )
 			{
 			// Vertex1 is behind of the plane, vertex2 is in front -> intersection point
 			float Fraction = Distance1 / ( Distance1 - Distance2 );
 			RkVector3 Position = Vertex1.Position + Fraction * ( Vertex2.Position - Vertex1.Position );
-	
+
 			// Keep intersection point and adjust outgoing edge
-			int Index = Out.PushBack();
-			Out[ Index ].Position = Position;
-			Out[ Index ].Separation = rkDistance( RefPlane, Position );
-			Out[ Index ].Pair = Vertex2.Pair;
-			Out[ Index ].Pair.OutgoingType = RK_FEATURE_SHAPE_1;
-			Out[ Index ].Pair.OutgoingIndex = static_cast< uint8 >( Edge );
+			RkClipVertex& Intersection = Out[ Count++ ];
+			Intersection.Position = Position;
+			Intersection.Separation = rkDistance( RefPlane, Position );
+			Intersection.Pair = Vertex2.Pair;
+			Intersection.Pair.OutgoingType = RK_FEATURE_SHAPE_1;
+			Intersection.Pair.OutgoingIndex = static_cast< uint8 >( Edge );
 			}
 		else if ( Distance2 <= 0.0f && Distance1 > 0 )
 			{
 			// Vertex1 is in front, vertex2 is behind of the plane, -> intersection point
 			float Fraction = Distance1 / ( Distance1 - Distance2 );
 			RkVector3 Position = Vertex1.Position + Fraction * ( Vertex2.Position - Vertex1.Position );
-	
+
 			// Keep intersection point and adjust incoming edge
-			int Index1 = Out.PushBack();
-			Out[ Index1 ].Position = Position;
-			Out[ Index1 ].Separation = rkDistance( RefPlane, Position );
-			Out[ Index1 ].Pair = Vertex1.Pair;
-			Out[ Index1 ].Pair.IncomingType = RK_FEATURE_SHAPE_1;
-			Out[ Index1 ].Pair.IncomingIndex = static_cast< uint8 >( Edge );
-	
+			RkClipVertex& Intersection = Out[ Count++ ];
+			Intersection.Position = Position;
+			Intersection.Separation = rkDistance( RefPlane, Position );
+			Intersection.Pair = Vertex1.Pair;
+			Intersection.Pair.IncomingType = RK_FEATURE_SHAPE_1;
+			Intersection.Pair.IncomingIndex = static_cast< uint8 >( Edge );
+			
 			// And also keep vertex2
-			int Index2 = Out.PushBack();
-			Out[ Index2 ] = Vertex2;
+			Out[ Count++ ] = Vertex2;
 			}
-	
+
 		// Keep vertex2 as starting vertex for next edge
 		Vertex1 = Vertex2;
 		Distance1 = Distance2;
 		}
 
-	RK_ASSERT( rkValidatePolygon( Out ) );
+	RK_ASSERT( rkValidatePolygon( Out, Count ) );
+	return Count;
 	}
 
 
 //--------------------------------------------------------------------------------------------------
-void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, float MaxSeparation )
+int rkCullPolygon( RkClipVertex* Polygon, int VertexCount, const RkPlane3& RefPlane, float MaxSeparation )
 	{
 	// 1. Remove all non-penetrating points
-	for ( int Index = Polygon.Size() - 1; Index >= 0; --Index )
+	for ( int Index = VertexCount - 1; Index >= 0; --Index )
 		{
 		if ( Polygon[ Index ].Separation > MaxSeparation )
 			{
-			Polygon[ Index ] = Polygon.Back();
-			Polygon.PopBack();
-
+			Polygon[ Index ] = Polygon[ --VertexCount ];
+			
 			continue;
 			}
 
@@ -262,9 +257,9 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 		Polygon[ Index ].Position -= Polygon[ Index ].Separation * RefPlane.Normal;
 		}
 
-	if ( Polygon.Empty() )
+	if ( !VertexCount )
 		{
-		return;
+		return 0;
 		}
 
 	// 2. Find extreme point in arbitrary direction V 
@@ -274,7 +269,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 	int BestIndex1 = -1;
 	float BestDistance1 = -RK_F32_MAX;
 	
-	for ( int Index = 0; Index < Polygon.Size(); ++Index )
+	for ( int Index = 0; Index < VertexCount; ++Index )
 		{
 		RkVector3 Q = Polygon[ Index ].Position;
 		float Distance = rkDot( V, Q );
@@ -295,7 +290,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 	int BestIndex2 = -1;
 	float BestDistance2 = -RK_F32_MAX;
 
-	for ( int Index = 1; Index < Polygon.Size(); ++Index )
+	for ( int Index = 1; Index < VertexCount; ++Index )
 		{
 		RkVector3 Q = Polygon[ Index ].Position;
 		float Distance = rkDistance( A, Q );
@@ -309,8 +304,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 
 	if ( BestDistance2 < RK_LINEAR_SLOP )
 		{
-		Polygon.Resize( 1 );
-		return;
+		return 1;
 		}
 
 	RK_ASSERT( BestIndex2 >= 1 );
@@ -322,7 +316,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 	int BestIndex3 = -1;
 	float BestArea3 = 0.0f;
 
-	for ( int Index = 2; Index < Polygon.Size(); ++Index )
+	for ( int Index = 2; Index < VertexCount; ++Index )
 		{
 		RkVector3 Q = Polygon[ Index ].Position;
 		float Area = rkAbs( rkDot( RefPlane.Normal, rkCross( A - Q, B - Q ) ) );
@@ -336,8 +330,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 
 	if ( BestArea3 < 2.0f * BestDistance2 * RK_LINEAR_SLOP )
 		{
-		Polygon.Resize( 2 );
-		return;
+		return 2;
 		}
 
 	RK_ASSERT( BestIndex3 >= 2 );
@@ -354,7 +347,7 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 	int BestIndex4 = -1;
 	float BestArea4 = 0.0f;
 
-	for ( int Index = 3; Index < Polygon.Size(); ++Index )
+	for ( int Index = 3; Index < VertexCount; ++Index )
 		{
 		RkVector3 Q = Polygon[ Index ].Position;
 
@@ -380,16 +373,11 @@ void rkCullPolygon( RkArray< RkClipVertex >& Polygon, const RkPlane3& RefPlane, 
 
 	if ( BestArea4 > -2.0f * BestDistance2 * RK_LINEAR_SLOP )
 		{
-		Polygon.Resize( 3 );
-		return;
+		return 3;
 		}
 
 	RK_ASSERT( BestIndex4 >= 3 );
 	std::swap( Polygon[ 3 ], Polygon[ BestIndex4 ] );
 
-	Polygon.Resize( 4 );
+	return 4;
 	}
-
-
-
-
