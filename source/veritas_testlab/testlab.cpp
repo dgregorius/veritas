@@ -475,17 +475,16 @@ void VsTestlab::DrawOutliner()
 	if ( ImGui::Begin( "Outliner" ) )
 		{
 		static char Buffer[ 256 ] = "";
-		ImGui::SetNextItemWidth( -1 );  
+		ImGui::SetNextItemWidth( -1 );
 		ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 4.0f );
 		ImGui::InputTextWithHint( "##Search", "Filter...", Buffer, sizeof( Buffer ) );
 		ImGui::PopStyleVar();
 
 		//ImGui::Separator();
 		ImGui::Spacing();
-	
+
 		// Test selections
-		ImGui::PushStyleColor( ImGuiCol_ChildBg, IMGUI_COLOR_BACKGROUND_DARK );
-		if ( ImGui::BeginChild( "##Child", ImVec2( 0, -121 ) ) )
+		if ( ImGui::BeginChild( "##Child", ImVec2( 0.0f, -116 ), ImGuiChildFlags_AlwaysUseWindowPadding ) )
 			{
 			const std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
 			for ( int TestIndex = 0; TestIndex < static_cast<int>( TestEntries.size() ); ++TestIndex )
@@ -541,9 +540,9 @@ void VsTestlab::DrawOutliner()
 					}
 				}
 			}
-		ImGui::EndChild();
-		ImGui::PopStyleColor();
 
+		ImGui::EndChild();
+	
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
@@ -566,6 +565,7 @@ void VsTestlab::DrawOutliner()
 			glfwSetWindowShouldClose( mWindow, GLFW_TRUE );
 			}
 		}
+
 	ImGui::End();
 	}
 

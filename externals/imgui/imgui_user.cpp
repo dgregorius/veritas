@@ -44,7 +44,7 @@ void StyleColorsCustom()
 
 	// Backgrounds
 	Colors[ ImGuiCol_WindowBg ] = IMGUI_COLOR_BACKGROUND;
-	Colors[ ImGuiCol_ChildBg ] = IMGUI_COLOR_BACKGROUND;
+	Colors[ ImGuiCol_ChildBg ] = IMGUI_COLOR_BACKGROUND_DARK;
 	Colors[ ImGuiCol_PopupBg ] = IMGUI_COLOR_BACKGROUND_DARK;
 
 	// Tabs (active matches window for seamless look)
@@ -116,7 +116,7 @@ void StyleColorsCustom()
 
 	Style.TabBorderSize = 0.0f;
 	Style.FramePadding = ImVec2( 8, 4 );
-	Style.ItemSpacing = ImVec2( 8, 5 );
+	Style.ItemSpacing = ImVec2( 8, 4 );
 	Style.TabBarOverlineSize = 2.0f;
 	Style.DockingSeparatorSize = 4.0f;
 	}
