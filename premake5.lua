@@ -43,13 +43,6 @@ workspace "veritas"
 
 	filter { "configurations:Debug", "options:asan" }
     	sanitize { "Address" }
-      		
-	filter "configurations:instrumented"
-		objdir "%{prj.location}/obj/instrumented"
-		targetdir "%{prj.location}/out/instrumented"
-		fatalwarnings { "All" }
-		defines { "NDEBUG", "TRACY_ENABLE" }
-		optimize "Speed"
 			
 	filter "configurations:release"
 		objdir "%{prj.location}/obj/release"
@@ -57,7 +50,8 @@ workspace "veritas"
 		fatalwarnings { "All" }
 		defines { "NDEBUG" }
 		optimize "Speed"
-
+		inlining "Auto"
+		
 	-- Externals
 	group "externals"
 

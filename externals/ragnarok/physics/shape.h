@@ -67,7 +67,7 @@ class RkShape
 		void SetDensity( float Density );
 		float GetFriction() const;
 		void SetFriction( float Friction );
-		float GetResitution() const;
+		float GetRestitution() const;
 		void SetRestitution( float Restitution );
 
 		// Casting (assumes ray in local space of parent body) 

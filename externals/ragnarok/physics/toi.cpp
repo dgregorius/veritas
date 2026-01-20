@@ -103,8 +103,6 @@ class RkSeparationFunction
 		void ForceFixedAxis( float Beta );
 
 	private:
-		RkSeparationType ComputeType( const RkSweep& Sweep1, const RkTOIProxy* Proxy1, const RkSweep& Sweep2, const RkTOIProxy* Proxy2, const RkGJKQuery& Query, RkGJKCache Cache, float Beta ) const;
-
 		RkSeparationType mType;
 		RkSweep mSweep1;
 		const RkTOIProxy* mProxy1;
@@ -525,74 +523,6 @@ void RkSeparationFunction::ForceFixedAxis( float Beta )
 	mType = RK_SEPARATION_VERTICES;
 	mWitness1 = Axis;
 	mWitness2 = RK_VEC3_ZERO;
-	}
-
-
-//--------------------------------------------------------------------------------------------------
-RkSeparationType RkSeparationFunction::ComputeType( const RkSweep& Sweep1, const RkTOIProxy* Proxy1, const RkSweep& Sweep2, const RkTOIProxy* Proxy2, const RkGJKQuery& Query, RkGJKCache Cache, float Beta ) const
-	{
-	RkTransform Transform1 = Sweep1.Interpolate( Beta );
-	RkHull* Hull1 = Proxy1->GetHull();
-	RkTransform Transform2 = Sweep2.Interpolate( Beta );
-	RkHull* Hull2 = Proxy2->GetHull();
-
-	// Note: Don't promote here! EE is not save to promote in this context (e.g. deepest point can 
-	// be penetrating) and VV promotion will break indexing from the cache into the vertex buffer. 
-	auto [Witness1, Witness2] = rkResolveCache( Cache, Hull1, Hull2 );
-
-	// Face separation
-	if ( Witness1.Feature == RK_GJK_FACE )
-		{
-		return RK_SEPARATION_FACE1;
-		}
-
-	if ( Witness2.Feature == RK_GJK_FACE )
-		{
-		return RK_SEPARATION_FACE2;
-		}
-
-	// Edge separation
-	if ( Witness1.Feature == RK_GJK_EDGE && Witness2.Feature == RK_GJK_EDGE )
-		{
-		// Edge/Edge
-		RkVector3 VertexA1 = Transform1 * Proxy1->GetVertex( Cache.Vertices1[ 0 ] );
-		RkVector3 VertexA2 = Transform1 * Proxy1->GetVertex( Cache.Vertices1[ 1 ] );
-		RkVector3 EdgeA = rkNormalize( VertexA2 - VertexA1 );
-
-		RkVector3 VertexB1 = Transform2 * Proxy2->GetVertex( Cache.Vertices2[ 0 ] );
-		RkVector3 VertexB2 = Transform2 * Proxy2->GetVertex( Cache.Vertices2[ 1 ] );
-		RkVector3 EdgeB = rkNormalize( VertexB2 - VertexB1 );
-
-		RkVector3 Axis = rkCross( EdgeA, EdgeB );
-		float Length = rkLength( Axis );
-
-		// Skip near parallel edges: |e1 x e1| = sin(alpha) * |e1| * |e2|
-		const float kTolerance = 0.005f;
-		if ( Length < kTolerance )
-			{
-			// The axis is not safe to normalize so we use a world axis instead!
-			return RK_SEPARATION_VERTICES;
-			}
-
-		Axis /= Length;
-		if ( rkDot( VertexB1 - VertexA1, Axis ) < 0.0f )
-			{
-			Axis = -Axis;
-			EdgeB = -EdgeB;
-			}
-
-		// Check for possible sign flip in edge/edge cross product
-		if ( rkCheckFastEdges( Sweep1.Interpolate( 1.0f ), rkTMul( Transform1.Rotation, EdgeA ), Sweep2.Interpolate( 1.0f ), rkTMul( Transform2.Rotation, EdgeB ), Axis ) )
-			{
-			return RK_SEPARATION_VERTICES;
-			}
-
-		return RK_SEPARATION_EDGES;
-		}
-
-	// Vertex separation
-	RK_ASSERT( Witness1.Feature == RK_GJK_VERTEX || Witness2.Feature == RK_GJK_VERTEX );
-	return RK_SEPARATION_VERTICES;
 	}
 
 

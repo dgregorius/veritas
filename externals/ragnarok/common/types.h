@@ -24,6 +24,7 @@
 
 #define RK_RESTRICT			__restrict
 #define RK_FORCEINLINE		__forceinline
+#define RK_NOINLINE			__declspec( noinline )
 
 #define RK_ALIGN4			__declspec( align(   4 ) )
 #define RK_ALIGN8			__declspec( align(   8 ) )

@@ -9,7 +9,7 @@
 // RkArray
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( RkArray&& Other )
+inline RkArray< T >::RkArray( RkArray&& Other )
 	{
 	if ( Other.mAllocated )
 		{
@@ -35,7 +35,7 @@ RkArray< T >::RkArray( RkArray&& Other )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( const RkArray& Other )
+inline RkArray< T >::RkArray( const RkArray& Other )
 	{
 	Reserve( Other.Size() );
 	
@@ -55,7 +55,7 @@ RkArray< T >::RkArray( std::initializer_list< T > List )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( const T* First, const T* Last )
+inline RkArray< T >::RkArray( const T* First, const T* Last )
 	{
 	if ( Last > First )
 		{
@@ -67,7 +67,7 @@ RkArray< T >::RkArray( const T* First, const T* Last )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( int Count )
+inline RkArray< T >::RkArray( int Count )
 	{
 	if ( Count > 0 )
 		{
@@ -79,7 +79,7 @@ RkArray< T >::RkArray( int Count )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( int Count, const T& Value )
+inline RkArray< T >::RkArray( int Count, const T& Value )
 	{
 	if ( Count > 0 )
 		{
@@ -91,7 +91,7 @@ RkArray< T >::RkArray( int Count, const T& Value )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::RkArray( T* First, T* Last, T* End )
+inline RkArray< T >::RkArray( T* First, T* Last, T* End )
 	{
 	RK_ASSERT( First <= Last && Last <= End );
 	mFirst = First;
@@ -106,7 +106,7 @@ RkArray< T >::RkArray( T* First, T* Last, T* End )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >::~RkArray()
+inline RkArray< T >::~RkArray()
 	{
 	// Deallocate
 	rkDestroy( mFirst, mLast );
@@ -119,7 +119,7 @@ RkArray< T >::~RkArray()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >& RkArray< T >::operator=( RkArray&& Other )
+inline RkArray< T >& RkArray< T >::operator=( RkArray&& Other )
 	{
 	if ( this != &Other )
 		{
@@ -155,7 +155,7 @@ RkArray< T >& RkArray< T >::operator=( RkArray&& Other )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >& RkArray< T >::operator=( const RkArray& Other )
+inline RkArray< T >& RkArray< T >::operator=( const RkArray& Other )
 	{
 	if ( this != &Other )
 		{
@@ -169,7 +169,7 @@ RkArray< T >& RkArray< T >::operator=( const RkArray& Other )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-RkArray< T >& RkArray<T>::operator=( std::initializer_list< T > List )
+inline RkArray< T >& RkArray<T>::operator=( std::initializer_list< T > List )
 	{
 	Resize( static_cast< int >( List.size() ) );
 	rkCopy( List.begin(), List.end(), Begin() );
@@ -180,7 +180,7 @@ RkArray< T >& RkArray<T>::operator=( std::initializer_list< T > List )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-int RkArray< T >::Size() const
+inline int RkArray< T >::Size() const
 	{
 	return static_cast< int >( mLast - mFirst );
 	}
@@ -188,7 +188,7 @@ int RkArray< T >::Size() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-int RkArray< T >::Capacity() const
+inline int RkArray< T >::Capacity() const
 	{
 	return static_cast< int >( mEnd - mFirst );
 	}
@@ -196,7 +196,7 @@ int RkArray< T >::Capacity() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-bool RkArray< T >::Empty() const
+inline bool RkArray< T >::Empty() const
 	{
 	return mLast == mFirst;
 	}
@@ -204,7 +204,7 @@ bool RkArray< T >::Empty() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::Clear()
+inline void RkArray< T >::Clear()
 	{
 	rkDestroy( mFirst, mLast );
 	mLast = mFirst;
@@ -213,7 +213,7 @@ void RkArray< T >::Clear()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::Reserve( int Count )
+RK_NOINLINE void RkArray< T >::Reserve( int Count )
 	{
 	RK_ASSERT( Count >= 0 );
 	if ( Count > Capacity() )
@@ -249,7 +249,7 @@ void RkArray< T >::Reserve( int Count )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::Resize( int Count )
+inline void RkArray< T >::Resize( int Count )
 	{
 	Reserve( Count );
 
@@ -261,7 +261,7 @@ void RkArray< T >::Resize( int Count )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::Resize( int Count, const T& Value )
+inline void RkArray< T >::Resize( int Count, const T& Value )
 	{
 	Reserve( Count );
 
@@ -273,12 +273,12 @@ void RkArray< T >::Resize( int Count, const T& Value )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-int RkArray< T >::PushBack()
+RK_FORCEINLINE int RkArray< T >::PushBack()
 	{
 	if ( mLast == mEnd )
 		{
 		// Try to grow 50%
-		Reserve( Capacity() ? Capacity() + Capacity() / 2 : InitialCapacity );
+		Grow();
 		}
 	rkConstruct( mLast++ );
 
@@ -288,7 +288,7 @@ int RkArray< T >::PushBack()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-int RkArray< T >::PushBack( const T& Value )
+RK_FORCEINLINE int RkArray< T >::PushBack( const T& Value )
 	{
 	if ( mFirst <= std::addressof( Value ) && std::addressof( Value ) < mLast )
 		{
@@ -298,7 +298,7 @@ int RkArray< T >::PushBack( const T& Value )
 		if ( mLast == mEnd )
 			{
 			// Try to grow 50%
-			Reserve( Capacity() ? 3 * Capacity() / 2 : InitialCapacity );
+			Grow();
 			}
 
 		rkCopyConstruct( mLast++, mFirst[ Index ] );
@@ -308,7 +308,7 @@ int RkArray< T >::PushBack( const T& Value )
 		if ( mLast == mEnd )
 			{
 			// Try to grow 50%
-			Reserve( Capacity() ? 3 * Capacity() / 2 : InitialCapacity );
+			Grow();
 			}
 
 		rkCopyConstruct( mLast++, Value );
@@ -320,7 +320,7 @@ int RkArray< T >::PushBack( const T& Value )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-inline void RkArray< T >::PushBack( int Count, const T* List )
+RK_FORCEINLINE void RkArray< T >::PushBack( int Count, const T* List )
 	{
 	PushBack( List, List + Count );
 	}
@@ -328,7 +328,7 @@ inline void RkArray< T >::PushBack( int Count, const T* List )
 
 //--------------------------------------------------------------------------------------------------
 template <typename T>
-inline void RkArray< T >::PushBack( const T* First, const T* Last )
+RK_FORCEINLINE void RkArray< T >::PushBack( const T* First, const T* Last )
 	{
 	int Count = int( Last - First );
 	if ( Count > 0 )
@@ -336,7 +336,7 @@ inline void RkArray< T >::PushBack( const T* First, const T* Last )
 		// DIRK_TODO: Handle self append!
 		RK_ASSERT( Last < mFirst || First >= mEnd );
 
-		// DIRK_TODO: Use reserver 
+		// DIRK_TODO: Use reserve
 		Resize( Size() + Count );
 		rkCopy( First, Last, mLast - Count );
 		}
@@ -345,7 +345,7 @@ inline void RkArray< T >::PushBack( const T* First, const T* Last )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-inline void RkArray< T >::PushBack( const RkArray< T >& Other )
+RK_FORCEINLINE void RkArray< T >::PushBack( const RkArray< T >& Other )
 	{
 	PushBack( Other.Begin(), Other.End() );
 	}
@@ -380,7 +380,7 @@ inline void RkArray< T >::Insert( int Where, const T& Value )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::PopBack()
+inline void RkArray< T >::PopBack()
 	{
 	RK_ASSERT( !Empty() );
 	rkDestroy( --mLast );
@@ -389,7 +389,7 @@ void RkArray< T >::PopBack()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray<T>::Remove( int Where )
+inline void RkArray<T>::Remove( int Where )
 	{
 	if ( 0 <= Where && Where < Size() )
 		{
@@ -407,7 +407,7 @@ void RkArray<T>::Remove( int Where )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void RkArray< T >::Remove( const T& Value )
+inline void RkArray< T >::Remove( const T& Value )
 	{
 	T* First = std::remove( mFirst, mLast, Value );
 
@@ -418,7 +418,7 @@ void RkArray< T >::Remove( const T& Value )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-bool RkArray< T >::Contains( const T& Value ) const
+inline bool RkArray< T >::Contains( const T& Value ) const
 	{
 	return std::find( mFirst, mLast, Value ) != mLast;
 	}
@@ -426,7 +426,7 @@ bool RkArray< T >::Contains( const T& Value ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T > 
-int RkArray< T >::IndexOf( const T& Value ) const
+inline int RkArray< T >::IndexOf( const T& Value ) const
 	{
 	int Index = static_cast< int >( std::distance( mFirst, std::find( mFirst, mLast, Value ) ) );
 	if ( Index == Size() )
@@ -440,7 +440,7 @@ int RkArray< T >::IndexOf( const T& Value ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T& RkArray< T >::Front()
+inline T& RkArray< T >::Front()
 	{
 	RK_ASSERT( !Empty() );
 	return *mFirst;
@@ -449,7 +449,7 @@ T& RkArray< T >::Front()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T& RkArray< T >::Front() const
+inline const T& RkArray< T >::Front() const
 	{
 	RK_ASSERT( !Empty() );
 	return *mFirst;
@@ -458,7 +458,7 @@ const T& RkArray< T >::Front() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T& RkArray< T >::Back()
+inline T& RkArray< T >::Back()
 	{
 	RK_ASSERT( !Empty() );
 	return *( mLast - 1 );
@@ -467,7 +467,7 @@ T& RkArray< T >::Back()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T& RkArray< T >::Back() const
+inline const T& RkArray< T >::Back() const
 	{
 	RK_ASSERT( !Empty() );
 	return *( mLast - 1 );
@@ -476,7 +476,7 @@ const T& RkArray< T >::Back() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T* RkArray< T >::Begin()
+inline T* RkArray< T >::Begin()
 	{
 	return mFirst;
 	}
@@ -484,7 +484,7 @@ T* RkArray< T >::Begin()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T* RkArray< T >::Begin() const
+inline const T* RkArray< T >::Begin() const
 	{
 	return mFirst;
 	}
@@ -492,7 +492,7 @@ const T* RkArray< T >::Begin() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T* RkArray< T >::End()
+inline T* RkArray< T >::End()
 	{
 	return mLast;
 	}
@@ -500,7 +500,7 @@ T* RkArray< T >::End()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T* RkArray< T >::End() const
+inline const T* RkArray< T >::End() const
 	{
 	return mLast;
 	}
@@ -508,7 +508,7 @@ const T* RkArray< T >::End() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T* RkArray< T >::Data()
+inline T* RkArray< T >::Data()
 	{
 	return mFirst;
 	}
@@ -516,7 +516,7 @@ T* RkArray< T >::Data()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T* RkArray< T >::Data() const
+inline const T* RkArray< T >::Data() const
 	{
 	return mFirst;
 	}
@@ -524,7 +524,7 @@ const T* RkArray< T >::Data() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-T& RkArray< T >::operator[]( int Index )
+inline T& RkArray< T >::operator[]( int Index )
 	{
 	RK_ASSERT( 0 <= Index && Index < Size() );
 	return *( mFirst + Index );
@@ -533,7 +533,7 @@ T& RkArray< T >::operator[]( int Index )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-const T& RkArray< T >::operator[]( int Index ) const
+inline const T& RkArray< T >::operator[]( int Index ) const
 	{
 	RK_ASSERT( 0 <= Index && Index < Size() );
 	return *( mFirst + Index );
@@ -543,7 +543,7 @@ const T& RkArray< T >::operator[]( int Index ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-bool RkArray< T >::operator==( const RkArray& Other ) const
+inline bool RkArray< T >::operator==( const RkArray& Other ) const
 	{
 	return Size() == Other.Size() && std::equal( mFirst, mLast, Other.mFirst );
 	}
@@ -551,15 +551,25 @@ bool RkArray< T >::operator==( const RkArray& Other ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-bool RkArray< T >::operator!=( const RkArray& Other ) const
+inline bool RkArray< T >::operator!=( const RkArray& Other ) const
 	{
 	return !( *this == Other );
 	}
 
 
 //--------------------------------------------------------------------------------------------------
+template < typename T > RK_NOINLINE
+void RkArray<T>::Grow()
+	{
+	int CurrentCapacity = Capacity();
+	int NewCapacity = CurrentCapacity > 0 ? CurrentCapacity + CurrentCapacity / 2 : InitialCapacity;
+	Reserve( NewCapacity );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 template < typename T >
-void rkDeleteAll( T** First, T** Last )
+inline void rkDeleteAll( T** First, T** Last )
 	{
 	// Iterate backwards
 	for ( T** Iterator = Last; Iterator-- != First; )
@@ -571,7 +581,7 @@ void rkDeleteAll( T** First, T** Last )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T >
-void rkDeleteAll( RkArray< T* >& Array )
+inline void rkDeleteAll( RkArray< T* >& Array )
 	{
 	rkDeleteAll( Array.Begin(), Array.End() );
 	}
@@ -616,7 +626,7 @@ RkStackArray< T, N >::RkStackArray( int Count, const T& Value )
 // RkIndexedArray
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-int RkIndexedArray< T, MemberIndex >::Size() const
+inline int RkIndexedArray< T, MemberIndex >::Size() const
 	{
 	return mArray.Size();
 	}
@@ -624,7 +634,7 @@ int RkIndexedArray< T, MemberIndex >::Size() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-int RkIndexedArray< T, MemberIndex >::Capacity() const
+inline int RkIndexedArray< T, MemberIndex >::Capacity() const
 	{
 	return mArray.Capacity();
 	}
@@ -632,7 +642,7 @@ int RkIndexedArray< T, MemberIndex >::Capacity() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-bool RkIndexedArray< T, MemberIndex >::Empty() const
+inline bool RkIndexedArray< T, MemberIndex >::Empty() const
 	{
 	return mArray.Empty();
 	}
@@ -640,7 +650,7 @@ bool RkIndexedArray< T, MemberIndex >::Empty() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-int RkIndexedArray< T, MemberIndex >::PushBack( T* Object )
+inline int RkIndexedArray< T, MemberIndex >::PushBack( T* Object )
 	{
 	RK_ASSERT( Object && Object->*MemberIndex == -1 );
 	
@@ -653,7 +663,7 @@ int RkIndexedArray< T, MemberIndex >::PushBack( T* Object )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-void RkIndexedArray<T, MemberIndex>::PopBack()
+inline void RkIndexedArray<T, MemberIndex>::PopBack()
 	{
 	mArray.PopBack();
 	}
@@ -661,7 +671,7 @@ void RkIndexedArray<T, MemberIndex>::PopBack()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-void RkIndexedArray< T, MemberIndex >::Remove( T* Object )
+inline void RkIndexedArray< T, MemberIndex >::Remove( T* Object )
 	{
 	RK_ASSERT( Object && Object->*MemberIndex != -1 );
 	
@@ -682,7 +692,7 @@ void RkIndexedArray< T, MemberIndex >::Remove( T* Object )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::* MemberIndex >
-bool RkIndexedArray< T, MemberIndex >::Contains( T* Value ) const
+inline bool RkIndexedArray< T, MemberIndex >::Contains( T* Value ) const
 	{
 	return mArray.Contains( Value );
 	}
@@ -690,7 +700,7 @@ bool RkIndexedArray< T, MemberIndex >::Contains( T* Value ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-T* RkIndexedArray<T, MemberIndex>::Front()
+inline T* RkIndexedArray<T, MemberIndex>::Front()
 	{
 	return mArray.Front();
 	}
@@ -706,7 +716,7 @@ const T* RkIndexedArray<T, MemberIndex>::Front() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-T* RkIndexedArray<T, MemberIndex>::Back()
+inline T* RkIndexedArray<T, MemberIndex>::Back()
 	{
 	return mArray.Back();
 	}
@@ -714,7 +724,7 @@ T* RkIndexedArray<T, MemberIndex>::Back()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-const T* RkIndexedArray<T, MemberIndex>::Back() const
+inline const T* RkIndexedArray<T, MemberIndex>::Back() const
 	{
 	return mArray.Back();
 	}
@@ -722,7 +732,7 @@ const T* RkIndexedArray<T, MemberIndex>::Back() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-T** RkIndexedArray<T, MemberIndex>::Begin()
+inline T** RkIndexedArray<T, MemberIndex>::Begin()
 	{
 	return mArray.Begin();
 	}
@@ -730,7 +740,7 @@ T** RkIndexedArray<T, MemberIndex>::Begin()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-T* const* RkIndexedArray<T, MemberIndex>::Begin() const
+inline T* const* RkIndexedArray<T, MemberIndex>::Begin() const
 	{
 	return mArray.Begin();
 	}
@@ -738,7 +748,7 @@ T* const* RkIndexedArray<T, MemberIndex>::Begin() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex  >
-T** RkIndexedArray<T, MemberIndex>::End()
+inline T** RkIndexedArray<T, MemberIndex>::End()
 	{
 	return mArray.End();
 	}
@@ -746,7 +756,7 @@ T** RkIndexedArray<T, MemberIndex>::End()
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-T* const* RkIndexedArray<T, MemberIndex>::End() const
+inline T* const* RkIndexedArray<T, MemberIndex>::End() const
 	{
 	return mArray.End();
 	}
@@ -754,7 +764,7 @@ T* const* RkIndexedArray<T, MemberIndex>::End() const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-const T* RkIndexedArray< T, MemberIndex >::operator[]( int Index ) const
+inline const T* RkIndexedArray< T, MemberIndex >::operator[]( int Index ) const
 	{
 	return mArray[ Index ];
 	}
@@ -762,7 +772,7 @@ const T* RkIndexedArray< T, MemberIndex >::operator[]( int Index ) const
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::*MemberIndex >
-T* RkIndexedArray< T, MemberIndex >::operator[]( int Index )
+inline T* RkIndexedArray< T, MemberIndex >::operator[]( int Index )
 	{
 	return mArray[ Index ];
 	}
@@ -770,7 +780,7 @@ T* RkIndexedArray< T, MemberIndex >::operator[]( int Index )
 
 //--------------------------------------------------------------------------------------------------
 template < typename T, int T::* MemberIndex >
-void rkDeleteAll( RkIndexedArray< T, MemberIndex >& Array )
+inline void rkDeleteAll( RkIndexedArray< T, MemberIndex >& Array )
 	{
 	rkDeleteAll( Array.Begin(), Array.End() );
 	}

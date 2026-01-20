@@ -101,7 +101,7 @@ void RkShape::SetFriction( float Friction )
 
 
 //--------------------------------------------------------------------------------------------------
-float RkShape::GetResitution() const
+float RkShape::GetRestitution() const
 	{
 	return mRestitution;
 	}

@@ -275,7 +275,7 @@ void VsCamera::Update()
 	if ( ImGui::IsKeyDown( ImGuiKey_LeftAlt ) || ImGui::IsKeyDown( ImGuiKey_RightAlt ) )
 		{
 		// ORBIT (Alt + Left Click)
-		if ( ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
+		if ( ImGui::IsMouseDragging( ImGuiMouseButton_Left ) )
 			{
 			const float Sensitivity = 0.25f;
 			mYaw -= IO.MouseDelta.x * Sensitivity;
@@ -284,7 +284,7 @@ void VsCamera::Update()
 			}
 
 		// PAN (Alt + Middle Click)
-		if ( ImGui::IsMouseDown( ImGuiMouseButton_Middle ) )
+		if ( ImGui::IsMouseDragging( ImGuiMouseButton_Middle ) )
 			{
 			const float Sensitivity = 0.001f;
 			float PanSpeed = mRadius * Sensitivity;
@@ -294,7 +294,7 @@ void VsCamera::Update()
 			}
 
 		// DOLLY/ZOOM (Alt + Right Click)
-		if ( ImGui::IsMouseDown( ImGuiMouseButton_Right ) )
+		if ( ImGui::IsMouseDragging( ImGuiMouseButton_Right ) )
 			{
 			// Horizontal mouse movement for zooming
 			const float Sensitivity = 0.01f;

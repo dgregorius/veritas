@@ -82,7 +82,8 @@ class RkArray
 
 	protected:
 		enum { InitialCapacity = 16 };
-	
+		void Grow();
+
 		T* mFirst = nullptr;
 		T* mLast = nullptr;
 		T* mEnd = nullptr;
