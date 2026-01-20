@@ -613,7 +613,6 @@ void VsTestlab::DrawProfiler()
 //--------------------------------------------------------------------------------------------------
 void VsTestlab::DrawViewport()
 	{
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 4, 4 ) );
 	if ( ImGui::Begin( "Viewport" ) )
 		{
 		ImGui::BeginChild( "##Child" );
@@ -629,7 +628,6 @@ void VsTestlab::DrawViewport()
 		ImGui::EndChild();
 		}
 	ImGui::End();
-	ImGui::PopStyleVar();
 	}
 
 
