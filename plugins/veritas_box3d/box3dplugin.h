@@ -291,10 +291,8 @@ class VsBox3dWorld : public IVsWorld
 		std::vector< VsBox3dBody* > mBodies;
 		
 		int mTaskCount = 0;
-		enum { MaxTasks = 32 };
+		enum { MaxTasks = 64 };
 		VsBox3dTask mTaskList[ MaxTasks ];
-		enki::TaskScheduler mTaskScheduler;
-
 		b3WorldId mNative = {};
 	};
 
@@ -306,16 +304,20 @@ class VsBox3dPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		explicit VsBox3dPlugin( ImGuiContext* Context );
+		VsBox3dPlugin( ImGuiContext* Context, int WorkerCount );
 		virtual ~VsBox3dPlugin() override;
 
 		// Module
 		virtual void Release() override;
+		
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
-
+		
 		virtual bool IsEnabled() const override;
 		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual int GetWorkerCount() const override;
+		virtual void SetWorkerCount( int WorkerCount ) override;
 
 		virtual bool OnInspectorGUI() override;
 
@@ -343,10 +345,15 @@ class VsBox3dPlugin : public IVsPlugin
 		virtual IVsWorld* GetWorld( int WorldIndex ) override;
 		virtual const IVsWorld* GetWorld( int WorldIndex ) const override;
 
+		// Box3D
+		enki::TaskScheduler* GetTaskScheduler() const;
+
 	private:
 		char mVersion[ 64 ];
 		bool mEnabled = true;
 		std::vector< VsBox3dHull* > mHulls;
 		std::vector< VsBox3dMesh* > mMeshes;
 		std::vector< VsBox3dWorld* > mWorlds;
+
+		enki::TaskScheduler* mTaskScheduler;
 	};

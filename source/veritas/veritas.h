@@ -69,7 +69,6 @@ bool operator!=( const VsColor& Lhs, const VsColor& Rhs );
 VsColor vsLighten( const VsColor& Color, float Amount );
 VsColor vsDarken( const VsColor& Color, float Amount );
 	
-
 static inline constexpr VsColor VS_COLOR_TRANSPARENT = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 
@@ -396,13 +395,16 @@ struct IVsPlugin
 	{
 	// Module
 	virtual void Release() = 0;
+	
 	virtual const char* GetName() const = 0;
 	virtual const char* GetVersion() const = 0;
 
 	virtual bool IsEnabled() const = 0;
 	virtual void SetEnabled( bool Enabled ) = 0;
 
-	// UI
+	virtual int GetWorkerCount() const = 0;
+	virtual void SetWorkerCount( int WorkerCount ) = 0;
+
 	virtual bool OnInspectorGUI() = 0;
 	
 	// Hull
@@ -438,12 +440,12 @@ struct IVsPlugin
 // Plugin export
 extern "C"
 	{
-	typedef IVsPlugin* ( *VsCreatePluginFunc )( ImGuiContext* );
+	typedef IVsPlugin* ( *VsCreatePluginFunc )( ImGuiContext*, int );
 	}
 
-#define VS_EXPORT_PLUGIN(PluginClass)							\
-extern "C" __declspec(dllexport)								\
-IVsPlugin* vsCreatePlugin( ImGuiContext* Context  )				\
-	{															\
-    return new PluginClass( Context );							\
+#define VS_EXPORT_PLUGIN(Plugin)										\
+extern "C" __declspec(dllexport)										\
+IVsPlugin* vsCreatePlugin( ImGuiContext* Context, int WorkerCount  )		\
+	{																	\
+    return new Plugin( Context, WorkerCount );								\
 	}

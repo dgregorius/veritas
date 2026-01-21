@@ -49,7 +49,6 @@ VsRagnarokHull::VsRagnarokHull( RkHull* Hull )
 			mVertexPositions.push_back( { Vertex3.X, Vertex3.Y, Vertex3.Z } );
 			mVertexNormals.push_back( { FaceNormal.X, FaceNormal.Y, FaceNormal.Z } );
 			
-
 			Edge2 = Edge3;
 			Edge3 = Hull->GetEdge( Edge3->Next );
 			}
@@ -726,12 +725,11 @@ RkWorld* VsRagnarokWorld::GetNative() const
 //--------------------------------------------------------------------------------------------------
 // VsRagnarokPlugin
 //--------------------------------------------------------------------------------------------------
-VsRagnarokPlugin::VsRagnarokPlugin( ImGuiContext* Context )
+VsRagnarokPlugin::VsRagnarokPlugin( ImGuiContext* Context, int WorkerCount )
 	{
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
 
-	int WorkerCount = std::min( 8, static_cast< int >( std::thread::hardware_concurrency() / 2 ) );
 	mExecutor = new tf::Executor( WorkerCount );
 	}
 
@@ -761,7 +759,6 @@ VsRagnarokPlugin::~VsRagnarokPlugin()
 		}
 
 	delete mExecutor;
-	mExecutor = nullptr;
 	}
 
 //--------------------------------------------------------------------------------------------------
@@ -796,6 +793,25 @@ bool VsRagnarokPlugin::IsEnabled() const
 void VsRagnarokPlugin::SetEnabled( bool Enabled )
 	{
 	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsRagnarokPlugin::GetWorkerCount() const
+	{
+	return static_cast< int >( mExecutor->num_workers() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsRagnarokPlugin::SetWorkerCount( int WorkerCount )
+	{
+	VS_ASSERT( mWorlds.empty() );
+	if ( mExecutor->num_workers() != static_cast< size_t >( WorkerCount ) )
+		{
+		delete mExecutor;
+		mExecutor = new tf::Executor( WorkerCount );
+		}
 	}
 
 

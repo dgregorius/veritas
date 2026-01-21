@@ -226,6 +226,7 @@ class VsRagnarokWorld : public IVsWorld
 		VsColor mColor = { 0.8f, 0.3f, 0.3f, 1.00f };
 		std::vector< IVsWorldListener* > mListeners;
 		std::vector< VsRagnarokBody* > mBodies;
+		
 		RkWorld* mNative = nullptr;
 	};
 
@@ -237,7 +238,7 @@ class VsRagnarokPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		explicit VsRagnarokPlugin( ImGuiContext* Context );
+		VsRagnarokPlugin( ImGuiContext* Context, int WorkerCount );
 		virtual ~VsRagnarokPlugin() override;
 
 		// Module
@@ -247,6 +248,9 @@ class VsRagnarokPlugin : public IVsPlugin
 
 		virtual bool IsEnabled() const override;
 		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual int GetWorkerCount() const override;
+		virtual void SetWorkerCount( int WorkerCount ) override;
 
 		virtual bool OnInspectorGUI() override;
 

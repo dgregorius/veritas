@@ -813,7 +813,7 @@ float VsJoltWorld::CombineRestitution( const Body& Body1, const SubShapeID& SubS
 //--------------------------------------------------------------------------------------------------
 // VsJoltPlugin
 //--------------------------------------------------------------------------------------------------
-VsJoltPlugin::VsJoltPlugin( ImGuiContext* Context )
+VsJoltPlugin::VsJoltPlugin( ImGuiContext* Context, int WorkerCount )
 	{
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
@@ -826,7 +826,7 @@ VsJoltPlugin::VsJoltPlugin( ImGuiContext* Context )
 	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", JPH_VERSION_MAJOR, JPH_VERSION_MINOR, JPH_VERSION_PATCH );
 
 	mTempAllocator = new TempAllocatorImpl( 64 * 1024 * 1024 );
-	mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
+	mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, WorkerCount );
 	}
 
 
@@ -895,6 +895,25 @@ bool VsJoltPlugin::IsEnabled() const
 void VsJoltPlugin::SetEnabled( bool Enabled )
 	{
 	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsJoltPlugin::GetWorkerCount() const
+	{
+	return mThreadPool->GetMaxConcurrency();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsJoltPlugin::SetWorkerCount( int WorkerCount )
+	{
+	VS_ASSERT( mWorlds.empty() );
+	if ( mThreadPool->GetMaxConcurrency() != WorkerCount )
+		{
+		delete mThreadPool;
+		mThreadPool = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, WorkerCount );
+		}
 	}
 
 

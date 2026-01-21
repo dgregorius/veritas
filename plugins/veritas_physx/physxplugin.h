@@ -245,16 +245,20 @@ class VsPhysXPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		explicit VsPhysXPlugin( ImGuiContext* Context );
+		VsPhysXPlugin( ImGuiContext* Context, int WorkerCount );
 		virtual ~VsPhysXPlugin() override;
 
 		// Module
 		virtual void Release() override;
+
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 
 		virtual bool IsEnabled() const override;
 		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual int GetWorkerCount() const override;
+		virtual void SetWorkerCount( int WorkerCount ) override;
 
 		virtual bool OnInspectorGUI() override;
 

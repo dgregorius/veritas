@@ -366,16 +366,20 @@ class VsJoltPlugin : public IVsPlugin
 	{
 	public:
 		// Construction / Destruction
-		explicit VsJoltPlugin( ImGuiContext* Context );
+		VsJoltPlugin( ImGuiContext* Context, int WorkerCount );
 		virtual ~VsJoltPlugin() override;
 
 		// Module
 		virtual void Release() override;
+
 		virtual const char* GetName() const override;
 		virtual const char* GetVersion() const override;
 
 		virtual bool IsEnabled() const override;
 		virtual void SetEnabled( bool Enabled ) override;
+
+		virtual int GetWorkerCount() const override;
+		virtual void SetWorkerCount( int WorkerCount ) override;
 
 		virtual bool OnInspectorGUI() override;
 

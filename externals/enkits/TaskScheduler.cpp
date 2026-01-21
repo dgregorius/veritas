@@ -1287,7 +1287,8 @@ void TaskScheduler::Initialize( uint32_t numThreadsTotal_ )
     StopThreads( true ); // Stops threads, waiting for them.
     m_Config.numTaskThreadsToCreate = numThreadsTotal_ - 1;
     m_Config.numExternalTaskThreads = 0;
-    StartThreads();}
+    StartThreads();
+}
 
 void TaskScheduler::Initialize( TaskSchedulerConfig config_ )
 {

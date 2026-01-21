@@ -7,12 +7,17 @@
 #include "clock.h"
 
 // Windows
+#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 // OpenGL
 #include <glad.h>
 #include <glfw3.h>
+
+// STD
+#include <algorithm>
+#include <thread>
 
 // CRT's memory leak detection
 #if defined( DEBUG ) || defined( _DEBUG )
@@ -132,6 +137,10 @@ void VsTestlab::Startup()
 	mRenderTarget = new VsRenderTarget;
 
 	// Initialize plugin framework
+	mSingleStep = false;
+	mSleeping = true;
+	mWorkerCount = std::min( 8, static_cast< int >( std::thread::hardware_concurrency() / 2 ) );
+	
 	for ( const auto& Entry : fs::recursive_directory_iterator( "plugins" ) )
 		{
 		if ( Entry.is_regular_file() )
@@ -157,7 +166,7 @@ void VsTestlab::Startup()
 					}
 				
 				ImGuiContext* Context = ImGui::GetCurrentContext();
-				if ( IVsPlugin* Plugin = vsCreatePlugin( Context ) )
+				if ( IVsPlugin* Plugin = vsCreatePlugin( Context, mWorkerCount ) )
 					{
 					mPlugins.emplace_back( Plugin, [ = ]( IVsPlugin* Plugin)
 						{
@@ -217,7 +226,7 @@ void VsTestlab::UpdateFrame()
 			Test->Update( mCamera, Timestep );
 			uint64_t Ticks2 = vsGetTicks();
 
-			float DeltaTime = static_cast<float>( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
+			float DeltaTime = static_cast< float >( vsTicksToMilliSeconds( Ticks2 - Ticks1 ) );
 			mSamples[ TestIndex ].AddPoint( mTime, DeltaTime );
 			}
 		}
@@ -300,7 +309,6 @@ void VsTestlab::Shutdown()
 	// Terminate renderer
 	delete mRenderTarget;
 	mRenderTarget = nullptr;
-	
 	delete mCamera;
 	mCamera = nullptr;
 
@@ -424,6 +432,31 @@ void VsTestlab::DrawInspector()
 		{
 		if ( ImGui::BeginProperties( "Common" ) )
 			{
+			if ( ImGui::BeginSection( "Settings" ) )
+				{
+				if ( ImGui::Property( "WorkerCount", mWorkerCount, 1, std::thread::hardware_concurrency() - 1 ) )
+					{
+					DestroyTests();
+					for ( VsPluginPtr& Plugin : mPlugins )
+						{
+						Plugin->SetWorkerCount( mWorkerCount );
+						}
+					CreateTests( mTestIndex );
+					}
+				if ( ImGui::Property( "Sleeping", mSleeping ) )
+					{
+					// Propagate change into *all* active worlds
+					for ( VsPluginPtr& Plugin : mPlugins )
+						{
+						for ( int WorldIndex = 0; WorldIndex < Plugin->GetWorldCount(); ++WorldIndex )
+							{
+							IVsWorld* World = Plugin->GetWorld( WorldIndex );
+							World->SetAutoSleeping( mSleeping );
+							}
+						}
+					}
+				}
+
 			if ( ImGui::BeginSection( "Plugins" ) )
 				{
 				for ( const VsPluginPtr& Plugin : mPlugins )
@@ -434,22 +467,6 @@ void VsTestlab::DrawInspector()
 						DestroyTests();
 						Plugin->SetEnabled( Enabled );
 						CreateTests( mTestIndex );
-						}
-					}
-				}
-
-			if ( ImGui::BeginSection( "Settings" ) )
-				{
-				if ( ImGui::Property( "Sleeping", mAutoSleeping ) )
-					{
-					// Propagate change into *all* active worlds
-					for ( VsPluginPtr& Plugin : mPlugins )
-						{
-						for ( int WorldIndex = 0; WorldIndex < Plugin->GetWorldCount(); ++WorldIndex )
-							{
-							IVsWorld* World = Plugin->GetWorld( WorldIndex );
-							World->SetAutoSleeping( mAutoSleeping );
-							}
 						}
 					}
 				}
@@ -669,7 +686,7 @@ void VsTestlab::CreateTests( int TestIndex )
 		{
 		mTestIndex = TestIndex;
 		mCamera->SetOrbit( TestEntries[ TestIndex ].Orbit );
-		mAutoSleeping = TestEntries[ TestIndex ].Sleeping;
+		mSleeping = TestEntries[ TestIndex ].Sleeping;
 		}
 	
 	int PluginCount = static_cast< int >( mPlugins.size() );
@@ -683,7 +700,7 @@ void VsTestlab::CreateTests( int TestIndex )
 			{
 			VS_ASSERT( !mTests[ PluginIndex ] );
 			VsCreator vsCreateTest = TestEntries[ TestIndex ].Creator;
-			VsTest* Test = vsCreateTest( Plugin.get(), mAutoSleeping );
+			VsTest* Test = vsCreateTest( Plugin.get(), mSleeping );
 			Test->Create();
 
 			mTests[ PluginIndex ] = Test;

@@ -906,7 +906,7 @@ physx::PxScene* VsPhysXWorld::GetNative() const
 //--------------------------------------------------------------------------------------------------
 // VsPhysXPlugin
 //--------------------------------------------------------------------------------------------------
-VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context )
+VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context, int WorkerCount )
 	{
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
@@ -918,7 +918,7 @@ VsPhysXPlugin::VsPhysXPlugin( ImGuiContext* Context )
 	mFoundation = PxCreateFoundation( PX_PHYSICS_VERSION, mAllocator, mErrorCallback );
 	mPhysics = PxCreatePhysics( PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale() );
 	PxInitExtensions( *mPhysics, NULL );
-	mDispatcher = PxDefaultCpuDispatcherCreate( std::min( 8, (int)std::thread::hardware_concurrency() / 2 ) );
+	mDispatcher = PxDefaultCpuDispatcherCreate( WorkerCount );
 	SetDllDirectoryW( NULL );
 	}
 
@@ -985,6 +985,25 @@ bool VsPhysXPlugin::IsEnabled() const
 void VsPhysXPlugin::SetEnabled( bool Enabled )
 	{
 	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsPhysXPlugin::GetWorkerCount() const
+	{
+	return mDispatcher->getWorkerCount();
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsPhysXPlugin::SetWorkerCount( int WorkerCount )
+	{
+	VS_ASSERT( mWorlds.empty() );
+	if ( mDispatcher->getWorkerCount() != static_cast< uint32_t >( WorkerCount ) )
+		{
+		PX_RELEASE( mDispatcher );
+		mDispatcher = PxDefaultCpuDispatcherCreate( WorkerCount );
+		}
 	}
 
 

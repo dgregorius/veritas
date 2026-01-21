@@ -674,12 +674,9 @@ b3BodyId VsBox3dBody::GetNative() const
 VsBox3dWorld::VsBox3dWorld( VsBox3dPlugin* Plugin )
 	: mPlugin( Plugin )
 	{
-	int WorkerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
-	mTaskScheduler.Initialize( WorkerCount );
-
 	b3WorldDef WorldDef = b3DefaultWorldDef();
 	WorldDef.gravity = { 0.0f, -10.0f, 0.0f };
-	WorldDef.workerCount = b3MinInt( 8, (int)enki::GetNumHardwareThreads() / 2 );
+	WorldDef.workerCount = Plugin->GetWorkerCount();
 	WorldDef.enqueueTask = EnqueueTask;
 	WorldDef.finishTask = FinishTask;
 	WorldDef.userTaskContext = this;
@@ -699,11 +696,8 @@ VsBox3dWorld::~VsBox3dWorld()
 		delete Body;
 		}
 
-	VS_ASSERT( b3World_GetAwakeBodyCount( mNative ) == 0 );
-	b3DestroyWorld( mNative );
-
 	VS_ASSERT( mTaskCount == 0 );
-	mTaskScheduler.WaitforAllAndShutdown();
+	b3DestroyWorld( mNative );
 	}
 
 
@@ -906,7 +900,8 @@ void* VsBox3dWorld::EnqueueTask( b3TaskCallback* TaskCallback, int ItemCount, in
 		Task->m_SetSize = ItemCount;
 		Task->m_MinRange = MinRange;
 
-		mTaskScheduler.AddTaskSetToPipe( Task );
+		enki::TaskScheduler* TaskScheduler = mPlugin->GetTaskScheduler();
+		TaskScheduler->AddTaskSetToPipe( Task );
 
 		return Task;
 		}
@@ -932,7 +927,8 @@ void VsBox3dWorld::FinishTask( void* Task )
 	{
 	if ( Task )
 		{
-		mTaskScheduler.WaitforTask( static_cast< VsBox3dTask* >( Task ) );
+		enki::TaskScheduler* TaskScheduler = mPlugin->GetTaskScheduler();
+		TaskScheduler->WaitforTask( static_cast< VsBox3dTask* >( Task ) );
 		}
 	}
 
@@ -940,13 +936,16 @@ void VsBox3dWorld::FinishTask( void* Task )
 //--------------------------------------------------------------------------------------------------
 // VsBox3dPlugin
 //--------------------------------------------------------------------------------------------------
-VsBox3dPlugin::VsBox3dPlugin( ImGuiContext* Context )
+VsBox3dPlugin::VsBox3dPlugin( ImGuiContext* Context, int WorkerCount )
 	{
 	VS_ASSERT( Context );
 	ImGui::SetCurrentContext( Context );
 
 	b3Version Version = b3GetVersion();
 	snprintf( mVersion, std::size( mVersion ), "%d.%d.%d", Version.major, Version.minor, Version.revision );
+
+	mTaskScheduler = new enki::TaskScheduler;
+	mTaskScheduler->Initialize( WorkerCount );
 	}
 
 
@@ -973,6 +972,9 @@ VsBox3dPlugin::~VsBox3dPlugin()
 		mHulls.pop_back();
 		delete Hull;
 		}
+
+	mTaskScheduler->WaitforAllAndShutdown();
+	delete mTaskScheduler;
 	}
 
 
@@ -1008,6 +1010,27 @@ bool VsBox3dPlugin::IsEnabled() const
 void VsBox3dPlugin::SetEnabled( bool Enabled )
 	{
 	mEnabled = Enabled;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+int VsBox3dPlugin::GetWorkerCount() const
+	{
+	return static_cast< int >( mTaskScheduler->GetNumTaskThreads() );
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+void VsBox3dPlugin::SetWorkerCount( int WorkerCount )
+	{
+	VS_ASSERT( mWorlds.empty() );
+	if ( mTaskScheduler->GetNumTaskThreads() != static_cast< uint32_t >( WorkerCount ) )
+		{
+		mTaskScheduler->WaitforAllAndShutdown();
+		delete mTaskScheduler;
+		mTaskScheduler = new enki::TaskScheduler;
+		mTaskScheduler->Initialize( WorkerCount );
+		}
 	}
 
 
@@ -1160,6 +1183,13 @@ IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex )
 const IVsWorld* VsBox3dPlugin::GetWorld( int WorldIndex ) const
 	{
 	return ( 0 <= WorldIndex && WorldIndex < GetWorldCount() ) ? mWorlds[ WorldIndex ] : nullptr;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
+enki::TaskScheduler* VsBox3dPlugin::GetTaskScheduler() const
+	{
+	return mTaskScheduler;
 	}
 
 
