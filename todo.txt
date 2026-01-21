@@ -3,5 +3,4 @@
   * Ragdoll tests
   * Mouse interaction
 - More shapes (e.g. sphere and restitution test)
-- Check Jolt for good tests
 
