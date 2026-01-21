@@ -10,12 +10,13 @@
 //--------------------------------------------------------------------------------------------------
 // TlTest
 //--------------------------------------------------------------------------------------------------
-VsTest::VsTest( IVsPlugin* Plugin )
+VsTest::VsTest( IVsPlugin* Plugin, bool AutoSleeping )
 	{
 	VS_ASSERT( Plugin );
 	mPlugin = Plugin;
 
 	mWorld = Plugin->CreateWorld();
+	mWorld->SetAutoSleeping( AutoSleeping );
 	mWorldRenderer = new VsWorldRenderer( mWorld );
 	mWorld->AddListener( mWorldRenderer );
 	}
@@ -56,10 +57,10 @@ std::vector< VsTestEntry >& vsGetTestEntries()
 //--------------------------------------------------------------------------------------------------
 // Test registry
 //--------------------------------------------------------------------------------------------------
-int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, VsCreator Creator )
+int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, bool Sleeping, VsCreator Creator )
 	{
 	std::vector< VsTestEntry >& TestEntries = vsGetTestEntries();
-	TestEntries.push_back( { Category, Name, Orbit, Creator } );
+	TestEntries.emplace_back( Category, Name, Orbit, Sleeping, Creator );
 	
 	return static_cast< int >( TestEntries.size() - 1 );
 	}

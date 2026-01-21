@@ -70,4 +70,5 @@ class VsTestlab
 		float mTime = 0.0f;
 		std::vector< ImScrollingBuffer > mSamples;
 		bool mSingleStep = false;
+		bool mAutoSleeping = true;
 	};

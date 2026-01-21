@@ -35,7 +35,7 @@ class VsTest
 	{
 	public:
 		// Construction / Destruction
-		explicit VsTest( IVsPlugin* Plugin );
+		explicit VsTest( IVsPlugin* Plugin, bool AutoSleeping );
 		virtual ~VsTest() = default;
 
 		// Lifetime management
@@ -55,14 +55,14 @@ class VsTest
 //--------------------------------------------------------------------------------------------------
 // VsTestEntry
 //--------------------------------------------------------------------------------------------------
-typedef VsTest* ( *VsCreator )( IVsPlugin* );
+typedef VsTest* ( *VsCreator )( IVsPlugin*, bool );
 
 struct VsTestEntry
 	{
 	const char* Category = nullptr;
 	const char* Name = nullptr;
 	VsOrbit Orbit;
-
+	bool Sleeping = true;
 	VsCreator Creator = nullptr;
 	};
 
@@ -73,12 +73,12 @@ std::vector< VsTestEntry >& vsGetTestEntries();
 // Test registry
 //--------------------------------------------------------------------------------------------------
 template < std::derived_from< VsTest > T > 
-VsTest* vsCreateTest( IVsPlugin* Plugin )
+VsTest* vsCreateTest( IVsPlugin* Plugin, bool AutoSleeping )
 	{
-	return new T( Plugin );
+	return new T( Plugin, AutoSleeping );
 	}
 
-int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, VsCreator Creator );
+int vsRegisterTest( const char* Category, const char* Name, VsOrbit Orbit, bool Sleeping, VsCreator Creator );
 
-#define VS_DEFINE_TEST( Category, Name, Orbit, Type ) \
-static const int s##Type = vsRegisterTest( Category, Name, Orbit, vsCreateTest< Type > )
+#define VS_DEFINE_TEST( Category, Name, Orbit, Sleeping, Type ) \
+static const int s##Type = vsRegisterTest( Category, Name, Orbit, Sleeping, vsCreateTest< Type > )

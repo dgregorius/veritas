@@ -40,7 +40,7 @@ class VsBenchmarkScene1 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene1 - 5000 Falling Boxes", VsOrbit( 45.0f, -25.0f, 300.0f, { 0.0f, 5.0f, 0.0f } ), VsBenchmarkScene1 );
+VS_DEFINE_TEST( "Benchmark", "Scene1 - 5000 Falling Boxes", VsOrbit( 45.0f, -25.0f, 300.0f, { 0.0f, 5.0f, 0.0f } ), true, VsBenchmarkScene1 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -53,8 +53,6 @@ class VsBenchmarkScene2 : public VsTest
 	public:
 		virtual void Create()
 			{
-			mWorld->SetAutoSleeping( false );
-
 			IVsHull* Ground = mPlugin->CreateBox( VsVector3( 180.0f, 1.0f, 180.0f ) );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
 			GroundBody->SetPosition( VsVector3( 0.0f, -1.0f, 0.0f ) );
@@ -88,7 +86,7 @@ class VsBenchmarkScene2 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene2 - 225 Pyramids", VsOrbit( 15.0f, -25.0f, 360.0f, { 0.0f, 6.0f, 0.0f } ), VsBenchmarkScene2 );
+VS_DEFINE_TEST( "Benchmark", "Scene2 - 225 Pyramids", VsOrbit( 15.0f, -25.0f, 360.0f, { 0.0f, 6.0f, 0.0f } ), false, VsBenchmarkScene2 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -253,7 +251,7 @@ class VsBenchmarkScene3 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene3 - Washer", VsOrbit( 0.0f, -20.0f, 75.0f, { 0.0f, 10.0f, 0.0f } ), VsBenchmarkScene3 );
+VS_DEFINE_TEST( "Benchmark", "Scene3 - Washer", VsOrbit( 0.0f, -20.0f, 75.0f, { 0.0f, 10.0f, 0.0f } ), true, VsBenchmarkScene3 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -325,7 +323,7 @@ class VsBenchmarkScene4 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene4 - Junkyard", VsOrbit( 45.0f, -25.0f, 150.0f, { 0.0f, 5.0f, 0.0f } ), VsBenchmarkScene4 );
+VS_DEFINE_TEST( "Benchmark", "Scene4 - Junkyard", VsOrbit( 45.0f, -25.0f, 150.0f, { 0.0f, 5.0f, 0.0f } ), true, VsBenchmarkScene4 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -386,7 +384,7 @@ class VsBenchmarkScene5 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene5 - Dominos", VsOrbit( 85.0f, -12.0f, 55.0f, { 0.0f, 1.0f, 0.0f } ), VsBenchmarkScene5 );
+VS_DEFINE_TEST( "Benchmark", "Scene5 - Dominos", VsOrbit( 85.0f, -12.0f, 55.0f, { 0.0f, 1.0f, 0.0f } ), true, VsBenchmarkScene5 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -399,8 +397,6 @@ class VsBenchmarkScene6 : public VsTest
 	public:
 		virtual void Create()
 			{
-			mWorld->SetAutoSleeping( false );
-
 			IVsHull* Ground = mPlugin->CreateBox( { 50.0f, 1.0f, 50.0f } );
 			IVsBody* GroundBody = mWorld->CreateBody( VS_STATIC_BODY );
 			GroundBody->SetPosition( { 0.0f, -1.0f, 0.0f } );
@@ -424,4 +420,4 @@ class VsBenchmarkScene6 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Benchmark", "Scene6 - Convex Stack", VsOrbit( 45.0f, -20.0f, 100.0f, { 0.0f, 4.0f, 0.0f } ), VsBenchmarkScene6 );
+VS_DEFINE_TEST( "Benchmark", "Scene6 - Convex Stack", VsOrbit( 45.0f, -20.0f, 100.0f, { 0.0f, 4.0f, 0.0f } ), false, VsBenchmarkScene6 );

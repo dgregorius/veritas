@@ -402,6 +402,7 @@ struct IVsPlugin
 	virtual bool IsEnabled() const = 0;
 	virtual void SetEnabled( bool Enabled ) = 0;
 
+	// UI
 	virtual bool OnInspectorGUI() = 0;
 	
 	// Hull

@@ -31,7 +31,7 @@ class VsBasicScene1 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene1 - Falling Box", VsOrbit( 45.0f, -20.0f, 40.0f ), VsBasicScene1 );
+VS_DEFINE_TEST( "Basics", "Scene1 - Falling Box", VsOrbit( 45.0f, -20.0f, 40.0f ), true, VsBasicScene1 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ class VsBasicScene2 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene2 - Small stack", VsOrbit( 45.0f, -20.0f, 30.0f, { 0.0f, 4.0f, 0.0f } ), VsBasicScene2 );
+VS_DEFINE_TEST( "Basics", "Scene2 - Small stack", VsOrbit( 45.0f, -20.0f, 30.0f, { 0.0f, 4.0f, 0.0f } ), true, VsBasicScene2 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ class VsBasicScene3 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene3 - Small pyramid", VsOrbit( 0.0f, -30.0f, 50.0f, { 0.0f, 6.0f, 0.0f } ), VsBasicScene3 );
+VS_DEFINE_TEST( "Basics", "Scene3 - Small pyramid", VsOrbit( 0.0f, -30.0f, 50.0f, { 0.0f, 6.0f, 0.0f } ), true, VsBasicScene3 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ class VsBasicScene4 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene4 - Inclined Plane", VsOrbit( -55.0f, -30.0f, 60.0f, { 0.0f, 7.5f, 0.0f } ), VsBasicScene4 );
+VS_DEFINE_TEST( "Basics", "Scene4 - Inclined Plane", VsOrbit( -55.0f, -30.0f, 60.0f, { 0.0f, 7.5f, 0.0f } ), true, VsBasicScene4 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ class VsBasicScene5 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene5 - Sliding Boxes", VsOrbit( 45.0f, -35.0f, 140.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene5 );
+VS_DEFINE_TEST( "Basics", "Scene5 - Sliding Boxes", VsOrbit( 45.0f, -35.0f, 140.0f, { 0.0f, 1.0f, 0.0f } ), true, VsBasicScene5 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ class VsBasicScene6 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene6 - Spinning Books", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene6 );
+VS_DEFINE_TEST( "Basics", "Scene6 - Spinning Books", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), true, VsBasicScene6 );
 
 
 //--------------------------------------------------------------------------------------------------
@@ -229,6 +229,6 @@ class VsBasicScene7 : public VsTest
 	};
 
 // Registry
-VS_DEFINE_TEST( "Basics", "Scene7 - Dzhanibekov Effect", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), VsBasicScene7 );
+VS_DEFINE_TEST( "Basics", "Scene7 - Dzhanibekov Effect", VsOrbit( 0.0f, -30.0f, 10.0f, { 0.0f, 1.0f, 0.0f } ), true, VsBasicScene7 );
 
 

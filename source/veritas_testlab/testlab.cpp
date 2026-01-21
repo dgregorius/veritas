@@ -440,11 +440,17 @@ void VsTestlab::DrawInspector()
 
 			if ( ImGui::BeginSection( "Settings" ) )
 				{
-				static bool Sleeping = true;
-				if ( ImGui::Property( "Sleeping", Sleeping ) )
+				if ( ImGui::Property( "Sleeping", mAutoSleeping ) )
 					{
-					DestroyTests();
-					CreateTests( mTestIndex );
+					// Propagate change into *all* active worlds
+					for ( VsPluginPtr& Plugin : mPlugins )
+						{
+						for ( int WorldIndex = 0; WorldIndex < Plugin->GetWorldCount(); ++WorldIndex )
+							{
+							IVsWorld* World = Plugin->GetWorld( WorldIndex );
+							World->SetAutoSleeping( mAutoSleeping );
+							}
+						}
 					}
 				}
 
@@ -663,10 +669,9 @@ void VsTestlab::CreateTests( int TestIndex )
 		{
 		mTestIndex = TestIndex;
 		mCamera->SetOrbit( TestEntries[ TestIndex ].Orbit );
+		mAutoSleeping = TestEntries[ TestIndex ].Sleeping;
 		}
 	
-	mTime = 0.0;
-
 	int PluginCount = static_cast< int >( mPlugins.size() );
 	VS_ASSERT( mTests.size() == PluginCount );
 	VS_ASSERT( mSamples.size() == PluginCount );
@@ -678,12 +683,15 @@ void VsTestlab::CreateTests( int TestIndex )
 			{
 			VS_ASSERT( !mTests[ PluginIndex ] );
 			VsCreator vsCreateTest = TestEntries[ TestIndex ].Creator;
-			VsTest* Test = vsCreateTest( Plugin.get() );
+			VsTest* Test = vsCreateTest( Plugin.get(), mAutoSleeping );
 			Test->Create();
 
 			mTests[ PluginIndex ] = Test;
 			}
 		}
+
+	// Reset timer for profiler
+	mTime = 0.0;
 	}
 
 
