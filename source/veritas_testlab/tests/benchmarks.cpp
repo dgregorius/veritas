@@ -344,7 +344,6 @@ class VsBenchmarkScene5 : public VsTest
 			IVsShape* GroundShape = GroundBody->CreateHull( Ground );
 			GroundShape->SetColor( { 0.3f, 0.3f, 0.3f, 1.0f } );
 
-		
 			float Scale = 1.0f;
 			std::vector< VsVector3 > Vertices;
 			CreateRingVertices( Vertices, 40.0f, 0.0f );

@@ -95,7 +95,7 @@ namespace ImGui
 
 	bool BeginSection( const char* Label );
 	bool Property( const char* Label, bool& Value, const char* Tooltip = nullptr );
-// 	bool Property( const char* Label, int& Value, const char* Tooltip = nullptr );
+ 	bool Property( const char* Label, int& Value, int Min, int Max, const char* Tooltip = nullptr );
 // 	bool Property( const char* Label, float& Value, const char* Tooltip = nullptr );
 	}
 

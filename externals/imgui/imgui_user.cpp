@@ -262,4 +262,15 @@ bool Property( const char* Label, bool& Value, const char* Tooltip )
 
 	return Changed;
 	}
+
+
+bool Property( const char* Label, int& Value, int Min, int Max, const char* Tooltip )
+	{
+	ImGui::PushID( Label );
+	ImGui::BeginProperty( Label, Tooltip );
+	bool Changed = ImGui::SliderInt( "##Value", &Value, Min, Max );
+	ImGui::PopID();
+
+	return Changed;
+	}
 }
