@@ -80,5 +80,5 @@ bool rkClipSegment( RkClipVertex Segment[ 2 ], const RkTransform& Transform, con
 // Hull clipping
 //--------------------------------------------------------------------------------------------------
 int rkBuildPolygon( RkClipVertex* Out, const RkTransform& Transform, const RkHull* Hull, int IncFace, const RkPlane3& RefPlane );
-int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRICT Polygon, int VertexCount, const RkPlane3& Plane, int Edge, const RkPlane3& RefPlane );
+int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRICT Polygon, int VertexCount, const RkPlane3& ClipPlane, int ClipEdge, const RkPlane3& RefPlane );
 int rkCullPolygon( RkClipVertex* Polygon, int VertexCount, const RkPlane3& RefPlane, float MaxSeparation = 2.0f * RK_CONVEX_RADIUS );

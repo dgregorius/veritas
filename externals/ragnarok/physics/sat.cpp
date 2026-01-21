@@ -770,8 +770,18 @@ static bool rkQueryLastFeatures( RkManifold& Out, const RkTransform& Transform1,
 				FaceQuery.VertexIndex = VertexIndex;
 				FaceQuery.Separation = Separation;
 
-				// We need to run a full test if we clipped all contact points away (e.g. sliding off the face)
-				return rkBuildFaceContact( Out, Transform1, Hull1, Transform2, Hull2, FaceQuery, false, Cache, Triangle );
+				// We need to run a full to test if we clipped all contact points away (e.g. sliding off the face).
+				// Also pass a copy of the cache so we do not shift it forward - we are trying to reconstruct here!
+				RkSATCache LocalCache = Cache;
+				if ( rkBuildFaceContact( Out, Transform1, Hull1, Transform2, Hull2, FaceQuery, false, LocalCache, Triangle ) )
+					{
+					// Cache hit, contact points generated
+					RK_ASSERT( !Out.Empty() );
+					return true;
+					}
+
+				// Failure: Invalidate cache and fall through
+				rkClearCache( Cache );
 				}
 			}
 			break;
@@ -784,11 +794,6 @@ static bool rkQueryLastFeatures( RkManifold& Out, const RkTransform& Transform1,
 			int VertexIndex = Hull1->FindSupportVertex( -Plane.Normal );
 			RkVector3 Support = Hull1->GetPosition( VertexIndex );
 			float Separation = rkDistance( Plane, Support );
-
-			// DIRK_TODO: With GJK based manifolds we could be more *strictly* and
-			// just measure the separation of the last face and deepest vertex. This 
-			// might help with creating false contacts from the cache. E.g.
-			// float Separation = rkDistance( Plane, Hull2->GetPosition( Cache.Index2 );
 
 			if ( Separation > 2.0f * RK_CONVEX_RADIUS )
 				{
@@ -820,8 +825,18 @@ static bool rkQueryLastFeatures( RkManifold& Out, const RkTransform& Transform1,
 				FaceQuery.VertexIndex = VertexIndex;
 				FaceQuery.Separation = Separation;
 
-				// We need to run a full test if we clipped all contact points away (e.g. sliding off the face)
-				return rkBuildFaceContact( Out, Transform2, Hull2, Transform1, Hull1, FaceQuery, true, Cache, Triangle );
+				// We need to run a full to test if we clipped all contact points away (e.g. sliding off the face). 
+				// Also pass a copy of the cache so we do not shift it forward - we are trying to reconstruct here!
+				RkSATCache LocalCache = Cache;
+				if ( rkBuildFaceContact( Out, Transform2, Hull2, Transform1, Hull1, FaceQuery, true, LocalCache, Triangle ) )
+					{
+					// Cache hit, contact points generated
+					RK_ASSERT( !Out.Empty() );
+					return true;
+					}
+
+				// Failure: Invalidate cache and fall through
+				rkClearCache( Cache );
 				}
 			}
 			break;
@@ -885,8 +900,18 @@ static bool rkQueryLastFeatures( RkManifold& Out, const RkTransform& Transform1,
 					EdgeQuery.Index2 = Cache.Index2;
 					EdgeQuery.Separation = Separation;
 
-					// We need to run a full test if we clipped all contact points away
-					return rkBuildEdgeContact( Out, Transform1, Hull1, Transform2, Hull2, EdgeQuery, Cache, Triangle );
+					// We need to run a full test if we clipped all contact points away (e.g. edges sliding off each other). 
+					// Also pass a copy of the cache so we do not shift it forward - we are trying to reconstruct here!
+					RkSATCache LocalCache = Cache;
+					if ( rkBuildEdgeContact( Out, Transform1, Hull1, Transform2, Hull2, EdgeQuery, LocalCache, Triangle ) )
+						{
+						// Cache hit, contact points generated
+						RK_ASSERT( !Out.Empty() );
+						return true;
+						}
+
+					// Failure: Invalidate cache and fall through
+					rkClearCache( Cache );
 					}
 				}
 			}

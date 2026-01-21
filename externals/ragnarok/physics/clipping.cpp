@@ -180,7 +180,7 @@ int rkBuildPolygon( RkClipVertex* Polygon, const RkTransform& Transform, const R
 
 
 //--------------------------------------------------------------------------------------------------
-int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRICT Polygon, int VertexCount, const RkPlane3& ClipPlane, int Edge, const RkPlane3& RefPlane )
+int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRICT Polygon, int VertexCount, const RkPlane3& ClipPlane, int ClipEdge, const RkPlane3& RefPlane )
 	{
 	int Count = 0;
 	RkClipVertex Vertex1 = Polygon[ VertexCount - 1 ];
@@ -209,7 +209,7 @@ int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRIC
 			Intersection.Separation = rkDistance( RefPlane, Position );
 			Intersection.Pair = Vertex2.Pair;
 			Intersection.Pair.OutgoingType = RK_FEATURE_SHAPE_1;
-			Intersection.Pair.OutgoingIndex = static_cast< uint8 >( Edge );
+			Intersection.Pair.OutgoingIndex = static_cast< uint8 >( ClipEdge );
 			}
 		else if ( Distance2 <= 0.0f && Distance1 > 0 )
 			{
@@ -223,7 +223,7 @@ int rkClipPolygon( RkClipVertex* RK_RESTRICT Out, const RkClipVertex* RK_RESTRIC
 			Intersection.Separation = rkDistance( RefPlane, Position );
 			Intersection.Pair = Vertex1.Pair;
 			Intersection.Pair.IncomingType = RK_FEATURE_SHAPE_1;
-			Intersection.Pair.IncomingIndex = static_cast< uint8 >( Edge );
+			Intersection.Pair.IncomingIndex = static_cast< uint8 >( ClipEdge );
 			
 			// And also keep vertex2
 			Out[ Count++ ] = Vertex2;
