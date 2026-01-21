@@ -321,24 +321,6 @@ static RkVector3 rkPolygonCenter( const RkClipVertex* Polygon, int VertexCount )
 
 
 //--------------------------------------------------------------------------------------------------
-// static RkVector3 rkPolygonCenter( const RkArray< RkClipVertex >& Polygon )
-// 	{
-// 	RkVector3 Center = RK_VEC3_ZERO;
-// 
-// 	if ( !Polygon.Empty() )
-// 		{
-// 		for ( int Index = 0; Index < Polygon.Size(); ++Index )
-// 			{
-// 			Center += Polygon[ Index ].Position;
-// 			}
-// 		Center /= float( Polygon.Size() );
-// 		}
-// 
-// 	return Center;
-// 	}
-
-
-//--------------------------------------------------------------------------------------------------
 static int rkFindIncidentFace( const RkTransform& Transform, const RkHull* Hull, const RkPlane3& RefPlane, int VertexIndex )
 	{
 	RkVector3 Normal = rkTMul( Transform.Rotation, RefPlane.Normal );
@@ -734,11 +716,6 @@ static bool rkQueryLastFeatures( RkManifold& Out, const RkTransform& Transform1,
 			int VertexIndex = Hull2->FindSupportVertex( -Plane.Normal );
 			RkVector3 Support = Hull2->GetPosition( VertexIndex );
 			float Separation = rkDistance( Plane, Support );
-
-			// DIRK_TODO: With GJK based manifolds we could be more *strictly* and
-			// just measure the separation of the last face and deepest vertex. This 
-			// might help with creating false contacts from the cache. E.g.
-			// float Separation = rkDistance( Plane, Hull2->GetPosition( Cache.Index2 );
 
 			if ( Separation > 2.0f * RK_CONVEX_RADIUS )
 				{
