@@ -62,10 +62,9 @@ class VsTestlab
 		VsCamera* mCamera = nullptr;
 		VsRenderTarget* mRenderTarget = nullptr;
 
-		bool mSingleStep = false;
-		bool mSleeping = true;
 		int mWorkerCount = 0;
-		
+		bool mSleeping = true;
+		bool mSingleStep = false;
 		using VsPluginPtr = std::unique_ptr< IVsPlugin, std::function< void ( IVsPlugin* ) > >;
 		std::vector< VsPluginPtr > mPlugins;
 		std::vector< VsTest* > mTests;
