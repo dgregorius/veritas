@@ -1874,18 +1874,6 @@ void RkWorld::Narrowphase()
 				{
 				RK_TRACY_ZONE_LVL3( "Collide Contacts Task", Tracy_CollideContactsTask );
 
-				// Skip contact if both bodies want to sleep
-				const float SkipTime = 0.5f * RK_SLEEP_TIME;
-
-				RkBody* Body1 = Contact->GetBody1();
-				bool CanSkip1 = Body1->GetType() == RK_STATIC_BODY || Body1->GetSleepTime() > SkipTime;
-				RkBody* Body2 = Contact->GetBody2();
-				bool CanSkip2 = Body2->GetType() == RK_STATIC_BODY || Body2->GetSleepTime() > SkipTime;
-				if ( CanSkip1 && CanSkip2 )
-					{
-					return;
-					}
-
 				int CollisionIndex = Contact->CollisionIndex;
 				int WorkerIndex = mExecutor->this_worker_id();
 				RkBitset& ChangedContactSet = ChangedContactSets[ WorkerIndex ];

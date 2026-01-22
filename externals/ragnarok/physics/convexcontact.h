@@ -27,5 +27,6 @@ class RkConvexContact : public RkContact
 		virtual void Collide() override;
 		
 	private:
+		RkTransform mRelT0 = RK_TRANSFORM_ZERO;
 		RkContactCache mCache;
 	};

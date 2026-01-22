@@ -14,6 +14,16 @@
 
 
 //--------------------------------------------------------------------------------------------------
+// Local utilities
+//--------------------------------------------------------------------------------------------------
+static inline bool rkCloseEnough( const RkTransform& RelT0, const RkTransform& RelT )
+	{
+	RkTransform T = rkTMul( RelT0, RelT );
+	return rkDot( T.Translation, T.Translation ) < rkSquare( 0.25f * RK_LINEAR_SLOP ) && rkAbs( T.Rotation.W ) > 0.999f;
+	}
+
+
+//--------------------------------------------------------------------------------------------------
 // Collision matrix
 //--------------------------------------------------------------------------------------------------
 static void rkCollideSpheres( RkManifold& Manifold, const RkTransform& Transform1, const RkShape* Shape1, const RkTransform& Transform2, const RkShape* Shape2, RkContactCache& Cache )
@@ -109,8 +119,15 @@ void RkConvexContact::Collide()
 	
 	RkTransform Transform1 = mBody1->GetTransform();
 	RkTransform Transform2 = mBody2->GetTransform();
+	RkTransform RelT = rkTMul( Transform1, Transform2 );
+	if ( rkCloseEnough( mRelT0, RelT ) )
+		{
+		// Shapes did not move relative to each other - reuse manifold
+		return;
+		}
 
 	RK_ASSERT( std::all_of( mManifolds, mManifolds + mManifoldCount, []( const RkManifold& Manifold ) { return Manifold.PointCount > 0; } ) );
 	rkCollide( mManifolds[ 0 ], Transform1, mShape1, Transform2, mShape2, mCache );
 	mManifoldCount = mManifolds[ 0 ].Empty() ? 0 : 1;
+	mRelT0 = RelT;
  	}

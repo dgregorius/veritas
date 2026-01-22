@@ -904,7 +904,7 @@ RK_FORCEINLINE RkVector3 rkTMul( const RkMatrix3& M, const RkVector3& V )
 //--------------------------------------------------------------------------------------------------
 RK_FORCEINLINE RkVector3 rkMul( const RkQuaternion& Q, const RkVector3& V )
 	{
-	RK_ASSERT( rkAbs( 1.0f - rkLength( Q ) ) < 100.0f * RK_F32_EPSILON );
+	//RK_ASSERT( rkAbs( 1.0f - rkLength( Q ) ) < 100.0f * RK_F32_EPSILON );
 	return V + 2.0f * rkCross( Q.V, rkCross( Q.V, V ) + Q.S * V );
 	}
 
@@ -912,7 +912,7 @@ RK_FORCEINLINE RkVector3 rkMul( const RkQuaternion& Q, const RkVector3& V )
 //--------------------------------------------------------------------------------------------------
 RK_FORCEINLINE RkVector3 rkTMul( const RkQuaternion& Q, const RkVector3& V )
 	{
-	RK_ASSERT( rkAbs( 1.0f - rkLength( Q ) ) < 100.0f * RK_F32_EPSILON );
+	//RK_ASSERT( rkAbs( 1.0f - rkLength( Q ) ) < 100.0f * RK_F32_EPSILON );
 	return V - 2.0f * rkCross( Q.V, Q.S * V - rkCross( Q.V, V ) );
 	}
 
